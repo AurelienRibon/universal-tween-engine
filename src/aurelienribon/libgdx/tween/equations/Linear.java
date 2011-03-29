@@ -6,7 +6,7 @@ public class Linear {
 	public static final TweenEquation INOUT = new TweenEquation() {
 		@Override
 		public float compute(float t, float b, float c, float d) {
-			return (c-b) * t/d + b;
+			return c * t/d + b;
 		}
 	};
 }

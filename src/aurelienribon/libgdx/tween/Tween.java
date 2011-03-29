@@ -64,7 +64,7 @@ public class Tween {
 	private boolean isStarted = false;
 
 	/**
-	 * YOU SHALL NOT...PAAAASS !
+	 * THOU SHALL NOT...PAAAASS !
 	 */
 	private Tween() {
 	}
@@ -124,8 +124,10 @@ public class Tween {
 	 */
 	private boolean update(long currentTimeMillis) {
 		// Test for the end of the tween
-		if (currentTimeMillis > endTimeMillis)
+		if (currentTimeMillis > endTimeMillis) {
+			target.tweenUpdated(tweenType, startValue + addedValue);
 			return true;
+		}
 
 		// Wait for the end of the delay
 		if (currentTimeMillis < endDelayTimeMillis)
