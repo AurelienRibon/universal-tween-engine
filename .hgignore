@@ -1,0 +1,3 @@
+syntax: glob
+LGDX-TE-lib/*
+LGDX-TE-test/*
