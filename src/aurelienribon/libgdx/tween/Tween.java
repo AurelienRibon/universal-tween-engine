@@ -11,14 +11,15 @@ public class Tween {
 	};
 
 	/**
-	 * Starts a new tweening interpolation.
-	 * @param target The target on which the interpolation wil be done.
-	 * @param tweenType The type of interpolation desired. It will be used
-	 * to determine the starting value for the interpolation, by calling
-	 * Tweenable.getTweenValue(). Can be any custom integer.
+	 * Starts a new tween, interpolating between the current value as a starting
+	 * value and the targetValue as an ending value.
+	 *
+	 * @param target The target of the interpolation.
+	 * @param tweenType The type of interpolation desired.
 	 * @param equation The equation used during the interpolation.
-	 * @param targetValue The target value for the interpolation.
+	 * @param targetValue The ending value for the interpolation.
 	 * @param durationMillis The duration of the interpolation, in milliseconds.
+	 * @return The generated Tween.
 	 */
 	public static Tween to(Tweenable target, int tweenType,
 		TweenEquation equation, float targetValue, long durationMillis) {
@@ -27,7 +28,30 @@ public class Tween {
 		Tween newTween = tweenPool.obtain();
 		
 		// Set tween to busy state, define its parameters, and run it !
-		newTween.reset(target, tweenType, equation, targetValue, durationMillis, 0, null);
+		newTween.reset(target, tweenType, equation, targetValue, durationMillis, false);
+		runningTweens.add(newTween);
+		return newTween;
+	}
+
+	/**
+	 * Starts a new tween, interpolating between the targetValue as a starting
+	 * value and the current value as an ending value.
+	 *
+	 * @param target The target of the interpolation.
+	 * @param tweenType The type of interpolation desired.
+	 * @param equation The equation used during the interpolation.
+	 * @param targetValue The starting value for the interpolation.
+	 * @param durationMillis The duration of the interpolation, in milliseconds.
+	 * @return The generated Tween.
+	 */
+	public static Tween from(Tweenable target, int tweenType,
+		TweenEquation equation, float targetValue, long durationMillis) {
+
+		// Look for a free tween in the pool
+		Tween newTween = tweenPool.obtain();
+
+		// Set tween to busy state, define its parameters, and run it !
+		newTween.reset(target, tweenType, equation, targetValue, durationMillis, true);
 		runningTweens.add(newTween);
 		return newTween;
 	}
@@ -39,8 +63,8 @@ public class Tween {
 		long currentTimeMillis = System.currentTimeMillis();
 		for (Tween tween : runningTweens) {
 			if (tween != null && tween.update(currentTimeMillis)) {
-				if (tween.completeCallback != null)
-					tween.completeCallback.tweenComplete(tween);
+				for (int i=0; i<tween.completeCallbacks.size; i++)
+					tween.completeCallbacks.get(i).tweenComplete(tween);
 				runningTweens.removeValue(tween, true);
 			}
 		}
@@ -49,24 +73,26 @@ public class Tween {
 	// -------------------------------------------------------------------------
 	// -------------------------------------------------------------------------
 
-	private Tweenable target;
-	private int tweenType;
-	private TweenEquation equation;
-	private float startValue;
-	private float addedValue;
-	private long startTimeMillis;
-	private long durationMillis;
-	private long delayMillis;
-	private long endDelayTimeMillis;
-	private long endTimeMillis;
-	private TweenCompleteCallback completeCallback;
+	protected Tweenable target;
+	protected int tweenType;
+	protected TweenEquation equation;
 
-	private boolean isStarted = false;
+	protected float startValue;
+	protected float addedValue;
+	protected float targetValue;
+	protected boolean isFromModeEnabled;
 
-	/**
-	 * THOU SHALL NOT...PAAAASS !
-	 */
+	protected long startTimeMillis;
+	protected long durationMillis;
+	protected long delayMillis;
+	protected long endDelayTimeMillis;
+	protected long endTimeMillis;
+	protected boolean isStarted = false;
+
+	protected Array<TweenCompleteCallback> completeCallbacks;
+
 	private Tween() {
+		completeCallbacks = new Array<TweenCompleteCallback>(true, 3);
 	}
 
 	/**
@@ -82,18 +108,18 @@ public class Tween {
 	 * Returns the current tween for chaining instructions.
 	 */
 	public Tween delay(long delayMillis) {
-		this.delayMillis = delayMillis;
-		this.endDelayTimeMillis = startTimeMillis + delayMillis;
-		this.endTimeMillis = endDelayTimeMillis + durationMillis;
+		this.delayMillis += delayMillis;
+		this.endDelayTimeMillis += delayMillis;
+		this.endTimeMillis += delayMillis;
 		return this;
 	}
 
 	/**
-	 * Sets the callback triggered at the end of the interpolation.
+	 * Adds a callback triggered at the end of the interpolation.
 	 * Returns the current tween for chaining instructions.
 	 */
 	public Tween onComplete(TweenCompleteCallback callback) {
-		this.completeCallback = callback;
+		completeCallbacks.add(callback);
 		return this;
 	}
 
@@ -101,21 +127,23 @@ public class Tween {
 	 * Reset the tween with new parameters.
 	 */
 	private void reset(Tweenable target, int tweenType, TweenEquation equation,
-		float targetValue, long durationMillis, long delayMillis,
-		TweenCompleteCallback completeCallback) {
+		float targetValue, long durationMillis, boolean isFromModeEnabled) {
 
 		this.target = target;
 		this.tweenType = tweenType;
 		this.equation = equation;
-		this.addedValue = targetValue;
+
+		this.targetValue = targetValue;
+		this.isFromModeEnabled = isFromModeEnabled;
+
 		this.startTimeMillis = System.currentTimeMillis();
 		this.durationMillis = durationMillis;
-		this.delayMillis = delayMillis;
-		this.endDelayTimeMillis = startTimeMillis + delayMillis;
+		this.delayMillis = 0;
+		this.endDelayTimeMillis = startTimeMillis;
 		this.endTimeMillis = endDelayTimeMillis + durationMillis;
-		this.completeCallback = completeCallback;
-
 		this.isStarted = false;
+
+		this.completeCallbacks.clear();
 	}
 
 	/**
@@ -133,10 +161,15 @@ public class Tween {
 		if (currentTimeMillis < endDelayTimeMillis)
 			return false;
 
-		// Retrieve the starting value
+		// Retrieve the right starting value after the delay
 		if (!isStarted) {
-			startValue = target.getTweenValue(tweenType);
-			addedValue -= startValue;
+			if (!isFromModeEnabled) {
+				startValue = target.getTweenValue(tweenType);
+				addedValue = targetValue - startValue;
+			} else {
+				startValue = targetValue;
+				addedValue = target.getTweenValue(tweenType) - targetValue;
+			}
 			isStarted = true;
 		}
 

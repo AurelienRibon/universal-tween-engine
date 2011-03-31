@@ -1,4 +1,5 @@
 import aurelienribon.libgdx.tween.Tween;
+import aurelienribon.libgdx.tween.TweenSequence;
 import aurelienribon.libgdx.tween.callbacks.TweenCompleteCallback;
 import aurelienribon.libgdx.tween.equations.Back;
 import aurelienribon.libgdx.tween.equations.Bounce;
