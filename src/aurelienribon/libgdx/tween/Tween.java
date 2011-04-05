@@ -66,8 +66,18 @@ public class Tween {
 				for (int i=0; i<tween.completeCallbacks.size; i++)
 					tween.completeCallbacks.get(i).tweenComplete(tween);
 				runningTweens.removeValue(tween, true);
+				tweenPool.free(tween);
 			}
 		}
+	}
+
+	/**
+	 * Resets every static resource.
+	 */
+	public static void dispose() {
+		for (Tween tween : runningTweens)
+			tweenPool.free(tween);
+		runningTweens.clear();
 	}
 
 	// -------------------------------------------------------------------------
