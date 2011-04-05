@@ -8,5 +8,10 @@ public class Linear {
 		public float compute(float t, float b, float c, float d) {
 			return c * t/d + b;
 		}
+
+		@Override
+		public String toString() {
+			return "Linear.INOUT";
+		}
 	};
 }

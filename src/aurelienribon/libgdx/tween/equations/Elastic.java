@@ -13,6 +13,11 @@ public class Elastic {
 			float s = p/4;
 			return -(a*(float)Math.pow(2,10*(t-=1)) * MathUtils.sin( (t*d-s)*(2*MathUtils.PI)/p )) + b;
 		}
+
+		@Override
+		public String toString() {
+			return "Elastic.IN";
+		}
 	};
 
 	public static final TweenEquation OUT = new TweenEquation() {
@@ -23,6 +28,11 @@ public class Elastic {
 			float a = c;
 			float s = p/4;
 			return (a*(float)Math.pow(2,-10*t) * MathUtils.sin( (t*d-s)*(2*MathUtils.PI)/p ) + c + b);
+		}
+
+		@Override
+		public String toString() {
+			return "Elastic.OUT";
 		}
 	};
 
@@ -35,6 +45,11 @@ public class Elastic {
 			float s = p/4;
 			if (t < 1) return -.5f*(a*(float)Math.pow(2,10*(t-=1)) * MathUtils.sin( (t*d-s)*(2*MathUtils.PI)/p )) + b;
 			return a*(float)Math.pow(2,-10*(t-=1)) * MathUtils.sin( (t*d-s)*(2*MathUtils.PI)/p )*.5f + c + b;
+		}
+
+		@Override
+		public String toString() {
+			return "Elastic.INOUT";
 		}
 	};
 }

@@ -22,7 +22,7 @@ public class Tween {
 	 * @return The generated Tween.
 	 */
 	public static Tween to(Tweenable target, int tweenType,
-		TweenEquation equation, float targetValue, long durationMillis) {
+		TweenEquation equation, float targetValue, int durationMillis) {
 
 		// Look for a free tween in the pool
 		Tween newTween = tweenPool.obtain();
@@ -45,7 +45,7 @@ public class Tween {
 	 * @return The generated Tween.
 	 */
 	public static Tween from(Tweenable target, int tweenType,
-		TweenEquation equation, float targetValue, long durationMillis) {
+		TweenEquation equation, float targetValue, int durationMillis) {
 
 		// Look for a free tween in the pool
 		Tween newTween = tweenPool.obtain();
@@ -60,7 +60,7 @@ public class Tween {
 	 * Updates all the running interpolations.
 	 */
 	public static void update() {
-		long currentTimeMillis = System.currentTimeMillis();
+		int currentTimeMillis = (int) System.currentTimeMillis();
 		for (Tween tween : runningTweens) {
 			if (tween != null && tween.update(currentTimeMillis)) {
 				for (int i=0; i<tween.completeCallbacks.size; i++)
@@ -92,11 +92,11 @@ public class Tween {
 	protected float targetValue;
 	protected boolean isFromModeEnabled;
 
-	protected long startTimeMillis;
-	protected long durationMillis;
-	protected long delayMillis;
-	protected long endDelayTimeMillis;
-	protected long endTimeMillis;
+	protected int startTimeMillis;
+	protected int durationMillis;
+	protected int delayMillis;
+	protected int endDelayTimeMillis;
+	protected int endTimeMillis;
 	protected boolean isStarted = false;
 
 	protected Array<TweenCompleteCallback> completeCallbacks;
@@ -117,7 +117,7 @@ public class Tween {
 	 * Delays the tween. Time has to be specified as milliseconds.
 	 * Returns the current tween for chaining instructions.
 	 */
-	public Tween delay(long delayMillis) {
+	public Tween delay(int delayMillis) {
 		this.delayMillis += delayMillis;
 		this.endDelayTimeMillis += delayMillis;
 		this.endTimeMillis += delayMillis;
@@ -137,7 +137,7 @@ public class Tween {
 	 * Reset the tween with new parameters.
 	 */
 	private void reset(Tweenable target, int tweenType, TweenEquation equation,
-		float targetValue, long durationMillis, boolean isFromModeEnabled) {
+		float targetValue, int durationMillis, boolean isFromModeEnabled) {
 
 		this.target = target;
 		this.tweenType = tweenType;
@@ -146,7 +146,7 @@ public class Tween {
 		this.targetValue = targetValue;
 		this.isFromModeEnabled = isFromModeEnabled;
 
-		this.startTimeMillis = System.currentTimeMillis();
+		this.startTimeMillis = (int) System.currentTimeMillis();
 		this.durationMillis = durationMillis;
 		this.delayMillis = 0;
 		this.endDelayTimeMillis = startTimeMillis;
@@ -160,7 +160,7 @@ public class Tween {
 	 * Updates the tween state.
 	 * Returns true if the tween is ended and has to be killed.
 	 */
-	private boolean update(long currentTimeMillis) {
+	private boolean update(int currentTimeMillis) {
 		// Test for the end of the tween
 		if (currentTimeMillis > endTimeMillis) {
 			target.tweenUpdated(tweenType, startValue + addedValue);
