@@ -40,7 +40,7 @@ public class TweenSequence {
 	}
 
 	public void start() {
-		for (int i=1; i<tweens.size; i++)
+		for (int i=0; i<tweens.size; i++)
 			tweens.get(i).start();
 	}
 

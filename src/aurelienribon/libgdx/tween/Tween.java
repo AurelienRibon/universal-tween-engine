@@ -5,53 +5,149 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Pool;
 
 public class Tween {
-    private final static Array<Tween> runningTweens = new Array<Tween>(false, 30);
-	private final static Pool<Tween> tweenPool = new Pool<Tween>(30) {
+	// -------------------------------------------------------------------------
+	// Static
+	// -------------------------------------------------------------------------
+
+	private static final int MAX_COMBINED_TWEENS = 3;
+
+	private static final float[] tmpVals = new float[MAX_COMBINED_TWEENS];
+    private static final Array<Tween> runningTweens = new Array<Tween>(false, 30);
+	private static final Pool<Tween> tweenPool = new Pool<Tween>(30) {
 		@Override protected Tween newObject() {	return new Tween();	}
 	};
 
 	/**
-	 * Starts a new tween, interpolating between the current value as a starting
-	 * value and the targetValue as an ending value.
-	 *
+	 * Starts a new tween.
 	 * @param target The target of the interpolation.
 	 * @param tweenType The type of interpolation desired.
 	 * @param equation The equation used during the interpolation.
-	 * @param targetValue The ending value for the interpolation.
 	 * @param durationMillis The duration of the interpolation, in milliseconds.
+	 * @param targetValue The ending value for the interpolation.
 	 * @return The generated Tween.
 	 */
 	public static Tween to(Tweenable target, int tweenType,
-		TweenEquation equation, float targetValue, int durationMillis) {
+		TweenEquation equation, int durationMillis, float targetValue) {
 
-		// Look for a free tween in the pool
 		Tween newTween = tweenPool.obtain();
-		
-		// Set tween to busy state, define its parameters, and run it !
-		newTween.reset(target, tweenType, equation, targetValue, durationMillis, false);
+		tmpVals[0] = targetValue;
+
+		newTween.reset(target, tweenType, equation, durationMillis, false, tmpVals);
+		runningTweens.add(newTween);
+
+		return newTween;
+	}
+
+	/**
+	 * Starts a new tween.
+	 * @param target The target of the interpolation.
+	 * @param tweenType The type of interpolation desired.
+	 * @param equation The equation used during the interpolation.
+	 * @param durationMillis The duration of the interpolation, in milliseconds.
+	 * @param targetValue1 The 1st ending value for the interpolation.
+	 * @param targetValue2 The 2nd ending value for the interpolation.
+	 * @return The generated Tween.
+	 */
+	public static Tween to(Tweenable target, int tweenType,
+		TweenEquation equation, int durationMillis, float targetValue1, float targetValue2) {
+
+		Tween newTween = tweenPool.obtain();
+		tmpVals[0] = targetValue1;
+		tmpVals[1] = targetValue2;
+
+		newTween.reset(target, tweenType, equation, durationMillis, false, tmpVals);
+		runningTweens.add(newTween);
+
+		return newTween;
+	}
+
+	/**
+	 * Starts a new tween.
+	 * @param target The target of the interpolation.
+	 * @param tweenType The type of interpolation desired.
+	 * @param equation The equation used during the interpolation.
+	 * @param durationMillis The duration of the interpolation, in milliseconds.
+	 * @param targetValue1 The 1st ending value for the interpolation.
+	 * @param targetValue2 The 2nd ending value for the interpolation.
+	 * @param targetValue3 The 3rd ending value for the interpolation.
+	 * @return The generated Tween.
+	 */
+	public static Tween to(Tweenable target, int tweenType,
+		TweenEquation equation, int durationMillis, float targetValue1, float targetValue2, float targetValue3) {
+
+		Tween newTween = tweenPool.obtain();
+		tmpVals[0] = targetValue1;
+		tmpVals[1] = targetValue2;
+		tmpVals[3] = targetValue3;
+
+		newTween.reset(target, tweenType, equation, durationMillis, false, tmpVals);
+		runningTweens.add(newTween);
+
+		return newTween;
+	}
+
+	/**
+	 * Starts a new tween.
+	 * @param target The target of the interpolation.
+	 * @param tweenType The type of interpolation desired.
+	 * @param equation The equation used during the interpolation.
+	 * @param durationMillis The duration of the interpolation, in milliseconds.
+	 * @param startValue The starting value for the interpolation.
+	 * @return The generated Tween.
+	 */
+	public static Tween from(Tweenable target, int tweenType,
+		TweenEquation equation, int durationMillis, float startValue) {
+
+		Tween newTween = tweenPool.obtain();
+		tmpVals[0] = startValue;
+
+		newTween.reset(target, tweenType, equation, durationMillis, true, tmpVals);
 		runningTweens.add(newTween);
 		return newTween;
 	}
 
 	/**
-	 * Starts a new tween, interpolating between the targetValue as a starting
-	 * value and the current value as an ending value.
-	 *
+	 * Starts a new tween.
 	 * @param target The target of the interpolation.
 	 * @param tweenType The type of interpolation desired.
 	 * @param equation The equation used during the interpolation.
-	 * @param targetValue The starting value for the interpolation.
 	 * @param durationMillis The duration of the interpolation, in milliseconds.
+	 * @param startValue1 The 1st starting value for the interpolation.
+	 * @param startValue2 The 2nd starting value for the interpolation.
 	 * @return The generated Tween.
 	 */
 	public static Tween from(Tweenable target, int tweenType,
-		TweenEquation equation, float targetValue, int durationMillis) {
+		TweenEquation equation, int durationMillis, float startValue1, float startValue2) {
 
-		// Look for a free tween in the pool
 		Tween newTween = tweenPool.obtain();
+		tmpVals[0] = startValue1;
+		tmpVals[1] = startValue2;
 
-		// Set tween to busy state, define its parameters, and run it !
-		newTween.reset(target, tweenType, equation, targetValue, durationMillis, true);
+		newTween.reset(target, tweenType, equation, durationMillis, true, tmpVals);
+		runningTweens.add(newTween);
+		return newTween;
+	}
+
+	/**
+	 * Starts a new tween.
+	 * @param target The target of the interpolation.
+	 * @param tweenType The type of interpolation desired.
+	 * @param equation The equation used during the interpolation.
+	 * @param durationMillis The duration of the interpolation, in milliseconds.
+	 * @param startValue1 The 1st starting value for the interpolation.
+	 * @param startValue2 The 2nd starting value for the interpolation.
+	 * @param startValue3 The 3rd starting value for the interpolation.
+	 * @return The generated Tween.
+	 */
+	public static Tween from(Tweenable target, int tweenType,
+		TweenEquation equation, int durationMillis, float startValue1, float startValue2, float startValue3) {
+
+		Tween newTween = tweenPool.obtain();
+		tmpVals[0] = startValue1;
+		tmpVals[1] = startValue2;
+		tmpVals[2] = startValue3;
+
+		newTween.reset(target, tweenType, equation, durationMillis, true, tmpVals);
 		runningTweens.add(newTween);
 		return newTween;
 	}
@@ -81,15 +177,17 @@ public class Tween {
 	}
 
 	// -------------------------------------------------------------------------
+	// Tween
 	// -------------------------------------------------------------------------
 
 	protected Tweenable target;
 	protected int tweenType;
 	protected TweenEquation equation;
 
-	protected float startValue;
-	protected float addedValue;
-	protected float targetValue;
+	protected int tweenCount;
+	protected final float[] startValues;
+	protected final float[] addedValues;
+	protected final float[] targetValues;
 	protected boolean isFromModeEnabled;
 
 	protected int startTimeMillis;
@@ -103,6 +201,9 @@ public class Tween {
 	protected Array<TweenCompleteCallback> completeCallbacks;
 
 	private Tween() {
+		startValues = new float[MAX_COMBINED_TWEENS];
+		addedValues = new float[MAX_COMBINED_TWEENS];
+		targetValues = new float[MAX_COMBINED_TWEENS];
 		completeCallbacks = new Array<TweenCompleteCallback>(true, 3);
 	}
 
@@ -121,7 +222,8 @@ public class Tween {
 	 * Stops it and removes it from the running tween list.
 	 */
 	public void kill() {
-		endTimeMillis = 0;
+		runningTweens.removeValue(this, true);
+		tweenPool.free(this);
 	}
 
 	/**
@@ -148,14 +250,18 @@ public class Tween {
 	 * Reset the tween with new parameters.
 	 */
 	private void reset(Tweenable target, int tweenType, TweenEquation equation,
-		float targetValue, int durationMillis, boolean isFromModeEnabled) {
+		int durationMillis, boolean isFromModeEnabled, float[] targetValues) {
 
+		this.tweenCount = target.getTweenedAttributeCount(tweenType);
+		if (this.tweenCount < 1 || this.tweenCount > MAX_COMBINED_TWEENS)
+			throw new RuntimeException("You cannot combine more than "
+				+ MAX_COMBINED_TWEENS + " tweens together");
+		
 		this.target = target;
 		this.tweenType = tweenType;
 		this.equation = equation;
-
-		this.targetValue = targetValue;
 		this.isFromModeEnabled = isFromModeEnabled;
+		System.arraycopy(targetValues, 0, this.targetValues, 0, MAX_COMBINED_TWEENS);
 
 		this.durationMillis = durationMillis;
 		this.delayMillis = 0;
@@ -174,9 +280,12 @@ public class Tween {
 		if (!isStarted)
 			return false;
 
-		// Test for the end of the tween
+		// Test for the end of the tween. If true, set the target values to
+		// their final values (to avoid precision loss when moving fast).
 		if (currentTimeMillis > endTimeMillis) {
-			target.tweenUpdated(tweenType, startValue + addedValue);
+			for (int i=0; i<MAX_COMBINED_TWEENS; i++)
+				tmpVals[i] = startValues[i] + addedValues[i];
+			target.tweenUpdated(tweenType, tmpVals);
 			return true;
 		}
 
@@ -186,23 +295,27 @@ public class Tween {
 				return false;
 			} else {
 				if (!isFromModeEnabled) {
-					startValue = target.getTweenValue(tweenType);
-					addedValue = targetValue - startValue;
+					target.getTweenValues(tweenType, startValues);
+					for (int i=0; i<MAX_COMBINED_TWEENS; i++)
+						addedValues[i] = targetValues[i] - startValues[i];
 				} else {
-					startValue = targetValue;
-					addedValue = target.getTweenValue(tweenType) - targetValue;
+					System.arraycopy(targetValues, 0, startValues, 0, MAX_COMBINED_TWEENS);
+					target.getTweenValues(tweenType, addedValues);
+					for (int i=0; i<MAX_COMBINED_TWEENS; i++)
+						addedValues[i] -= targetValues[i];
 				}
 				isDelayEnded = true;
 			}
 		}
 
-		// Current value computation
-		float newValue = equation.compute(
-			currentTimeMillis - delayMillis - startTimeMillis,
-			startValue, 
-			addedValue,
-			durationMillis);
-		target.tweenUpdated(tweenType, newValue);
+		// New values computation
+		for (int i=0; i<tweenCount; i++)
+			tmpVals[i] = equation.compute(
+				currentTimeMillis - delayMillis - startTimeMillis,
+				startValues[i],
+				addedValues[i],
+				durationMillis);
+		target.tweenUpdated(tweenType, tmpVals);
 		return false;
 	}
 
@@ -218,8 +331,8 @@ public class Tween {
 		return equation;
 	}
 
-	public float getTargetValue() {
-		return targetValue;
+	public float[] getTargetValues() {
+		return targetValues;
 	}
 
 	public int getDurationMillis() {
