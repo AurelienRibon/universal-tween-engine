@@ -97,12 +97,23 @@ public class Tween {
 	protected int delayMillis;
 	protected int endDelayTimeMillis;
 	protected int endTimeMillis;
+	protected boolean isDelayEnded = false;
 	protected boolean isStarted = false;
 
 	protected Array<TweenCompleteCallback> completeCallbacks;
 
 	private Tween() {
 		completeCallbacks = new Array<TweenCompleteCallback>(true, 3);
+	}
+
+	/**
+	 * Starts the interpolation.
+	 */
+	public void start() {
+		startTimeMillis = (int) System.currentTimeMillis();
+		endDelayTimeMillis = startTimeMillis + delayMillis;
+		endTimeMillis = endDelayTimeMillis + durationMillis;
+		isStarted = true;
 	}
 
 	/**
@@ -146,11 +157,9 @@ public class Tween {
 		this.targetValue = targetValue;
 		this.isFromModeEnabled = isFromModeEnabled;
 
-		this.startTimeMillis = (int) System.currentTimeMillis();
 		this.durationMillis = durationMillis;
 		this.delayMillis = 0;
-		this.endDelayTimeMillis = startTimeMillis;
-		this.endTimeMillis = endDelayTimeMillis + durationMillis;
+		this.isDelayEnded = false;
 		this.isStarted = false;
 
 		this.completeCallbacks.clear();
@@ -161,26 +170,30 @@ public class Tween {
 	 * Returns true if the tween is ended and has to be killed.
 	 */
 	private boolean update(int currentTimeMillis) {
+		// Are we okay ?
+		if (!isStarted)
+			return false;
+
 		// Test for the end of the tween
 		if (currentTimeMillis > endTimeMillis) {
 			target.tweenUpdated(tweenType, startValue + addedValue);
 			return true;
 		}
 
-		// Wait for the end of the delay
-		if (currentTimeMillis < endDelayTimeMillis)
-			return false;
-
-		// Retrieve the right starting value after the delay
-		if (!isStarted) {
-			if (!isFromModeEnabled) {
-				startValue = target.getTweenValue(tweenType);
-				addedValue = targetValue - startValue;
+		// Wait for the end of the delay and grab the start and end values
+		if (!isDelayEnded) {
+			if (currentTimeMillis < endDelayTimeMillis) {
+				return false;
 			} else {
-				startValue = targetValue;
-				addedValue = target.getTweenValue(tweenType) - targetValue;
+				if (!isFromModeEnabled) {
+					startValue = target.getTweenValue(tweenType);
+					addedValue = targetValue - startValue;
+				} else {
+					startValue = targetValue;
+					addedValue = target.getTweenValue(tweenType) - targetValue;
+				}
+				isDelayEnded = true;
 			}
-			isStarted = true;
 		}
 
 		// Current value computation
@@ -191,5 +204,29 @@ public class Tween {
 			durationMillis);
 		target.tweenUpdated(tweenType, newValue);
 		return false;
+	}
+
+	public Tweenable getTarget() {
+		return target;
+	}
+
+	public int getTweenType() {
+		return tweenType;
+	}
+
+	public TweenEquation getEquation() {
+		return equation;
+	}
+
+	public float getTargetValue() {
+		return targetValue;
+	}
+
+	public int getDurationMillis() {
+		return durationMillis;
+	}
+
+	public int getDelayMillis() {
+		return delayMillis;
 	}
 }

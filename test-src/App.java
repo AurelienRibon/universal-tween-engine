@@ -1,5 +1,4 @@
 import aurelienribon.libgdx.tween.Tween;
-import aurelienribon.libgdx.tween.TweenSequence;
 import aurelienribon.libgdx.tween.callbacks.TweenCompleteCallback;
 import aurelienribon.libgdx.tween.equations.Back;
 import aurelienribon.libgdx.tween.equations.Bounce;
@@ -85,50 +84,50 @@ public class App implements ApplicationListener {
 	private void startNextTween() {
 		switch (state) {
 			case 0:
-				Tween.to(sprite, TweenableSprite.ORIG_X, Linear.INOUT, POS_RIGHT, DELAY);
-				Tween.to(sprite, TweenableSprite.ORIG_X, Linear.INOUT, POS_LEFT, DELAY).delay(DELAY).onComplete(onComplete);
+				Tween.to(sprite, TweenableSprite.ORIG_X, Linear.INOUT, POS_RIGHT, DELAY).start();
+				Tween.to(sprite, TweenableSprite.ORIG_X, Linear.INOUT, POS_LEFT, DELAY).delay(DELAY).onComplete(onComplete).start();
 				text = "LINEAR : INOUT";
 				break;
 
-			case 1: Tween.to(sprite, TweenableSprite.ORIG_X, Quad.OUT, POS_CENTER, DELAY).onComplete(onComplete); text = "Quad : OUT"; break;
-			case 2: Tween.to(sprite, TweenableSprite.ORIG_X, Quad.IN, POS_RIGHT, DELAY).onComplete(onComplete); text = "Quad : IN"; break;
-			case 3: Tween.to(sprite, TweenableSprite.ORIG_X, Quad.INOUT, POS_LEFT, DELAY * 2).onComplete(onComplete); text = "Quad : INOUT"; break;
+			case 1: Tween.to(sprite, TweenableSprite.ORIG_X, Quad.OUT, POS_CENTER, DELAY).onComplete(onComplete).start(); text = "Quad : OUT"; break;
+			case 2: Tween.to(sprite, TweenableSprite.ORIG_X, Quad.IN, POS_RIGHT, DELAY).onComplete(onComplete).start(); text = "Quad : IN"; break;
+			case 3: Tween.to(sprite, TweenableSprite.ORIG_X, Quad.INOUT, POS_LEFT, DELAY * 2).onComplete(onComplete).start(); text = "Quad : INOUT"; break;
 
-			case 4: Tween.to(sprite, TweenableSprite.ORIG_X, Cubic.OUT, POS_CENTER, DELAY).onComplete(onComplete); text = "Cubic : OUT"; break;
-			case 5: Tween.to(sprite, TweenableSprite.ORIG_X, Cubic.IN, POS_RIGHT, DELAY).onComplete(onComplete); text = "Cubic : IN"; break;
-			case 6: Tween.to(sprite, TweenableSprite.ORIG_X, Cubic.INOUT, POS_LEFT, DELAY * 2).onComplete(onComplete); text = "Cubic : INOUT"; break;
+			case 4: Tween.to(sprite, TweenableSprite.ORIG_X, Cubic.OUT, POS_CENTER, DELAY).onComplete(onComplete).start(); text = "Cubic : OUT"; break;
+			case 5: Tween.to(sprite, TweenableSprite.ORIG_X, Cubic.IN, POS_RIGHT, DELAY).onComplete(onComplete).start(); text = "Cubic : IN"; break;
+			case 6: Tween.to(sprite, TweenableSprite.ORIG_X, Cubic.INOUT, POS_LEFT, DELAY * 2).onComplete(onComplete).start(); text = "Cubic : INOUT"; break;
 
-			case 7: Tween.to(sprite, TweenableSprite.ORIG_X, Quart.OUT, POS_CENTER, DELAY).onComplete(onComplete); text = "Quart : OUT"; break;
-			case 8: Tween.to(sprite, TweenableSprite.ORIG_X, Quart.IN, POS_RIGHT, DELAY).onComplete(onComplete); text = "Quart : IN"; break;
-			case 9: Tween.to(sprite, TweenableSprite.ORIG_X, Quart.INOUT, POS_LEFT, DELAY * 2).onComplete(onComplete); text = "Quart : INOUT"; break;
+			case 7: Tween.to(sprite, TweenableSprite.ORIG_X, Quart.OUT, POS_CENTER, DELAY).onComplete(onComplete).start(); text = "Quart : OUT"; break;
+			case 8: Tween.to(sprite, TweenableSprite.ORIG_X, Quart.IN, POS_RIGHT, DELAY).onComplete(onComplete).start(); text = "Quart : IN"; break;
+			case 9: Tween.to(sprite, TweenableSprite.ORIG_X, Quart.INOUT, POS_LEFT, DELAY * 2).onComplete(onComplete).start(); text = "Quart : INOUT"; break;
 
-			case 10: Tween.to(sprite, TweenableSprite.ORIG_X, Quint.OUT, POS_CENTER, DELAY).onComplete(onComplete); text = "Quint : OUT"; break;
-			case 11: Tween.to(sprite, TweenableSprite.ORIG_X, Quint.IN, POS_RIGHT, DELAY).onComplete(onComplete); text = "Quint : IN"; break;
-			case 12: Tween.to(sprite, TweenableSprite.ORIG_X, Quint.INOUT, POS_LEFT, DELAY * 2).onComplete(onComplete); text = "Quint : INOUT"; break;
+			case 10: Tween.to(sprite, TweenableSprite.ORIG_X, Quint.OUT, POS_CENTER, DELAY).onComplete(onComplete).start(); text = "Quint : OUT"; break;
+			case 11: Tween.to(sprite, TweenableSprite.ORIG_X, Quint.IN, POS_RIGHT, DELAY).onComplete(onComplete).start(); text = "Quint : IN"; break;
+			case 12: Tween.to(sprite, TweenableSprite.ORIG_X, Quint.INOUT, POS_LEFT, DELAY * 2).onComplete(onComplete).start(); text = "Quint : INOUT"; break;
 
-			case 13: Tween.to(sprite, TweenableSprite.ORIG_X, Expo.OUT, POS_CENTER, DELAY).onComplete(onComplete); text = "Expo : OUT"; break;
-			case 14: Tween.to(sprite, TweenableSprite.ORIG_X, Expo.IN, POS_RIGHT, DELAY).onComplete(onComplete); text = "Expo : IN"; break;
-			case 15: Tween.to(sprite, TweenableSprite.ORIG_X, Expo.INOUT, POS_LEFT, DELAY * 2).onComplete(onComplete); text = "Expo : INOUT"; break;
+			case 13: Tween.to(sprite, TweenableSprite.ORIG_X, Expo.OUT, POS_CENTER, DELAY).onComplete(onComplete).start(); text = "Expo : OUT"; break;
+			case 14: Tween.to(sprite, TweenableSprite.ORIG_X, Expo.IN, POS_RIGHT, DELAY).onComplete(onComplete).start(); text = "Expo : IN"; break;
+			case 15: Tween.to(sprite, TweenableSprite.ORIG_X, Expo.INOUT, POS_LEFT, DELAY * 2).onComplete(onComplete).start(); text = "Expo : INOUT"; break;
 
-			case 16: Tween.to(sprite, TweenableSprite.ORIG_X, Circ.OUT, POS_CENTER, DELAY).onComplete(onComplete); text = "Circ : OUT"; break;
-			case 17: Tween.to(sprite, TweenableSprite.ORIG_X, Circ.IN, POS_RIGHT, DELAY).onComplete(onComplete); text = "Circ : IN"; break;
-			case 18: Tween.to(sprite, TweenableSprite.ORIG_X, Circ.INOUT, POS_LEFT, DELAY * 2).onComplete(onComplete); text = "Circ : INOUT"; break;
+			case 16: Tween.to(sprite, TweenableSprite.ORIG_X, Circ.OUT, POS_CENTER, DELAY).onComplete(onComplete).start(); text = "Circ : OUT"; break;
+			case 17: Tween.to(sprite, TweenableSprite.ORIG_X, Circ.IN, POS_RIGHT, DELAY).onComplete(onComplete).start(); text = "Circ : IN"; break;
+			case 18: Tween.to(sprite, TweenableSprite.ORIG_X, Circ.INOUT, POS_LEFT, DELAY * 2).onComplete(onComplete).start(); text = "Circ : INOUT"; break;
 
-			case 19: Tween.to(sprite, TweenableSprite.ORIG_X, Sine.OUT, POS_CENTER, DELAY).onComplete(onComplete); text = "Sine : OUT"; break;
-			case 20: Tween.to(sprite, TweenableSprite.ORIG_X, Sine.IN, POS_RIGHT, DELAY).onComplete(onComplete); text = "Sine : IN"; break;
-			case 21: Tween.to(sprite, TweenableSprite.ORIG_X, Sine.INOUT, POS_LEFT, DELAY * 2).onComplete(onComplete); text = "Sine : INOUT"; break;
+			case 19: Tween.to(sprite, TweenableSprite.ORIG_X, Sine.OUT, POS_CENTER, DELAY).onComplete(onComplete).start(); text = "Sine : OUT"; break;
+			case 20: Tween.to(sprite, TweenableSprite.ORIG_X, Sine.IN, POS_RIGHT, DELAY).onComplete(onComplete).start(); text = "Sine : IN"; break;
+			case 21: Tween.to(sprite, TweenableSprite.ORIG_X, Sine.INOUT, POS_LEFT, DELAY * 2).onComplete(onComplete).start(); text = "Sine : INOUT"; break;
 
-			case 22: Tween.to(sprite, TweenableSprite.ORIG_X, Back.OUT, POS_CENTER, DELAY).onComplete(onComplete); text = "Back : OUT"; break;
-			case 23: Tween.to(sprite, TweenableSprite.ORIG_X, Back.IN, POS_RIGHT, DELAY).onComplete(onComplete); text = "Back : IN"; break;
-			case 24: Tween.to(sprite, TweenableSprite.ORIG_X, Back.INOUT, POS_LEFT, DELAY * 2).onComplete(onComplete); text = "Back : INOUT"; break;
+			case 22: Tween.to(sprite, TweenableSprite.ORIG_X, Back.OUT, POS_CENTER, DELAY).onComplete(onComplete).start(); text = "Back : OUT"; break;
+			case 23: Tween.to(sprite, TweenableSprite.ORIG_X, Back.IN, POS_RIGHT, DELAY).onComplete(onComplete).start(); text = "Back : IN"; break;
+			case 24: Tween.to(sprite, TweenableSprite.ORIG_X, Back.INOUT, POS_LEFT, DELAY * 2).onComplete(onComplete).start(); text = "Back : INOUT"; break;
 
-			case 25: Tween.to(sprite, TweenableSprite.ORIG_X, Bounce.OUT, POS_CENTER, DELAY * 2).onComplete(onComplete); text = "Bounce : OUT"; break;
-			case 26: Tween.to(sprite, TweenableSprite.ORIG_X, Bounce.IN, POS_RIGHT, DELAY * 2).onComplete(onComplete); text = "Bounce : IN"; break;
-			case 27: Tween.to(sprite, TweenableSprite.ORIG_X, Bounce.INOUT, POS_LEFT, DELAY * 4).onComplete(onComplete); text = "Bounce : INOUT"; break;
+			case 25: Tween.to(sprite, TweenableSprite.ORIG_X, Bounce.OUT, POS_CENTER, DELAY * 2).onComplete(onComplete).start(); text = "Bounce : OUT"; break;
+			case 26: Tween.to(sprite, TweenableSprite.ORIG_X, Bounce.IN, POS_RIGHT, DELAY * 2).onComplete(onComplete).start(); text = "Bounce : IN"; break;
+			case 27: Tween.to(sprite, TweenableSprite.ORIG_X, Bounce.INOUT, POS_LEFT, DELAY * 4).onComplete(onComplete).start(); text = "Bounce : INOUT"; break;
 
-			case 28: Tween.to(sprite, TweenableSprite.ORIG_X, Elastic.OUT, POS_CENTER, DELAY * 2).onComplete(onComplete); text = "Elastic : OUT"; break;
-			case 29: Tween.to(sprite, TweenableSprite.ORIG_X, Elastic.IN, POS_RIGHT, DELAY * 2).onComplete(onComplete); text = "Elastic : IN"; break;
-			case 30: Tween.to(sprite, TweenableSprite.ORIG_X, Elastic.INOUT, POS_LEFT, DELAY * 4).onComplete(onComplete); text = "Elastic : INOUT"; break;
+			case 28: Tween.to(sprite, TweenableSprite.ORIG_X, Elastic.OUT, POS_CENTER, DELAY * 2).onComplete(onComplete).start(); text = "Elastic : OUT"; break;
+			case 29: Tween.to(sprite, TweenableSprite.ORIG_X, Elastic.IN, POS_RIGHT, DELAY * 2).onComplete(onComplete).start(); text = "Elastic : IN"; break;
+			case 30: Tween.to(sprite, TweenableSprite.ORIG_X, Elastic.INOUT, POS_LEFT, DELAY * 4).onComplete(onComplete).start(); text = "Elastic : INOUT"; break;
 
 			default: state = 0; startNextTween();
 		}
