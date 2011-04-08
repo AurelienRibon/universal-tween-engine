@@ -78,7 +78,7 @@ public class Tween {
 		Tween newTween = tweenPool.obtain();
 		tmpVals[0] = targetValue1;
 		tmpVals[1] = targetValue2;
-		tmpVals[3] = targetValue3;
+		tmpVals[2] = targetValue3;
 
 		newTween.reset(target, tweenType, equation, durationMillis, false, tmpVals);
 		runningTweens.add(newTween);
@@ -184,7 +184,7 @@ public class Tween {
 	protected int tweenType;
 	protected TweenEquation equation;
 
-	protected int tweenCount;
+	protected int combinedTweenCount;
 	protected final float[] startValues;
 	protected final float[] addedValues;
 	protected final float[] targetValues;
@@ -252,8 +252,8 @@ public class Tween {
 	private void reset(Tweenable target, int tweenType, TweenEquation equation,
 		int durationMillis, boolean isFromModeEnabled, float[] targetValues) {
 
-		this.tweenCount = target.getTweenedAttributeCount(tweenType);
-		if (this.tweenCount < 1 || this.tweenCount > MAX_COMBINED_TWEENS)
+		this.combinedTweenCount = target.getTweenedAttributeCount(tweenType);
+		if (this.combinedTweenCount < 1 || this.combinedTweenCount > MAX_COMBINED_TWEENS)
 			throw new RuntimeException("You cannot combine more than "
 				+ MAX_COMBINED_TWEENS + " tweens together");
 		
@@ -309,7 +309,7 @@ public class Tween {
 		}
 
 		// New values computation
-		for (int i=0; i<tweenCount; i++)
+		for (int i=0; i<combinedTweenCount; i++)
 			tmpVals[i] = equation.compute(
 				currentTimeMillis - delayMillis - startTimeMillis,
 				startValues[i],
@@ -341,5 +341,17 @@ public class Tween {
 
 	public int getDelayMillis() {
 		return delayMillis;
+	}
+
+	public int getCombinedTweenCount() {
+		return combinedTweenCount;
+	}
+
+	public Tween copy() {
+		Tween tween = new Tween();
+		tween.reset(target, tweenType, equation, durationMillis, isFromModeEnabled, targetValues);
+		tween.delay(delayMillis);
+		runningTweens.add(tween);
+		return tween;
 	}
 }
