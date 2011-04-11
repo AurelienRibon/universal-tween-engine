@@ -364,11 +364,20 @@ public class Tween {
 	}
 
 	/**
-	 * Adds a callback triggered at the end of the interpolation.
-	 * Returns the current tween for chaining instructions.
+	 * Adds a callback triggered at the end of the interpolation (including
+	 * repeats). Returns the current tween for chaining instructions.
 	 */
 	public Tween onComplete(TweenCompleteCallback callback) {
 		completeCallbacks.add(callback);
+		return this;
+	}
+
+	/**
+	 * Adds a callback triggered at the end each repeat iteration.
+	 * Returns the current tween for chaining instructions.
+	 */
+	public Tween onComplete(TweenIterationCompleteCallback callback) {
+		iterationCompleteCallbacks.add(callback);
 		return this;
 	}
 
