@@ -1,42 +1,44 @@
-package aurelienribon.libgdx.tween.equations;
+package aurelienribon.tweenengine.equations;
 
-import aurelienribon.libgdx.tween.TweenEquation;
+import aurelienribon.tweenengine.TweenEquation;
 
-public class Quint {
+public class Expo {
 	public static final TweenEquation IN = new TweenEquation() {
 		@Override
 		public float compute(float t, float b, float c, float d) {
-			return c*(t/=d)*t*t*t*t + b;
+			return (t==0) ? b : c * (float)Math.pow(2, 10 * (t/d - 1)) + b;
 		}
 
 		@Override
 		public String toString() {
-			return "Quint.IN";
+			return "Expo.IN";
 		}
 	};
 
 	public static final TweenEquation OUT = new TweenEquation() {
 		@Override
 		public float compute(float t, float b, float c, float d) {
-			return c*((t=t/d-1)*t*t*t*t + 1) + b;
+			return (t==d) ? b+c : c * (-(float)Math.pow(2, -10 * t/d) + 1) + b;
 		}
 
 		@Override
 		public String toString() {
-			return "Quint.OUT";
+			return "Expo.OUT";
 		}
 	};
 
 	public static final TweenEquation INOUT = new TweenEquation() {
 		@Override
 		public float compute(float t, float b, float c, float d) {
-			if ((t/=d/2) < 1) return c/2*t*t*t*t*t + b;
-			return c/2*((t-=2)*t*t*t*t + 2) + b;
+			if (t==0) return b;
+			if (t==d) return b+c;
+			if ((t/=d/2) < 1) return c/2 * (float)Math.pow(2, 10 * (t - 1)) + b;
+			return c/2 * (-(float)Math.pow(2, -10 * --t) + 2) + b;
 		}
 
 		@Override
 		public String toString() {
-			return "Quint.INOUT";
+			return "Expo.INOUT";
 		}
 	};
 }

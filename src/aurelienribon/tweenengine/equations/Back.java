@@ -1,42 +1,45 @@
-package aurelienribon.libgdx.tween.equations;
+package aurelienribon.tweenengine.equations;
 
-import aurelienribon.libgdx.tween.TweenEquation;
+import aurelienribon.tweenengine.TweenEquation;
 
-public class Circ {
+public class Back {
 	public static final TweenEquation IN = new TweenEquation() {
 		@Override
 		public float compute(float t, float b, float c, float d) {
-			return -c * ((float)Math.sqrt(1 - (t/=d)*t) - 1) + b;
+			float s = 1.70158f;
+			return c*(t/=d)*t*((s+1)*t - s) + b;
 		}
 
 		@Override
 		public String toString() {
-			return "Circ.IN";
+			return "Back.IN";
 		}
 	};
 
 	public static final TweenEquation OUT = new TweenEquation() {
 		@Override
 		public float compute(float t, float b, float c, float d) {
-			return c * (float)Math.sqrt(1 - (t=t/d-1)*t) + b;
+			float s = 1.70158f;
+			return c*((t=t/d-1)*t*((s+1)*t + s) + 1) + b;
 		}
 
 		@Override
 		public String toString() {
-			return "Circ.OUT";
+			return "Back.OUT";
 		}
 	};
 
 	public static final TweenEquation INOUT = new TweenEquation() {
 		@Override
 		public float compute(float t, float b, float c, float d) {
-			if ((t/=d/2) < 1) return -c/2 * ((float)Math.sqrt(1 - t*t) - 1) + b;
-			return c/2 * ((float)Math.sqrt(1 - (t-=2)*t) + 1) + b;
+			float s = 1.70158f;
+			if ((t/=d/2) < 1) return c/2*(t*t*(((s*=(1.525))+1)*t - s)) + b;
+			return c/2*((t-=2)*t*(((s*=(1.525))+1)*t + s) + 2) + b;
 		}
 
 		@Override
 		public String toString() {
-			return "Circ.INOUT";
+			return "Back.INOUT";
 		}
 	};
 }

@@ -1,6 +1,6 @@
-package aurelienribon.libgdx.tween.equations;
+package aurelienribon.tweenengine.equations;
 
-import aurelienribon.libgdx.tween.TweenEquation;
+import aurelienribon.tweenengine.TweenEquation;
 
 public class Cubic {
 	public static final TweenEquation IN = new TweenEquation() {

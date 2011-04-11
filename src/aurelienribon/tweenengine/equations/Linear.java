@@ -1,6 +1,6 @@
-package aurelienribon.libgdx.tween.equations;
+package aurelienribon.tweenengine.equations;
 
-import aurelienribon.libgdx.tween.TweenEquation;
+import aurelienribon.tweenengine.TweenEquation;
 
 public class Linear {
 	public static final TweenEquation INOUT = new TweenEquation() {

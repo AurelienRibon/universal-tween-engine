@@ -1,4 +1,4 @@
-package aurelienribon.libgdx.tween;
+package aurelienribon.tweenengine;
 
 public interface Tweenable {
 	/**

@@ -1,3 +1,2 @@
 syntax: glob
-LGDX-TweenEngine-lib/*
-LGDX-TweenEngine-test/*
+TweenEngine-lib/*

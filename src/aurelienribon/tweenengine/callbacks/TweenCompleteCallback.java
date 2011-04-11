@@ -1,6 +1,6 @@
-package aurelienribon.libgdx.tween.callbacks;
+package aurelienribon.tweenengine.callbacks;
 
-import aurelienribon.libgdx.tween.Tween;
+import aurelienribon.tweenengine.Tween;
 
 public interface TweenCompleteCallback {
     public void tweenComplete(Tween tween);

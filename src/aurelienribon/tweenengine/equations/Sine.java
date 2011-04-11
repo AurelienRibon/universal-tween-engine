@@ -1,42 +1,43 @@
-package aurelienribon.libgdx.tween.equations;
+package aurelienribon.tweenengine.equations;
 
-import aurelienribon.libgdx.tween.TweenEquation;
+import aurelienribon.tweenengine.TweenEquation;
 
-public class Quad {
+public class Sine {
+	private static final float PI = 3.14159265f;
+	
 	public static final TweenEquation IN = new TweenEquation() {
 		@Override
 		public float compute(float t, float b, float c, float d) {
-			return c*(t/=d)*t + b;
+			return -c * (float)Math.cos(t/d * ((float)Math.PI/2)) + c + b;
 		}
 
 		@Override
 		public String toString() {
-			return "Quad.IN";
+			return "Sine.IN";
 		}
 	};
 
 	public static final TweenEquation OUT = new TweenEquation() {
 		@Override
 		public float compute(float t, float b, float c, float d) {
-			return -c*(t/=d)*(t-2) + b;
+			return c * (float)Math.sin(t/d * ((float)Math.PI/2)) + b;
 		}
 
 		@Override
 		public String toString() {
-			return "Quad.OUT";
+			return "Sine.OUT";
 		}
 	};
 
 	public static final TweenEquation INOUT = new TweenEquation() {
 		@Override
 		public float compute(float t, float b, float c, float d) {
-			if ((t/=d/2) < 1) return c/2*t*t + b;
-			return -c/2 * ((--t)*(t-2) - 1) + b;
+			return -c/2 * ((float)Math.cos((float)Math.PI*t/d) - 1) + b;
 		}
 
 		@Override
 		public String toString() {
-			return "Quad.INOUT";
+			return "Sine.INOUT";
 		}
 	};
 }

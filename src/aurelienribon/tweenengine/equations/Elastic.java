@@ -1,9 +1,10 @@
-package aurelienribon.libgdx.tween.equations;
+package aurelienribon.tweenengine.equations;
 
-import aurelienribon.libgdx.tween.TweenEquation;
-import com.badlogic.gdx.utils.MathUtils;
+import aurelienribon.tweenengine.TweenEquation;
 
 public class Elastic {
+	private static final float PI = 3.14159265f;
+
 	public static final TweenEquation IN = new TweenEquation() {
 		@Override
 		public float compute(float t, float b, float c, float d) {
@@ -11,7 +12,7 @@ public class Elastic {
 			float p = d*.3f;
 			float a = c;
 			float s = p/4;
-			return -(a*(float)Math.pow(2,10*(t-=1)) * MathUtils.sin( (t*d-s)*(2*MathUtils.PI)/p )) + b;
+			return -(a*(float)Math.pow(2,10*(t-=1)) * (float)Math.sin( (t*d-s)*(2*PI)/p )) + b;
 		}
 
 		@Override
@@ -27,7 +28,7 @@ public class Elastic {
 			float p = d*.3f;
 			float a = c;
 			float s = p/4;
-			return (a*(float)Math.pow(2,-10*t) * MathUtils.sin( (t*d-s)*(2*MathUtils.PI)/p ) + c + b);
+			return (a*(float)Math.pow(2,-10*t) * (float)Math.sin( (t*d-s)*(2*PI)/p ) + c + b);
 		}
 
 		@Override
@@ -43,8 +44,8 @@ public class Elastic {
 			float p = d*(.3f*1.5f);
 			float a = c;
 			float s = p/4;
-			if (t < 1) return -.5f*(a*(float)Math.pow(2,10*(t-=1)) * MathUtils.sin( (t*d-s)*(2*MathUtils.PI)/p )) + b;
-			return a*(float)Math.pow(2,-10*(t-=1)) * MathUtils.sin( (t*d-s)*(2*MathUtils.PI)/p )*.5f + c + b;
+			if (t < 1) return -.5f*(a*(float)Math.pow(2,10*(t-=1)) * (float)Math.sin( (t*d-s)*(2*(float)Math.PI)/p )) + b;
+			return a*(float)Math.pow(2,-10*(t-=1)) * (float)Math.sin( (t*d-s)*(2*(float)Math.PI)/p )*.5f + c + b;
 		}
 
 		@Override
