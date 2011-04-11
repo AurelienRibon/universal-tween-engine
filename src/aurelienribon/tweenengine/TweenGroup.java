@@ -1,5 +1,7 @@
 package aurelienribon.tweenengine;
 
+import java.util.ArrayList;
+
 public class TweenGroup {
 	private final static Pool<TweenGroup> pool;
 	private static int staticId = 0;
@@ -18,7 +20,7 @@ public class TweenGroup {
 	 * @param tweens A list of tweens to group.
 	 * @return The group, for chaining a delay or anything else.
 	 */
-	public static TweenGroup parallel(Tween... tweens) {
+	public static TweenGroup parallel(Tween... tweens) {		
 		TweenGroup group = pool.get();
 		group.reset(tweens);
 		return group;
@@ -41,38 +43,65 @@ public class TweenGroup {
 		return group;
 	}
 
-	// -------------------------------------------------------------------------
+	/**
+	 * Disposes of every static resources.
+	 */
+	public static void dispose() {
+		pool.clear();
+	}
+
 	// -------------------------------------------------------------------------
 
-	private Tween[] tweens;
+	private final ArrayList<Tween> tweens;
 	private int groupId;
+	private int durationMillis;
 
     private TweenGroup() {
+		tweens = new ArrayList<Tween>();
 	}
 
 	private void reset(Tween[] tweens) {
-		this.tweens = tweens;
+		this.tweens.clear();
+		for (int i=0; i<tweens.length; i++)
+			this.tweens.add(tweens[i]);
+
 		this.groupId = ++staticId;
+		this.durationMillis = computeDuration();
+		
 		for (int i=0; i<tweens.length; i++)
 			tweens[i].setId(groupId);
+	}
+
+	private int computeDuration() {
+		int dur = 0;
+		for (int i=0; i<tweens.size(); i++) {
+			Tween tween = tweens.get(i);
+			dur = Math.max(dur, tween.getDelayMillis() + tween.getDurationMillis());
+		}
+		return dur;
 	}
 
 	/**
 	 * Starts the group.
 	 */
 	public void start() {
-		for (int i=0; i<tweens.length; i++)
-			if (tweens[i].getId() == groupId)
-				tweens[i].start();
+		for (int i=0; i<tweens.size(); i++) {
+			Tween tween = tweens.get(i);
+			if (tween.getId() == groupId)
+				tween.start();
+		}
 	}
 
 	/**
 	 * Delays every Tween in the sequence.
 	 */
 	public TweenGroup delay(int delayMillis) {
-		for (int i=0; i<tweens.length; i++)
-			if (tweens[i].getId() == groupId)
-				tweens[i].delay(delayMillis);
+		for (int i=0; i<tweens.size(); i++) {
+			Tween tween = tweens.get(i);
+			if (tween.getId() == groupId)
+				tween.delay(delayMillis);
+		}
+		durationMillis = computeDuration();
 		return this;
 	}
 
@@ -80,23 +109,50 @@ public class TweenGroup {
 	 * Kills every Tween in the sequence.
 	 */
 	public void kill() {
-		for (int i=0; i<tweens.length; i++)
-			if (tweens[i].getId() == groupId)
-				tweens[i].kill();
+		for (int i=0; i<tweens.size(); i++) {
+			Tween tween = tweens.get(i);
+			if (tween.getId() == groupId)
+				tween.kill();
+		}
 	}
 
 	/**
-	 * Return the tweens included in this sequence.
-	 * Warning, you should only call this method before the "start()" method,
+	 * Repeats the tween group for a given number of times. For infinity
+	 * repeats,use Tween.INFINITY.
+	 */
+	public TweenGroup repeat(int count) {
+		return repeat(count, 0);
+	}
+
+	/**
+	 * Repeats the tween group for a given number of times. For infinity
+	 * repeats,use Tween.INFINITY. A delay before the repeat occurs can be
+	 * specified.
+	 */
+	public TweenGroup repeat(int count, int delayMillis) {
+		for (int i=0; i<tweens.size(); i++) {
+			Tween tween = tweens.get(i);
+			tween.repeat(count, durationMillis - tween.getDurationMillis() - tween.getDelayMillis() + delayMillis);
+		}
+		return this;
+	}
+
+	/**
+	 * Gets the tweens included in this sequence.
+	 * <p>Warning: this instantiate an array.</p>
+	 * <p>Warning: you should only call this method before the "start()" method,
 	 * because tweens are pooled. That way, if a tween has ended, it can be
 	 * reused for another tween, maybe in another sequence. Be sure that the
 	 * tweens returned have the same id as the group id (see "getId()" on Tween
-	 * and TweenGroup).
+	 * and TweenGroup).</p>
 	 */
 	public Tween[] getTweens() {
-		return tweens;
+		return tweens.toArray(new Tween[0]);
 	}
 
+	/**
+	 * Gets the id assigned to this group.
+	 */
 	public int getId() {
 		return groupId;
 	}

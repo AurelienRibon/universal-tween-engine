@@ -1,2 +1,3 @@
 syntax: glob
 TweenEngine-lib/*
+TweenEngine-test/*

@@ -16,10 +16,14 @@ public abstract class Pool<T> {
 	protected abstract T getNew();
 
 	public T get() {
-		return objects.isEmpty() ? getNew() : objects.get(0);
+		return objects.isEmpty() ? getNew() : objects.remove(objects.size()-1);
 	}
 
 	public void free(T obj) {
 		objects.add(obj);
+	}
+
+	public void clear() {
+		objects.clear();
 	}
 }

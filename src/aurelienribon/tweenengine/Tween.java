@@ -1,6 +1,7 @@
 package aurelienribon.tweenengine;
 
 import aurelienribon.tweenengine.callbacks.TweenCompleteCallback;
+import aurelienribon.tweenengine.callbacks.TweenIterationCompleteCallback;
 import java.util.ArrayList;
 
 public class Tween {
@@ -8,6 +9,8 @@ public class Tween {
 	// Static
 	// -------------------------------------------------------------------------
 
+	public static final int INFINITY = -1;
+	
 	private static final int MODE_UNKNOWN= -1;
 	private static final int MODE_TO = 0;
 	private static final int MODE_FROM = 1;
@@ -26,6 +29,46 @@ public class Tween {
 				return new Tween();
 			}
 		};
+	}
+
+	// -------------------------------------------------------------------------
+	// STATIC ENGINE
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Updates every running interpolation.
+	 */
+	public static void update() {
+		int currentMillis = (int) System.currentTimeMillis();
+		for (int i=0; i<runningTweens.size(); i++) {
+			Tween tween = runningTweens.get(i);
+
+			boolean shoudRepeat = (tween.repeatCnt < 0) || (tween.iteration < tween.repeatCnt);
+			if (tween.isEnded && !shoudRepeat) {
+				for (int ii=0; ii<tween.completeCallbacks.size(); ii++)
+					tween.completeCallbacks.get(ii).tweenComplete(tween);
+				runningTweens.remove(i);
+				pool.free(tween);
+				i -= 1;
+			} else {
+				tween.update(currentMillis);
+			}
+		}
+	}
+
+	/**
+	 * Resets every static resource.
+	 */
+	public static void dispose() {
+		pool.clear();
+		runningTweens.clear();
+	}
+
+	/**
+	 * Gets the count of currently running tweens.
+	 */
+	public static int getRunningTweenCount() {
+		return runningTweens.size();
 	}
 
 	// -------------------------------------------------------------------------
@@ -184,7 +227,6 @@ public class Tween {
 	 * @return The generated Tween.
 	 */
 	public static Tween impulse(Tweenable target, int tweenType, float targetValue) {
-
 		Tween newTween = pool.get();
 		tmp[0] = targetValue;
 
@@ -203,7 +245,6 @@ public class Tween {
 	 * @return The generated Tween.
 	 */
 	public static Tween impulse(Tweenable target, int tweenType, float targetValue1, float targetValue2) {
-
 		Tween newTween = pool.get();
 		tmp[0] = targetValue1;
 		tmp[1] = targetValue2;
@@ -224,7 +265,6 @@ public class Tween {
 	 * @return The generated Tween.
 	 */
 	public static Tween impulse(Tweenable target, int tweenType, float targetValue1, float targetValue2, float targetValue3) {
-
 		Tween newTween = pool.get();
 		tmp[0] = targetValue1;
 		tmp[1] = targetValue2;
@@ -236,78 +276,71 @@ public class Tween {
 	}
 
 	// -------------------------------------------------------------------------
-	// STATIC
-	// -------------------------------------------------------------------------
-
-	/**
-	 * Updates all the running interpolations.
-	 */
-	public static void update() {
-		int currentMillis = (int) System.currentTimeMillis();
-		for (int i=0; i<runningTweens.size(); i++) {
-			Tween tween = runningTweens.get(i);
-
-			if (tween.isEnded) {
-				runningTweens.remove(i);
-				pool.free(tween);
-				i -= 1;
-			} else {
-				tween.update(currentMillis);
-			}
-		}
-	}
-
-	/**
-	 * Resets every static resource.
-	 */
-	public static void dispose() {
-		for (Tween tween : runningTweens)
-			pool.free(tween);
-		runningTweens.clear();
-	}
-
-	// -------------------------------------------------------------------------
 	// Tween
 	// -------------------------------------------------------------------------
 
-	private int mode = MODE_UNKNOWN;
-	private int id = -1;
-
+	// Main
 	private Tweenable target;
 	private int tweenType;
 	private TweenEquation equation;
 
+	// General
+	private int mode = MODE_UNKNOWN;
+	private int id = -1;
+
+	// Values
 	private int combinedTweenCount;
 	private final float[] startValues;
 	private final float[] addedValues;
 	private final float[] targetValues;
 
+	// Timings
 	private int startMillis;
 	private int durationMillis;
 	private int delayMillis;
 	private int endDelayMillis;
 	private int endMillis;
-	private boolean isDelayEnded = false;
 	private boolean isStarted = false;
+	private boolean isDelayEnded = false;
 	private boolean isEnded = false;
 
-	protected ArrayList<TweenCompleteCallback> completeCallbacks;
+	// Callbacks
+	private final ArrayList<TweenCompleteCallback> completeCallbacks;
+	private final ArrayList<TweenIterationCompleteCallback> iterationCompleteCallbacks;
+
+	// Repeat
+	private int repeatCnt;
+	private int iteration;
+	private int repeatDelayMillis;
+	private int endRepeatDelayMillis;
+
+	// Misc
+	private final float[] localTmp = new float[MAX_COMBINED_TWEENS];
 
 	private Tween() {
 		startValues = new float[MAX_COMBINED_TWEENS];
 		addedValues = new float[MAX_COMBINED_TWEENS];
 		targetValues = new float[MAX_COMBINED_TWEENS];
 		completeCallbacks = new ArrayList<TweenCompleteCallback>();
+		iterationCompleteCallbacks = new ArrayList<TweenIterationCompleteCallback>();
 	}
 
 	/**
-	 * Starts the interpolation.
+	 * Starts or restart the interpolation.
 	 */
 	public void start() {
 		startMillis = (int) System.currentTimeMillis();
 		endDelayMillis = startMillis + delayMillis;
+
+		if (iteration > 0 && repeatDelayMillis < 0)
+			endDelayMillis = Math.max(endDelayMillis + repeatDelayMillis, startMillis);
+
 		endMillis = endDelayMillis + durationMillis;
+		endRepeatDelayMillis = Math.max(endMillis, endMillis + repeatDelayMillis);
+
 		isStarted = true;
+		isDelayEnded = false;
+		isEnded = false;
 	}
 
 	/**
@@ -316,6 +349,7 @@ public class Tween {
 	 */
 	public void kill() {
 		isEnded = true;
+		repeatCnt = 0;
 	}
 
 	/**
@@ -345,13 +379,14 @@ public class Tween {
 		Tween tween = pool.get();
 		tween.reset(mode, target, tweenType, equation, durationMillis, targetValues);
 		tween.delay(delayMillis);
+		tween.repeat(repeatCnt, repeatDelayMillis);
 		runningTweens.add(tween);
 		return tween;
 	}
 
 	/**
 	 * Sets an id to the tween. It can be used to test if the tween has not
-	 * been reset, since ids are set to -1 on each tween reuse.
+	 * been reset, since ids are reset to -1 on each tween reuse.
 	 */
 	public Tween setId(int id) {
 		this.id = id;
@@ -359,88 +394,127 @@ public class Tween {
 	}
 
 	/**
-	 * Reset the tween with new parameters.
+	 * Repeats the tween for a given number of times. For infinity repeats,
+	 * use Tween.INFINITY.
 	 */
+	public Tween repeat(int count) {
+		return repeat(count, 0);
+	}
+
+	/**
+	 * Repeats the tween for a given number of times. For infinity repeats,
+	 * use Tween.INFINITY. A delay before the repeat occurs can be specified.
+	 */
+	public Tween repeat(int count, int delayMillis) {
+		repeatDelayMillis = delayMillis;
+		repeatCnt = count;
+		return this;
+	}
+
 	private void reset(int mode, Tweenable target, int tweenType, TweenEquation equation,
 		int durationMillis, float[] targetValues) {
 
+		this.target = target;
+		this.tweenType = tweenType;
+		this.equation = equation;
+
 		this.id = -1;
 		this.mode = mode;
-		assert (0 <= mode && mode <= 2);
 
 		this.combinedTweenCount = target.getTweenedAttributeCount(tweenType);
 		if (this.combinedTweenCount < 1 || this.combinedTweenCount > MAX_COMBINED_TWEENS)
 			throw new RuntimeException("Min combined tweens = 1, max = " + MAX_COMBINED_TWEENS);
-		
-		this.target = target;
-		this.tweenType = tweenType;
-		this.equation = equation;
 		System.arraycopy(targetValues, 0, this.targetValues, 0, MAX_COMBINED_TWEENS);
 
 		this.durationMillis = durationMillis;
 		this.delayMillis = 0;
-		this.isDelayEnded = false;
 		this.isStarted = false;
+		this.isDelayEnded = false;
 		this.isEnded = false;
 
 		this.completeCallbacks.clear();
+		this.iterationCompleteCallbacks.clear();
+
+		this.repeatCnt = 0;
+		this.iteration = 0;
+		this.repeatDelayMillis = 0;
 	}
 
-	/**
-	 * Updates the tween state.
-	 */
 	private void update(int currentMillis) {
-		// Are we okay ?
+		// Are we started ?
 		if (!isStarted)
 			return;
 
-		// Test for the end of the tween. If true, set the target values to
-		// their final values (to avoid precision loss when moving fast), and
-		// call the callbacks.
-		if (currentMillis >= endMillis) {
-			for (int i=0; i<MAX_COMBINED_TWEENS; i++)
-				tmp[i] = startValues[i] + addedValues[i];
-			target.tweenUpdated(tweenType, tmp);
-
-			for (int k=0; k<completeCallbacks.size(); k++)
-				completeCallbacks.get(k).tweenComplete(this);
-
-			isEnded = true;
+		// Shall we repeat ?
+		if ((repeatCnt < 0 || iteration < repeatCnt) && currentMillis >= endRepeatDelayMillis) {
+			iteration += 1;
+			start();
 			return;
 		}
 
-		assert (mode != MODE_SET);
-
-		// Wait for the end of the delay and grab the start or end values
+		// Wait for the end of the delay then either grab the start or end
+		// values if it is the first iteration, or restart from those values
+		// if the animation is replaying.
 		if (!isDelayEnded && currentMillis >= endDelayMillis) {
 			isDelayEnded = true;
 
-			switch (mode) {
-				case MODE_TO:
-					target.getTweenValues(tweenType, startValues);
-					for (int i=0; i<MAX_COMBINED_TWEENS; i++)
-						addedValues[i] = targetValues[i] - startValues[i];
-					break;
+			if (iteration > 0) {
+				target.tweenUpdated(tweenType, startValues);
+			} else {
+				switch (mode) {
+					case MODE_TO:
+						target.getTweenValues(tweenType, startValues);
+						for (int i=0; i<MAX_COMBINED_TWEENS; i++)
+							addedValues[i] = targetValues[i] - startValues[i];
+						break;
 
-				case MODE_FROM:
-					System.arraycopy(targetValues, 0, startValues, 0, MAX_COMBINED_TWEENS);
-					target.getTweenValues(tweenType, addedValues);
-					for (int i=0; i<MAX_COMBINED_TWEENS; i++)
-						addedValues[i] -= targetValues[i];
-					break;
+					case MODE_FROM:
+						System.arraycopy(targetValues, 0, startValues, 0, MAX_COMBINED_TWEENS);
+						target.getTweenValues(tweenType, addedValues);
+						for (int i=0; i<MAX_COMBINED_TWEENS; i++)
+							addedValues[i] -= targetValues[i];
+						break;
+
+					case MODE_SET:
+						target.getTweenValues(tweenType, startValues);
+						for (int i=0; i<MAX_COMBINED_TWEENS; i++)
+							addedValues[i] = targetValues[i] - startValues[i];
+						break;
+
+					case MODE_UNKNOWN:
+						assert false;
+						break;
+				}
 			}
 		} else if (!isDelayEnded) {
 			return;
 		}
 
+		// Test for the end of the tween. If true, set the target values to
+		// their final values (to avoid precision loss when moving fast), and
+		// call the callbacks.
+		if (isEnded) {
+			return;
+		} else if (currentMillis >= endMillis) {
+			for (int i=0; i<combinedTweenCount; i++)
+				localTmp[i] = startValues[i] + addedValues[i];
+			target.tweenUpdated(tweenType, localTmp);
+
+			for (int k=0; k<iterationCompleteCallbacks.size(); k++)
+				iterationCompleteCallbacks.get(k).iterationComplete(this);
+
+			isEnded = true;
+			return;
+		}
+
 		// New values computation
 		for (int i=0; i<combinedTweenCount; i++)
-			tmp[i] = equation.compute(
-				currentMillis - delayMillis - startMillis,
+			localTmp[i] = equation.compute(
+				currentMillis - endDelayMillis,
 				startValues[i],
 				addedValues[i],
 				durationMillis);
-		target.tweenUpdated(tweenType, tmp);
+		target.tweenUpdated(tweenType, localTmp);
 	}
 
 	public int getMode() {
