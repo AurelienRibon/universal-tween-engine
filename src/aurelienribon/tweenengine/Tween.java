@@ -490,9 +490,7 @@ public class Tween {
 							addedValues[i] = targetValues[i] - startValues[i];
 						break;
 
-					case MODE_UNKNOWN:
-						assert false;
-						break;
+					default: assert false; break;
 				}
 			}
 		} else if (!isDelayEnded) {
