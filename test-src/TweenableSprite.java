@@ -1,51 +1,76 @@
 import aurelienribon.tweenengine.Tweenable;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 
-public class TweenableSprite extends Sprite implements Tweenable {
-	public static final int OPACITY = 1;
-	public static final int X = 2;
-	public static final int Y = 3;
+public class TweenableSprite implements Tweenable {
+	public static final int ORIGIN_XY = 1;
+	public static final int POSITION_XY = 2;
+	public static final int SCALE_XY = 3;
 	public static final int ROTATION = 4;
-	public static final int ROTATION_AND_OPACITY = 5;
+	public static final int OPACITY = 5;
 
-	public TweenableSprite(Texture texture) {
-		super(texture);
+	private Sprite sprite;
+
+	public TweenableSprite(Sprite sprite) {
+		this.sprite = sprite;
 	}
 
 	@Override
-	public int getTweenedAttributeCount(int tweenType) {
-		return tweenType == ROTATION_AND_OPACITY ? 2 : 1;
-	}
-
-	@Override
-	public void getTweenValues(int tweenType, float[] returnValues) {
+	public int getTweenValues(int tweenType, float[] returnValues) {
 		switch (tweenType) {
-			case OPACITY: returnValues[0] = getColor().a; break;
-			case X: returnValues[0] = getX() + getOriginX(); break;
-			case Y: returnValues[0] = getY() + getOriginY(); break;
-			case ROTATION: returnValues[0] = getRotation(); break;
-			case ROTATION_AND_OPACITY: returnValues[0] = getRotation(); returnValues[1] = getColor().a; break;
-			default: assert false;
+			case OPACITY:
+				returnValues[0] = sprite.getColor().a;
+				return 1;
+
+			case ORIGIN_XY:
+				returnValues[0] = sprite.getOriginX();
+				returnValues[1] = sprite.getOriginY();
+				return 2;
+
+			case POSITION_XY:
+				returnValues[0] = sprite.getX();
+				returnValues[1] = sprite.getY();
+				return 2;
+
+			case ROTATION:
+				returnValues[0] = sprite.getRotation();
+				return 1;
+
+			case SCALE_XY:
+				returnValues[0] = sprite.getScaleX();
+				returnValues[1] = sprite.getScaleY();
+				return 2;
+
+			default: assert false; return -1;
 		}
 	}
 
 	@Override
 	public void tweenUpdated(int tweenType, float[] newValues) {
 		switch (tweenType) {
-			case OPACITY: setOpacity(newValues[0]); break;
-			case X: setPosition(newValues[0] - getOriginX(), getY()); break;
-			case Y: setPosition(getX(), newValues[0] - getOriginY()); break;
-			case ROTATION: setRotation(newValues[0]); break;
-			case ROTATION_AND_OPACITY: setRotation(newValues[0]); setOpacity(newValues[1]); break;
+			case OPACITY:
+				Color c = sprite.getColor();
+				c.set(c.r, c.g, c.b, newValues[0]);
+				sprite.setColor(c);
+				break;
+
+			case ORIGIN_XY:
+				sprite.setOrigin(newValues[0], newValues[1]);
+				break;
+
+			case POSITION_XY:
+				sprite.setPosition(newValues[0], newValues[1]);
+				break;
+
+			case ROTATION:
+				sprite.setRotation(newValues[0]);
+				break;
+
+			case SCALE_XY:
+				sprite.setScale(newValues[0], newValues[1]);
+				break;
+
 			default: assert false;
 		}
-	}
-
-	private void setOpacity(float a) {
-		Color c = getColor();
-		c.set(c.r, c.g, c.b, a);
-		setColor(c);
 	}
 }

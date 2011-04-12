@@ -2,19 +2,14 @@ package aurelienribon.tweenengine;
 
 public interface Tweenable {
 	/**
-	 * Returns the number of combined interpolations per tween type.
-	 * Has to be at least 1.
-	 */
-	public int getTweenedAttributeCount(int tweenType);
-
-	/**
-	 * Returns one or many values from the tweenable object associated to the
+	 * Gets one or many values from the tweenable object associated to the
 	 * given tween type. It is used by the tweening engine to determine starting
 	 * values.
 	 * @param tweenType An integer representing the tween type.
 	 * @param returnValues A table which should be modified by this method.
+	 * @return The count of tweened parameters.
 	 */
-	public void getTweenValues(int tweenType, float[] returnValues);
+	public int getTweenValues(int tweenType, float[] returnValues);
 
 	/**
 	 * This method is called by the tweening engine each time a running tween
