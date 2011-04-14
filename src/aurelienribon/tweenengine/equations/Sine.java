@@ -2,13 +2,18 @@ package aurelienribon.tweenengine.equations;
 
 import aurelienribon.tweenengine.TweenEquation;
 
+/**
+ * Easing equations based on Robert Penner's work:
+ * http://robertpenner.com/easing/
+ * @author Aurelien Ribon (aurelien.ribon@gmail.com)
+ */
 public class Sine {
 	private static final float PI = 3.14159265f;
 	
 	public static final TweenEquation IN = new TweenEquation() {
 		@Override
 		public float compute(float t, float b, float c, float d) {
-			return -c * (float)Math.cos(t/d * ((float)Math.PI/2)) + c + b;
+			return -c * (float)Math.cos(t/d * (PI/2)) + c + b;
 		}
 
 		@Override
@@ -20,7 +25,7 @@ public class Sine {
 	public static final TweenEquation OUT = new TweenEquation() {
 		@Override
 		public float compute(float t, float b, float c, float d) {
-			return c * (float)Math.sin(t/d * ((float)Math.PI/2)) + b;
+			return c * (float)Math.sin(t/d * (PI/2)) + b;
 		}
 
 		@Override
@@ -32,7 +37,7 @@ public class Sine {
 	public static final TweenEquation INOUT = new TweenEquation() {
 		@Override
 		public float compute(float t, float b, float c, float d) {
-			return -c/2 * ((float)Math.cos((float)Math.PI*t/d) - 1) + b;
+			return -c/2 * ((float)Math.cos(PI*t/d) - 1) + b;
 		}
 
 		@Override

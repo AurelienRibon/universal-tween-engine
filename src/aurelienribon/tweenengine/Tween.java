@@ -4,22 +4,47 @@ import aurelienribon.tweenengine.callbacks.TweenCompleteCallback;
 import aurelienribon.tweenengine.callbacks.TweenIterationCompleteCallback;
 import java.util.ArrayList;
 
+/**
+ * Main class of the Tween Engine. It contains many static factory methods to
+ * create and instantiate new interpolations.
+ *
+ * <p>
+ * <b>All factory methods are thread-safe.</b>
+ * </p>
+ *
+ * <p>
+ * The following example will move the target horizontal position from its
+ * current value to x=200, during 500ms, but only after a delay of 1000ms. The
+ * transition will also be repeated 2 times (the starting position is
+ * registered at the end of the delay, so the animation will automatically 
+ * restart from this registred position).
+ * </p>
+ *
+ * <pre>
+ * Tween.to(target, POSITION_X, Quad.INOUT, 500, 200).delay(1000).repeat(2).start();
+ * </pre>
+ *
+ * @author Aurelien Ribon (aurelien.ribon@gmail.com)
+ */
 public class Tween {
 	// -------------------------------------------------------------------------
 	// Static
 	// -------------------------------------------------------------------------
 
+	/** If you need to repeat your tween for infinity, use this. */
 	public static final int INFINITY = -1;
+	/** The maximum number of attributes that can be tweened in a single tween. */
+	public static final int MAX_COMBINED_TWEENS = 15;
+	/** Tween was created using Tween.to(). */
+	public static final int MODE_TO = 0;
+	/** Tween was created using Tween.from(). */
+	public static final int MODE_FROM = 1;
+	/** Tween was created using Tween.set(). */
+	public static final int MODE_SET = 2;
+	/** Tween was created using Tween.call(). */
+	public static final int MODE_CALL = 3;
 
-	private static final int MAX_COMBINED_TWEENS = 15;
-	
-	private static final int MODE_UNKNOWN= -1;
-	private static final int MODE_TO = 0;
-	private static final int MODE_FROM = 1;
-	private static final int MODE_SET = 2;
-	private static final int MODE_CALL = 3;
-
-    private static final ArrayList<Tween> runningTweens;
+	private static final ArrayList<Tween> runningTweens;
 	private static final Pool<Tween> pool;
 	private static final float[] tmp = new float[MAX_COMBINED_TWEENS];
 
@@ -40,13 +65,17 @@ public class Tween {
 	/**
 	 * Updates every running interpolation.
 	 */
-	public static void update() {
-		int currentMillis = (int) System.currentTimeMillis();
+	public static synchronized void update() {
+		long currentMillis = System.currentTimeMillis();
 		for (int i=0; i<runningTweens.size(); i++) {
 			Tween tween = runningTweens.get(i);
-
 			boolean shoudRepeat = (tween.repeatCnt < 0) || (tween.iteration < tween.repeatCnt);
-			if (tween.isEnded && !shoudRepeat) {
+
+			if (tween.isKilled) {
+				runningTweens.remove(i);
+				pool.free(tween);
+				i -= 1;
+			} else if (tween.isEnded && !shoudRepeat) {
 				for (int ii=0; ii<tween.completeCallbacks.size(); ii++)
 					tween.completeCallbacks.get(ii).tweenComplete(tween);
 				runningTweens.remove(i);
@@ -61,7 +90,7 @@ public class Tween {
 	/**
 	 * Resets every static resource.
 	 */
-	public static void dispose() {
+	public static synchronized void dispose() {
 		pool.clear();
 		runningTweens.clear();
 	}
@@ -69,8 +98,25 @@ public class Tween {
 	/**
 	 * Gets the count of currently running tweens.
 	 */
-	public static int getRunningTweenCount() {
+	public static synchronized int getRunningTweenCount() {
 		return runningTweens.size();
+	}
+
+	/**
+	 * Kills every running tween.
+	 */
+	public static synchronized void killAllTweens() {
+		for (int i=0; i<runningTweens.size(); i++)
+			runningTweens.get(i).kill();
+	}
+
+	/**
+	 * Kills every tween associated to a specific target.
+	 */
+	public static synchronized void killTweens(Tweenable target) {
+		for (int i=0; i<runningTweens.size(); i++)
+			if (runningTweens.get(i).getTarget() == target)
+				runningTweens.get(i).kill();
 	}
 
 	// -------------------------------------------------------------------------
@@ -86,14 +132,13 @@ public class Tween {
 	 * @param targetValue The ending value for the interpolation.
 	 * @return The generated Tween.
 	 */
-	public static Tween to(Tweenable target, int tweenType,
+	public static synchronized Tween to(Tweenable target, int tweenType,
 		TweenEquation equation, int durationMillis, float targetValue) {
 
 		Tween newTween = pool.get();
 		tmp[0] = targetValue;
 
 		newTween.reset(MODE_TO, target, tweenType, equation, durationMillis, tmp);
-		runningTweens.add(newTween);
 		return newTween;
 	}
 
@@ -107,7 +152,7 @@ public class Tween {
 	 * @param targetValue2 The 2nd ending value for the interpolation.
 	 * @return The generated Tween.
 	 */
-	public static Tween to(Tweenable target, int tweenType,
+	public static synchronized Tween to(Tweenable target, int tweenType,
 		TweenEquation equation, int durationMillis, float targetValue1, float targetValue2) {
 
 		Tween newTween = pool.get();
@@ -115,7 +160,6 @@ public class Tween {
 		tmp[1] = targetValue2;
 
 		newTween.reset(MODE_TO, target, tweenType, equation, durationMillis, tmp);
-		runningTweens.add(newTween);
 		return newTween;
 	}
 
@@ -130,7 +174,7 @@ public class Tween {
 	 * @param targetValue3 The 3rd ending value for the interpolation.
 	 * @return The generated Tween.
 	 */
-	public static Tween to(Tweenable target, int tweenType,
+	public static synchronized Tween to(Tweenable target, int tweenType,
 		TweenEquation equation, int durationMillis, float targetValue1, float targetValue2, float targetValue3) {
 
 		Tween newTween = pool.get();
@@ -139,7 +183,6 @@ public class Tween {
 		tmp[2] = targetValue3;
 
 		newTween.reset(MODE_TO, target, tweenType, equation, durationMillis, tmp);
-		runningTweens.add(newTween);
 		return newTween;
 	}
 
@@ -152,7 +195,7 @@ public class Tween {
 	 * @param targetValues The ending values for the interpolation.
 	 * @return The generated Tween.
 	 */
-	public static Tween to(Tweenable target, int tweenType,
+	public static synchronized Tween to(Tweenable target, int tweenType,
 		TweenEquation equation, int durationMillis, float... targetValues) {
 
 		Tween newTween = pool.get();
@@ -160,7 +203,6 @@ public class Tween {
 			tmp[i] = targetValues[i];
 
 		newTween.reset(MODE_TO, target, tweenType, equation, durationMillis, tmp);
-		runningTweens.add(newTween);
 		return newTween;
 	}
 
@@ -177,14 +219,13 @@ public class Tween {
 	 * @param startValue The starting value for the interpolation.
 	 * @return The generated Tween.
 	 */
-	public static Tween from(Tweenable target, int tweenType,
+	public static synchronized Tween from(Tweenable target, int tweenType,
 		TweenEquation equation, int durationMillis, float startValue) {
 
 		Tween newTween = pool.get();
 		tmp[0] = startValue;
 
 		newTween.reset(MODE_FROM, target, tweenType, equation, durationMillis, tmp);
-		runningTweens.add(newTween);
 		return newTween;
 	}
 
@@ -198,7 +239,7 @@ public class Tween {
 	 * @param startValue2 The 2nd starting value for the interpolation.
 	 * @return The generated Tween.
 	 */
-	public static Tween from(Tweenable target, int tweenType,
+	public static synchronized Tween from(Tweenable target, int tweenType,
 		TweenEquation equation, int durationMillis, float startValue1, float startValue2) {
 
 		Tween newTween = pool.get();
@@ -206,7 +247,6 @@ public class Tween {
 		tmp[1] = startValue2;
 
 		newTween.reset(MODE_FROM, target, tweenType, equation, durationMillis, tmp);
-		runningTweens.add(newTween);
 		return newTween;
 	}
 
@@ -221,7 +261,7 @@ public class Tween {
 	 * @param startValue3 The 3rd starting value for the interpolation.
 	 * @return The generated Tween.
 	 */
-	public static Tween from(Tweenable target, int tweenType,
+	public static synchronized Tween from(Tweenable target, int tweenType,
 		TweenEquation equation, int durationMillis, float startValue1, float startValue2, float startValue3) {
 
 		Tween newTween = pool.get();
@@ -230,7 +270,6 @@ public class Tween {
 		tmp[2] = startValue3;
 
 		newTween.reset(MODE_FROM, target, tweenType, equation, durationMillis, tmp);
-		runningTweens.add(newTween);
 		return newTween;
 	}
 
@@ -243,7 +282,7 @@ public class Tween {
 	 * @param startValues The starting values for the interpolation.
 	 * @return The generated Tween.
 	 */
-	public static Tween from(Tweenable target, int tweenType,
+	public static synchronized Tween from(Tweenable target, int tweenType,
 		TweenEquation equation, int durationMillis, float... startValues) {
 
 		Tween newTween = pool.get();
@@ -251,33 +290,31 @@ public class Tween {
 			tmp[i] = startValues[i];
 
 		newTween.reset(MODE_FROM, target, tweenType, equation, durationMillis, tmp);
-		runningTweens.add(newTween);
 		return newTween;
 	}
 
 	// -------------------------------------------------------------------------
-	// TWEEN.IMPULSE
+	// TWEEN.SET
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Starts a new impulse tween (the target is set to the targetValue without
+	 * Starts a new instantaneous tween (the target is updated without
 	 * interpolation, right after the delay).
 	 * @param target The target of the impulse.
 	 * @param tweenType The type of interpolation desired.
 	 * @param targetValue The target value for the impulse.
 	 * @return The generated Tween.
 	 */
-	public static Tween impulse(Tweenable target, int tweenType, float targetValue) {
+	public static synchronized Tween set(Tweenable target, int tweenType, float targetValue) {
 		Tween newTween = pool.get();
 		tmp[0] = targetValue;
 
 		newTween.reset(MODE_SET, target, tweenType, null, 0, tmp);
-		runningTweens.add(newTween);
 		return newTween;
 	}
 
 	/**
-	 * Starts a new impulse tween (the target is set to the targetValue without
+	 * Starts a new instantaneous tween (the target is updated without
 	 * interpolation, right after the delay).
 	 * @param target The target of the impulse.
 	 * @param tweenType The type of interpolation desired.
@@ -285,18 +322,17 @@ public class Tween {
 	 * @param targetValue2 The 2nd target value for the impulse.
 	 * @return The generated Tween.
 	 */
-	public static Tween impulse(Tweenable target, int tweenType, float targetValue1, float targetValue2) {
+	public static synchronized Tween set(Tweenable target, int tweenType, float targetValue1, float targetValue2) {
 		Tween newTween = pool.get();
 		tmp[0] = targetValue1;
 		tmp[1] = targetValue2;
 
 		newTween.reset(MODE_SET, target, tweenType, null, 0, tmp);
-		runningTweens.add(newTween);
 		return newTween;
 	}
 
 	/**
-	 * Starts a new impulse tween (the target is set to the targetValue without
+	 * Starts a new instantaneous tween (the target is updated without
 	 * interpolation, right after the delay).
 	 * @param target The target of the impulse.
 	 * @param tweenType The type of interpolation desired.
@@ -305,32 +341,30 @@ public class Tween {
 	 * @param targetValue3 The 3rd target value for the impulse.
 	 * @return The generated Tween.
 	 */
-	public static Tween impulse(Tweenable target, int tweenType, float targetValue1, float targetValue2, float targetValue3) {
+	public static synchronized Tween set(Tweenable target, int tweenType, float targetValue1, float targetValue2, float targetValue3) {
 		Tween newTween = pool.get();
 		tmp[0] = targetValue1;
 		tmp[1] = targetValue2;
 		tmp[2] = targetValue3;
 
 		newTween.reset(MODE_SET, target, tweenType, null, 0, tmp);
-		runningTweens.add(newTween);
 		return newTween;
 	}
 
 	/**
-	 * Starts a new impulse tween (the target is set to the targetValue without
+	 * Starts a new instantaneous tween (the target is updated without
 	 * interpolation, right after the delay).
 	 * @param target The target of the impulse.
 	 * @param tweenType The type of interpolation desired.
 	 * @param targetValues The target values for the impulse.
 	 * @return The generated Tween.
 	 */
-	public static Tween impulse(Tweenable target, int tweenType, float... targetValues) {
+	public static synchronized Tween set(Tweenable target, int tweenType, float... targetValues) {
 		Tween newTween = pool.get();
 		for (int i=0; i<targetValues.length && i<MAX_COMBINED_TWEENS; i++)
 			tmp[i] = targetValues[i];
 
 		newTween.reset(MODE_SET, target, tweenType, null, 0, tmp);
-		runningTweens.add(newTween);
 		return newTween;
 	}
 
@@ -338,11 +372,10 @@ public class Tween {
 	// TWEEN.CALL
 	// -------------------------------------------------------------------------
 
-	public static Tween call(TweenIterationCompleteCallback callback) {
+	public static synchronized Tween call(TweenIterationCompleteCallback callback) {
 		Tween newTween = pool.get();
-		newTween.reset(MODE_CALL, null, -1, null, 0, tmp);
+		newTween.reset(MODE_CALL, null, -1, null, 0, null);
 		newTween.iterationCompleteCallbacks.add(callback);
-		runningTweens.add(newTween);
 		return newTween;
 	}
 
@@ -356,7 +389,7 @@ public class Tween {
 	private TweenEquation equation;
 
 	// General
-	private int mode = MODE_UNKNOWN;
+	private int mode = -1;
 	private int id = -1;
 
 	// Values
@@ -366,14 +399,15 @@ public class Tween {
 	private final float[] targetValues;
 
 	// Timings
-	private int startMillis;
+	private long startMillis;
 	private int durationMillis;
 	private int delayMillis;
-	private int endDelayMillis;
-	private int endMillis;
+	private long endDelayMillis;
+	private long endMillis;
 	private boolean isStarted = false;
 	private boolean isDelayEnded = false;
 	private boolean isEnded = false;
+	private boolean isKilled = false;
 
 	// Callbacks
 	private final ArrayList<TweenCompleteCallback> completeCallbacks;
@@ -383,7 +417,7 @@ public class Tween {
 	private int repeatCnt;
 	private int iteration;
 	private int repeatDelayMillis;
-	private int endRepeatDelayMillis;
+	private long endRepeatDelayMillis;
 
 	// Misc
 	private final float[] localTmp = new float[MAX_COMBINED_TWEENS];
@@ -392,15 +426,15 @@ public class Tween {
 		startValues = new float[MAX_COMBINED_TWEENS];
 		addedValues = new float[MAX_COMBINED_TWEENS];
 		targetValues = new float[MAX_COMBINED_TWEENS];
-		completeCallbacks = new ArrayList<TweenCompleteCallback>();
-		iterationCompleteCallbacks = new ArrayList<TweenIterationCompleteCallback>();
+		completeCallbacks = new ArrayList<TweenCompleteCallback>(3);
+		iterationCompleteCallbacks = new ArrayList<TweenIterationCompleteCallback>(3);
 	}
 
 	/**
 	 * Starts or restart the interpolation.
 	 */
 	public void start() {
-		startMillis = (int) System.currentTimeMillis();
+		startMillis = System.currentTimeMillis();
 		endDelayMillis = startMillis + delayMillis;
 
 		if (iteration > 0 && repeatDelayMillis < 0)
@@ -412,6 +446,10 @@ public class Tween {
 		isStarted = true;
 		isDelayEnded = false;
 		isEnded = false;
+		isKilled = false;
+		
+		if (!runningTweens.contains(this))
+			runningTweens.add(this);
 	}
 
 	/**
@@ -419,8 +457,7 @@ public class Tween {
 	 * Stops it and removes it from the running tween list.
 	 */
 	public void kill() {
-		isEnded = true;
-		repeatCnt = 0;
+		isKilled = true;
 	}
 
 	/**
@@ -460,7 +497,6 @@ public class Tween {
 		tween.reset(mode, target, tweenType, equation, durationMillis, targetValues);
 		tween.delay(delayMillis);
 		tween.repeat(repeatCnt, repeatDelayMillis);
-		runningTweens.add(tween);
 		return tween;
 	}
 
@@ -505,7 +541,7 @@ public class Tween {
 			this.combinedTweenCount = target.getTweenValues(tweenType, localTmp);
 			if (this.combinedTweenCount < 1 || this.combinedTweenCount > MAX_COMBINED_TWEENS)
 				throw new RuntimeException("Min combined tweens = 1, max = " + MAX_COMBINED_TWEENS);
-			System.arraycopy(targetValues, 0, this.targetValues, 0, MAX_COMBINED_TWEENS);
+			System.arraycopy(targetValues, 0, this.targetValues, 0, combinedTweenCount);
 		} else {
 			this.combinedTweenCount = 0;
 		}
@@ -515,6 +551,7 @@ public class Tween {
 		this.isStarted = false;
 		this.isDelayEnded = false;
 		this.isEnded = false;
+		this.isKilled = false;
 
 		this.completeCallbacks.clear();
 		this.iterationCompleteCallbacks.clear();
@@ -524,7 +561,7 @@ public class Tween {
 		this.repeatDelayMillis = 0;
 	}
 
-	private void update(int currentMillis) {
+	private void update(long currentMillis) {
 		// Are we started ?
 		if (!isStarted)
 			return;

@@ -2,6 +2,11 @@ package aurelienribon.tweenengine.equations;
 
 import aurelienribon.tweenengine.TweenEquation;
 
+/**
+ * Easing equations based on Robert Penner's work:
+ * http://robertpenner.com/easing/
+ * @author Aurelien Ribon (aurelien.ribon@gmail.com)
+ */
 public class Elastic {
 	private static final float PI = 3.14159265f;
 
@@ -44,8 +49,8 @@ public class Elastic {
 			float p = d*(.3f*1.5f);
 			float a = c;
 			float s = p/4;
-			if (t < 1) return -.5f*(a*(float)Math.pow(2,10*(t-=1)) * (float)Math.sin( (t*d-s)*(2*(float)Math.PI)/p )) + b;
-			return a*(float)Math.pow(2,-10*(t-=1)) * (float)Math.sin( (t*d-s)*(2*(float)Math.PI)/p )*.5f + c + b;
+			if (t < 1) return -.5f*(a*(float)Math.pow(2,10*(t-=1)) * (float)Math.sin( (t*d-s)*(2*PI)/p )) + b;
+			return a*(float)Math.pow(2,-10*(t-=1)) * (float)Math.sin( (t*d-s)*(2*PI)/p )*.5f + c + b;
 		}
 
 		@Override

@@ -2,6 +2,29 @@ package aurelienribon.tweenengine;
 
 import java.util.ArrayList;
 
+/**
+ * A TweenGroup can be used to group multiple tweens and to act on all of them
+ * at once. Its main use lies in the sequence() static method, which takes
+ * a list of parallel tweens and automatically delays them so they will be
+ * executed one after the other.
+ *
+ * <p>
+ * The following example will move the target horizontal position from its
+ * current location to x=200, then from x=200 to x=100, and finally from
+ * x=100 to x=200, but this last transition will only occur 1000ms after the
+ * previous one.
+ * </p>
+ *
+ * <pre>
+ * TweenGroup.sequence(
+ *     Tween.to(target, POSITION_X, Quad.INOUT, 500, 200),
+ *     Tween.to(target, POSITION_X, Quad.INOUT, 500, 100),
+ *     Tween.to(target, POSITION_X, Quad.INOUT, 500, 200).delay(1000)
+ * ).start();
+ * </pre>
+ *
+ * @author Aurelien Ribon (aurelien.ribon@gmail.com)
+ */
 public class TweenGroup {
 	private final static Pool<TweenGroup> pool;
 	private static int staticId = 0;
@@ -139,15 +162,15 @@ public class TweenGroup {
 
 	/**
 	 * Gets the tweens included in this sequence.
-	 * <p>Warning: this instantiate an array.</p>
-	 * <p>Warning: you should only call this method before the "start()" method,
+	 * <p><b>Warning</b>: this instantiate an array.</p>
+	 * <p><b>Warning</b>: you should only call this method before the "start()" method,
 	 * because tweens are pooled. That way, if a tween has ended, it can be
 	 * reused for another tween, maybe in another sequence. Be sure that the
 	 * tweens returned have the same id as the group id (see "getId()" on Tween
 	 * and TweenGroup).</p>
 	 */
 	public Tween[] getTweens() {
-		return tweens.toArray(new Tween[0]);
+		return tweens.toArray(new Tween[tweens.size()]);
 	}
 
 	/**

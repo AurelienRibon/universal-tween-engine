@@ -116,15 +116,15 @@ public class App implements ApplicationListener {
 			case 0:
 				text = "Demo (with one auto-repeat)";
 				TweenGroup.sequence(
-					Tween.impulse(tweenSprite, TweenableSprite.ROTATION, 0),
-					Tween.impulse(tweenSprite, TweenableSprite.OPACITY, 0),
-					Tween.impulse(tweenSprite, TweenableSprite.POSITION_XY, -sprite.getWidth()/2, -sprite.getHeight()/2),
-					Tween.impulse(tweenSprite, TweenableSprite.SCALE_XY, 10, 10),
+					Tween.set(tweenSprite, TweenableSprite.ROTATION, 0),
+					Tween.set(tweenSprite, TweenableSprite.OPACITY, 0),
+					Tween.set(tweenSprite, TweenableSprite.POSITION_XY, -sprite.getWidth()/2, -sprite.getHeight()/2),
+					Tween.set(tweenSprite, TweenableSprite.SCALE_XY, 10, 10),
 					Tween.to(tweenSprite, TweenableSprite.OPACITY, Sine.INOUT, 1000, 1),
 					Tween.to(tweenSprite, TweenableSprite.SCALE_XY, Quart.INOUT, 1000, 1, 1).delay(-1000),
-					Tween.to(tweenSprite, TweenableSprite.POSITION_XY, Elastic.OUT, 1000, POS_LEFT - sprite.getWidth()/2, sprite.getY()).delay(200),
+					Tween.to(tweenSprite, TweenableSprite.POSITION_XY, Elastic.OUT, 1000, POS_LEFT, sprite.getY()).delay(200),
 					Tween.to(tweenSprite, TweenableSprite.ROTATION, Cubic.INOUT, 800, 360).delay(-400)
-				).repeat(1, 500).start();
+					).repeat(1, 500).start();
 				break;
 
 			case 1: Tween.to(tweenSprite, TweenableSprite.POSITION_XY, Quad.OUT, DURATION, POS_CENTER, sprite.getY()).start(); text = "Quad : OUT"; break;

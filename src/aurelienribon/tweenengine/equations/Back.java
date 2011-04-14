@@ -2,6 +2,11 @@ package aurelienribon.tweenengine.equations;
 
 import aurelienribon.tweenengine.TweenEquation;
 
+/**
+ * Easing equations based on Robert Penner's work:
+ * http://robertpenner.com/easing/
+ * @author Aurelien Ribon (aurelien.ribon@gmail.com)
+ */
 public class Back {
 	public static final TweenEquation IN = new TweenEquation() {
 		@Override
