@@ -45,7 +45,7 @@ package aurelienribon.tweenengine;
  *         }
  *     }
  *     
- *     public void tweenUpdated(int tweenType, float[] newValues) {
+ *     public void onTweenUpdated(int tweenType, float[] newValues) {
  *         switch (tweenType) {
  *             case X: target.setX(newValues[0]); break;
  *             case Y: target.setY(newValues[1]); break;
@@ -78,5 +78,5 @@ public interface Tweenable {
 	 * @param tweenType An integer representing the tween type.
 	 * @param newValues The new values determined by the tweening engine.
 	 */
-	public void tweenUpdated(int tweenType, float[] newValues);
+	public void onTweenUpdated(int tweenType, float[] newValues);
 }

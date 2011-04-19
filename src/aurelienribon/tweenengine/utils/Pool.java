@@ -1,4 +1,4 @@
-package aurelienribon.tweenengine;
+package aurelienribon.tweenengine.utils;
 
 import java.util.ArrayList;
 
@@ -20,10 +20,15 @@ public abstract class Pool<T> {
 	}
 
 	public void free(T obj) {
-		objects.add(obj);
+		if (!objects.contains(obj))
+			objects.add(obj);
 	}
 
 	public void clear() {
 		objects.clear();
+	}
+
+	public int size() {
+		return objects.size();
 	}
 }

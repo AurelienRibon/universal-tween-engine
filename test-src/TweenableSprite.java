@@ -46,7 +46,7 @@ public class TweenableSprite implements Tweenable {
 	}
 
 	@Override
-	public void tweenUpdated(int tweenType, float[] newValues) {
+	public void onTweenUpdated(int tweenType, float[] newValues) {
 		switch (tweenType) {
 			case OPACITY:
 				Color c = sprite.getColor();

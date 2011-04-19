@@ -10,7 +10,7 @@ import aurelienribon.tweenengine.TweenEquation;
 public class Linear {
 	public static final TweenEquation INOUT = new TweenEquation() {
 		@Override
-		public float compute(float t, float b, float c, float d) {
+		public final float compute(float t, float b, float c, float d) {
 			return c * t/d + b;
 		}
 

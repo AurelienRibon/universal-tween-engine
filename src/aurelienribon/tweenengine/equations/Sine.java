@@ -12,7 +12,7 @@ public class Sine {
 	
 	public static final TweenEquation IN = new TweenEquation() {
 		@Override
-		public float compute(float t, float b, float c, float d) {
+		public final float compute(float t, float b, float c, float d) {
 			return -c * (float)Math.cos(t/d * (PI/2)) + c + b;
 		}
 
@@ -24,7 +24,7 @@ public class Sine {
 
 	public static final TweenEquation OUT = new TweenEquation() {
 		@Override
-		public float compute(float t, float b, float c, float d) {
+		public final float compute(float t, float b, float c, float d) {
 			return c * (float)Math.sin(t/d * (PI/2)) + b;
 		}
 
@@ -36,7 +36,7 @@ public class Sine {
 
 	public static final TweenEquation INOUT = new TweenEquation() {
 		@Override
-		public float compute(float t, float b, float c, float d) {
+		public final float compute(float t, float b, float c, float d) {
 			return -c/2 * ((float)Math.cos(PI*t/d) - 1) + b;
 		}
 
