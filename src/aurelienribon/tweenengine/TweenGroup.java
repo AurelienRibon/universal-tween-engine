@@ -13,15 +13,17 @@ import java.util.ArrayList;
  * The following example will move the target horizontal position from its
  * current location to x=200, then from x=200 to x=100, and finally from
  * x=100 to x=200, but this last transition will only occur 1000ms after the
- * previous one.
+ * previous one. Notice the ".sequence()" method call, if it has not been
+ * called, the 3 tweens would have started together, and not one after the
+ * other.
  *
  * <br/><br/>
  * <pre>
- * TweenGroup.asSequence(
+ * TweenGroup.pack(
  *     Tween.to(myObject, POSITION_X, 500, Quad.INOUT).target(200),
  *     Tween.to(myObject, POSITION_X, 500, Quad.INOUT).target(100),
  *     Tween.to(myObject, POSITION_X, 500, Quad.INOUT).target(200).delay(1000)
- * ).start();
+ * ).sequence().start();
  * </pre>
  *
  * @see TweenManager
