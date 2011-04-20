@@ -35,13 +35,10 @@ import java.util.ArrayList;
  * </pre>
  *
  * You need to periodicaly update the tween engine, in order to compute the new
- * values. First way is to directly use the update() method of each tween.
- * However, take care that if you enabled pooling (with Tween.setPoolEnabled()),
- * you need to stop mess with a tween as soon as it is freed and returned to
- * the pool (you may add a PoolCallback to your tweens). <b>If you do want to
- * use tween pooling without having to take care of everything, use a
- * TweenManager !</b>.
+ * values. Add it to a TweenManager, it will take care of the tween life-cycle
+ * for you!
  *
+ * @see Tweenable
  * @see TweenManager
  * @see TweenGroup
  * @author Aurelien Ribon (aurelien.ribon@gmail.com)
@@ -99,16 +96,6 @@ public class Tween {
 		};
 	}
 
-	private static Tween getNewTween() {
-		if (isPoolEnabled) {
-			Tween tween = pool.get();
-			tween.__reset();
-			tween.isPooled = true;
-			return tween;
-		}
-		return new Tween(null, -1, 0, null);
-	}
-
 	// -------------------------------------------------------------------------
 	// Factories
 	// -------------------------------------------------------------------------
@@ -142,8 +129,10 @@ public class Tween {
 	 * @return The generated Tween.
 	 */
 	public static Tween to(Tweenable target, int tweenType, int durationMillis, TweenEquation equation) {
-		Tween tween = getNewTween();
+		Tween tween = pool.get();
+		tween.reset();
 		tween.__build(target, tweenType, durationMillis, equation);
+		tween.isPooled = isPoolEnabled;
 		return tween;
 	}
 
@@ -176,8 +165,10 @@ public class Tween {
 	 * @return The generated Tween.
 	 */
 	public static Tween from(Tweenable target, int tweenType, int durationMillis, TweenEquation equation) {
-		Tween tween = getNewTween();
+		Tween tween = pool.get();
+		tween.reset();
 		tween.__build(target, tweenType, durationMillis, equation);
+		tween.isPooled = isPoolEnabled;
 		tween.reverse();
 		return tween;
 	}
@@ -210,8 +201,10 @@ public class Tween {
 	 * @return The generated Tween.
 	 */
 	public static Tween set(Tweenable target, int tweenType) {
-		Tween tween = getNewTween();
+		Tween tween = pool.get();
+		tween.reset();
 		tween.__build(target, tweenType, 0, null);
+		tween.isPooled = isPoolEnabled;
 		return tween;
 	}
 
@@ -242,9 +235,11 @@ public class Tween {
 	 * @return The generated Tween.
 	 */
 	public static Tween call(IterationCompleteCallback callback) {
-		Tween tween = getNewTween();
+		Tween tween = pool.get();
+		tween.reset();
 		tween.__build(null, -1, 0, null);
 		tween.addCallback(callback);
+		tween.isPooled = isPoolEnabled;
 		return tween;
 	}
 
@@ -259,8 +254,6 @@ public class Tween {
 
 	// General
 	private boolean isReversed;
-	private boolean isInitialized;
-	private boolean isDirty;
 	private boolean isPooled;
 
 	// Values
@@ -275,10 +268,11 @@ public class Tween {
 	private int delayMillis;
 	private long endDelayMillis;
 	private long endMillis;
+	private boolean isInitialized;
 	private boolean isStarted;
 	private boolean isDelayEnded;
 	private boolean isEnded;
-	private boolean isKilled;
+	private boolean isFinished;
 
 	// Callbacks
 	private final ArrayList<CompleteCallback> completeCallbacks;
@@ -316,7 +310,7 @@ public class Tween {
 		killCallbacks = new ArrayList<KillCallback>(3);
 		poolCallbacks = new ArrayList<PoolCallback>(3);
 
-		__reset();
+		reset();
 		__build(target, tweenType, durationMillis, equation);
 	}
 
@@ -334,10 +328,11 @@ public class Tween {
 		endMillis = endDelayMillis + durationMillis;
 		endRepeatDelayMillis = Math.max(endMillis, endMillis + repeatDelayMillis);
 
+		isInitialized = true;
 		isStarted = true;
 		isDelayEnded = false;
 		isEnded = false;
-		isKilled = false;
+		isFinished = false;
 
 		return this;
 	}
@@ -348,7 +343,7 @@ public class Tween {
 	 * a result, you shouldn't use it anymore.
 	 */
 	public void kill() {
-		isKilled = true;
+		isFinished = true;
 		callKillCallbacks();
 	}
 
@@ -536,29 +531,26 @@ public class Tween {
 	}
 
 	/**
-	 * Returns true if the tween is dirty (i.e. if tween pooling is enabled and
-	 * the tween has reached its end or has been killed). If this is the case,
-	 * the tween should no longer been used, since it will be reset and freed.
-	 * @return True if the tween should no longer be used.
+	 * Returns true if the tween is finished (i.e. if the tween has reached
+	 * its end or has been killed). If this is the case and tween pooling is
+	 * enabled, the tween should no longer been used, since it will be reset
+	 * and returned to the pool.
+	 * @return True if the tween is finished.
 	 */
-	public boolean isDirty() {
-		return isDirty;
+	public boolean isFinished() {
+		return isFinished;
 	}
 
 	// -------------------------------------------------------------------------
 	// Update engine
 	// -------------------------------------------------------------------------
 
-	/**
-	 * Updates the tween current state.
-	 * @param currentMillis The current time, in milliseconds.
-	 */
-	public final void update(long currentMillis) {
-		// Is the tween dirty ?
+	final void update(long currentMillis) {
+		// Is the tween valid ?
 		checkForValidity();
 
 		// Are we started ?
-		if (isKilled || !isStarted)
+		if (!isStarted)
 			return;
 
 		// Shall we repeat ?
@@ -586,12 +578,12 @@ public class Tween {
 	}
 
 	private boolean checkForValidity() {
-		if (isDirty && isPooled && isInitialized) {
+		if (isFinished && isPooled && isInitialized) {
 			callPoolCallbacks();
-			__reset();
+			reset();
 			pool.free(this);
 			return true;
-		} else if (isDirty) {
+		} else if (isFinished) {
 			return true;
 		}
 		return false;
@@ -637,6 +629,7 @@ public class Tween {
 			if (shouldRepeat()) {
 				callIterationCompleteCallbacks();
 			} else {
+				isFinished = true;
 				callIterationCompleteCallbacks();
 				callCompleteCallbacks();
 			}
@@ -659,41 +652,8 @@ public class Tween {
 	}
 
 	// -------------------------------------------------------------------------
-	// Hidden methods
+	// Expert features
 	// -------------------------------------------------------------------------
-
-	/**
-	 * <b>Advanced use.</b>
-	 * <br/>Resets every attribute of the tween. May be used if you want to
-	 * build your own pool system. 
-	 */
-	public final void __reset() {
-		this.target = null;
-		this.tweenType = -1;
-		this.equation = null;
-
-		this.isReversed = false;
-		this.isInitialized = false;
-		this.isDirty = true;
-		this.isPooled = false;
-
-		this.combinedTweenCount = 0;
-
-		this.delayMillis = 0;
-		this.isStarted = false;
-		this.isDelayEnded = false;
-		this.isEnded = false;
-		this.isKilled = false;
-
-		this.completeCallbacks.clear();
-		this.iterationCompleteCallbacks.clear();
-		this.killCallbacks.clear();
-		this.poolCallbacks.clear();
-
-		this.repeatCnt = 0;
-		this.iteration = 0;
-		this.repeatDelayMillis = 0;
-	}
 
 	/**
 	 * <b>Advanced use.</b>
@@ -701,9 +661,10 @@ public class Tween {
 	 * build your own pool system. You should call __reset() before.
 	 */
 	public final void __build(Tweenable target, int tweenType, int durationMillis, TweenEquation equation) {
-		this.isDirty = false;
+		reset();
+
 		this.isInitialized = true;
-		
+
 		this.target = target;
 		this.tweenType = tweenType;
 		this.durationMillis = durationMillis;
@@ -716,14 +677,42 @@ public class Tween {
 		}
 	}
 
+	// -------------------------------------------------------------------------
+	// Helpers
+	// -------------------------------------------------------------------------
+
+	private void reset() {
+		this.target = null;
+		this.tweenType = -1;
+		this.equation = null;
+
+		this.isReversed = false;
+		this.isInitialized = false;
+		this.isPooled = false;
+
+		this.combinedTweenCount = 0;
+
+		this.delayMillis = 0;
+		this.isStarted = false;
+		this.isDelayEnded = false;
+		this.isEnded = false;
+		this.isFinished = true;
+
+		this.completeCallbacks.clear();
+		this.iterationCompleteCallbacks.clear();
+		this.killCallbacks.clear();
+		this.poolCallbacks.clear();
+
+		this.repeatCnt = 0;
+		this.iteration = 0;
+		this.repeatDelayMillis = 0;
+	}
+
 	private boolean shouldRepeat() {
 		return (repeatCnt < 0) || (iteration < repeatCnt);
 	}
 
 	private void callCompleteCallbacks() {
-		if (isPooled)
-			isDirty = true;
-
 		for (int i=completeCallbacks.size()-1; i>=0; i--)
 			completeCallbacks.get(i).onComplete(this);
 	}
@@ -733,10 +722,7 @@ public class Tween {
 			iterationCompleteCallbacks.get(i).onIterationComplete(this);
 	}
 
-	private void callKillCallbacks() {
-		if (isPooled)
-			isDirty = true;
-		
+	private void callKillCallbacks() {		
 		for (int i=killCallbacks.size()-1; i>=0; i--)
 			killCallbacks.get(i).onKill(this);
 	}

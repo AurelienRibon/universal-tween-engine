@@ -29,6 +29,11 @@ import java.util.ArrayList;
  * Note that you can reuse the same TweenGroup again and again since the pack()
  * method clears its content.
  *
+ * <br/><br/>
+ * Alike individual tweens, add the group to a TweenManager and update the
+ * latter periodically.
+ *
+ * @see Tween
  * @see TweenManager
  * @author Aurelien Ribon (aurelien.ribon@gmail.com)
  */
@@ -115,7 +120,7 @@ public class TweenGroup {
 	 *
 	 * <br/><br/>
 	 * <pre>
-	 * With indivisual repeat() calls:
+	 * With individual repeat() calls:
 	 * Tween 1: -- -- -- -- -- end
 	 * Tween 2: ----- ----- ----- ----- ----- end
 	 *
@@ -144,25 +149,6 @@ public class TweenGroup {
 	 */
 	public Tween[] getTweens() {
 		return tweens.toArray(new Tween[tweens.size()]);
-	}
-
-	/**
-	 * Convenience method to update every tween state at once. It is
-	 * recommanded to use a TweenManager instead. If you enabled tween pooling
-	 * and a tween gets dirty (i.e. if it completes or is killed), it will be
-	 * removed from the group automatically.
-	 * @param currentMillis The current time, in milliseconds.
-	 * @see TweenManager
-	 */
-	public final void update(long currentMillis) {
-		for (int i=0; i<tweens.size(); i++) {
-			Tween tween = tweens.get(i);
-			if (tween.isDirty()) {
-				tweens.remove(i);
-				i -= 1;
-			}
-			tween.update(currentMillis);
-		}
 	}
 
 	// -------------------------------------------------------------------------

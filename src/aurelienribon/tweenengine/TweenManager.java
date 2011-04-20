@@ -66,6 +66,15 @@ public class TweenManager {
 	}
 
 	/**
+	 * Returns true if the given tween is managed by this TweenManager.
+	 * @param tween A tween.
+	 * @return True if the tween is part of this manager.
+	 */
+	public boolean contains(Tween tween) {
+		return tweens.contains(tween);
+	}
+
+	/**
 	 * Gets the number of tweens managed by this manager.
 	 * @return The number of tweens in the manager.
 	 */
@@ -81,15 +90,15 @@ public class TweenManager {
 	}
 
 	/**
-	 * Updates every tween with a custom time. If you enabled tween pooling
-	 * and a tween gets dirty (i.e. if it completes or is killed), it will be
-	 * removed from the manager automatically.
+	 * Updates every tween with a custom time. Handles the tween life-cycle
+	 * automatically. If a tween is finished, it will be removed from the
+	 * manager.
 	 * @param currentMillis A time specified in milliseconds.
 	 */
 	public final void update(long currentMillis) {
 		for (int i=0; i<tweens.size(); i++) {
 			Tween tween = tweens.get(i);
-			if (tween.isDirty()) {
+			if (tween.isFinished()) {
 				tweens.remove(i);
 				i -= 1;
 			}
