@@ -19,12 +19,15 @@ import java.util.ArrayList;
  *
  * <br/><br/>
  * <pre>
- * TweenGroup.pack(
+ * new TweenGroup().pack(
  *     Tween.to(myObject, POSITION_X, 500, Quad.INOUT).target(200),
  *     Tween.to(myObject, POSITION_X, 500, Quad.INOUT).target(100),
  *     Tween.to(myObject, POSITION_X, 500, Quad.INOUT).target(200).delay(1000)
  * ).sequence().start();
  * </pre>
+ *
+ * Note that you can reuse the same TweenGroup again and again since the pack()
+ * method clears its content.
  *
  * @see TweenManager
  * @author Aurelien Ribon (aurelien.ribon@gmail.com)
