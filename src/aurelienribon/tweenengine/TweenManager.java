@@ -22,6 +22,7 @@ public class TweenManager {
 	// -------------------------------------------------------------------------
 
 	private final ArrayList<Tween> tweens;
+	private OverwriteRules owrRule = OverwriteRules.NONE;
 
 	/**
 	 * Instantiates a new manager.
@@ -39,9 +40,39 @@ public class TweenManager {
 	 * @param tween A tween. Does nothing if it is already present.
 	 * @return The manager, for instruction chaining.
 	 */
-	public TweenManager add(Tween tween) {
-		if (!tweens.contains(tween))
-			tweens.add(tween);
+	public final TweenManager add(Tween tween) {
+		if (!tweens.contains(tween)) {
+			switch (owrRule) {
+				case NONE:
+					tweens.add(tween);
+					break;
+
+				case KEEP_NEW:
+					for (int i=tweens.size()-1; i>=0; i--) {
+						Tween oldTween = tweens.get(i);
+						if (oldTween.getTarget() == tween.getTarget()
+						&& oldTween.getTweenType() == tween.getTweenType()) {
+							tweens.remove(i);
+						}
+					}
+					tweens.add(tween);
+					break;
+
+				case KEEP_OLD:
+					boolean canAdd = true;
+					for (int i=tweens.size()-1; i>=0; i--) {
+						Tween oldTween = tweens.get(i);
+						if (oldTween.getTarget() == tween.getTarget()
+						&& oldTween.getTweenType() == tween.getTweenType()) {
+							canAdd = false;
+							break;
+						}
+					}
+					if (canAdd)
+						tweens.add(tween);
+					break;
+			}
+		}
 		return this;
 	}
 
@@ -52,9 +83,14 @@ public class TweenManager {
 	 * @param tweenGroup A tween group.
 	 * @return The manager, for instruction chaining.
 	 */
-	public TweenManager add(TweenGroup tweenGroup) {
+	public final TweenManager add(TweenGroup tweenGroup) {
 		while (!tweenGroup.tweens.isEmpty())
 			add(tweenGroup.tweens.remove(0));
+		return this;
+	}
+
+	public TweenManager setOverwriteRule(OverwriteRules rule) {
+		owrRule = rule;
 		return this;
 	}
 
@@ -80,6 +116,14 @@ public class TweenManager {
 	 */
 	public int getTweenCount() {
 		return tweens.size();
+	}
+
+	/**
+	 * Gets an array containing all the tweens in the group.
+	 * @return An array containing all the tweens in the group.
+	 */
+	public Tween[] getTweens() {
+		return tweens.toArray(new Tween[tweens.size()]);
 	}
 
 	/**

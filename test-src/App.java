@@ -108,7 +108,7 @@ public class App implements ApplicationListener {
 		switch (state) {
 			case 0:
 				text = "Demo (with one auto-repeat)";
-				TweenGroup sequence = new TweenGroup().pack(
+				tweenManager.add(new TweenGroup().pack(
 					Tween.set(tweenSprite, TweenableSprite.ROTATION).target(0),
 					Tween.set(tweenSprite, TweenableSprite.OPACITY).target(0),
 					Tween.set(tweenSprite, TweenableSprite.POSITION_XY).target(-sprite.getWidth()/2, -sprite.getHeight()/2),
@@ -117,8 +117,7 @@ public class App implements ApplicationListener {
 					Tween.to(tweenSprite, TweenableSprite.SCALE_XY, 1000, Quart.INOUT).target(1, 1).delay(-1000),
 					Tween.to(tweenSprite, TweenableSprite.POSITION_XY, 1000, Elastic.OUT).target(-200, sprite.getY()).delay(200),
 					Tween.to(tweenSprite, TweenableSprite.ROTATION, 800, Cubic.INOUT).target(360).delay(-400)
-				).sequence().repeat(1, 500).start();
-				tweenManager.add(sequence);
+				).sequence().repeat(1, 500).start());
 				break;
 
 			default:

@@ -1,9 +1,11 @@
 package aurelienribon.tweenengine;
 
 import aurelienribon.tweenengine.callbacks.CompleteCallback;
+import aurelienribon.tweenengine.callbacks.DelayEndedCallback;
 import aurelienribon.tweenengine.callbacks.IterationCompleteCallback;
 import aurelienribon.tweenengine.callbacks.KillCallback;
 import aurelienribon.tweenengine.callbacks.PoolCallback;
+import aurelienribon.tweenengine.callbacks.StartCallback;
 import aurelienribon.tweenengine.utils.Pool;
 import java.util.ArrayList;
 
@@ -279,6 +281,8 @@ public class Tween {
 	private final ArrayList<IterationCompleteCallback> iterationCompleteCallbacks;
 	private final ArrayList<KillCallback> killCallbacks;
 	private final ArrayList<PoolCallback> poolCallbacks;
+	private final ArrayList<StartCallback> startCallbacks;
+	private final ArrayList<DelayEndedCallback> delayEndedCallbacks;
 
 	// Repeat
 	private int repeatCnt;
@@ -309,6 +313,8 @@ public class Tween {
 		iterationCompleteCallbacks = new ArrayList<IterationCompleteCallback>(3);
 		killCallbacks = new ArrayList<KillCallback>(3);
 		poolCallbacks = new ArrayList<PoolCallback>(3);
+		startCallbacks = new ArrayList<StartCallback>(3);
+		delayEndedCallbacks = new ArrayList<DelayEndedCallback>(3);
 
 		reset();
 		__build(target, tweenType, durationMillis, equation);
@@ -333,6 +339,8 @@ public class Tween {
 		isDelayEnded = false;
 		isEnded = false;
 		isFinished = false;
+
+		callStartCallbacks();
 
 		return this;
 	}
@@ -610,6 +618,8 @@ public class Tween {
 					targetMinusStartValues[i] = targetValues[i] - startValues[i];
 			}
 
+			callDelayEndedCallbacks();
+
 		} else if (!isDelayEnded) {
 			return true;
 		}
@@ -702,6 +712,8 @@ public class Tween {
 		this.iterationCompleteCallbacks.clear();
 		this.killCallbacks.clear();
 		this.poolCallbacks.clear();
+		this.startCallbacks.clear();
+		this.delayEndedCallbacks.clear();
 
 		this.repeatCnt = 0;
 		this.iteration = 0;
@@ -730,5 +742,15 @@ public class Tween {
 	private void callPoolCallbacks() {
 		for (int i=poolCallbacks.size()-1; i>=0; i--)
 			poolCallbacks.get(i).onPool(this);
+	}
+
+	private void callStartCallbacks() {
+		for (int i=startCallbacks.size()-1; i>=0; i--)
+			startCallbacks.get(i).onStart(this);
+	}
+
+	private void callDelayEndedCallbacks() {
+		for (int i=delayEndedCallbacks.size()-1; i>=0; i--)
+			delayEndedCallbacks.get(i).onDelayEnded(this);
 	}
 }
