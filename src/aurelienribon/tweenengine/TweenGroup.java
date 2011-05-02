@@ -143,14 +143,6 @@ public class TweenGroup {
 		return this;
 	}
 
-	/**
-	 * Gets an array containing all the tweens in the group.
-	 * @return An array containing all the tweens in the group.
-	 */
-	public Tween[] getTweens() {
-		return tweens.toArray(new Tween[tweens.size()]);
-	}
-
 	// -------------------------------------------------------------------------
 	// Private methods
 	// -------------------------------------------------------------------------
