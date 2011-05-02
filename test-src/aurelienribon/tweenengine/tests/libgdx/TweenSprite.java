@@ -1,8 +1,10 @@
+package aurelienribon.tweenengine.tests.libgdx;
+
 import aurelienribon.tweenengine.Tweenable;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 
-public class TweenableSprite implements Tweenable {
+public class TweenSprite implements Tweenable {
 	public static final int ORIGIN_XY = 1;
 	public static final int POSITION_XY = 2;
 	public static final int SCALE_XY = 3;
@@ -11,7 +13,7 @@ public class TweenableSprite implements Tweenable {
 
 	private Sprite sprite;
 
-	public TweenableSprite(Sprite sprite) {
+	public TweenSprite(Sprite sprite) {
 		this.sprite = sprite;
 	}
 

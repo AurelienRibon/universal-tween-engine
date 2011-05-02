@@ -1,3 +1,5 @@
+package aurelienribon.tweenengine.tests.libgdx;
+
 import aurelienribon.tweenengine.Tween;
 import aurelienribon.tweenengine.TweenGroup;
 import aurelienribon.tweenengine.TweenManager;
@@ -25,7 +27,7 @@ public class App implements ApplicationListener {
 	
 	private Texture texture;
 	private Sprite sprite;
-	private TweenableSprite tweenSprite;
+	private TweenSprite tweenSprite;
 
 	private BitmapFont font;
 	private String text;
@@ -64,7 +66,7 @@ public class App implements ApplicationListener {
 		// some methods in libgdx (as TextureAtlas) are sprite factories, so
 		// they create the sprites for you. Thus, you can only tween them with
 		// such composition pattern.
-		tweenSprite = new TweenableSprite(sprite);
+		tweenSprite = new TweenSprite(sprite);
 
 		// Demo of the Tween.call possibility. It's just a timer :)
 		Tween call = Tween.call(callback).delay(2000).start();
@@ -109,14 +111,14 @@ public class App implements ApplicationListener {
 			case 0:
 				text = "Demo (with one auto-repeat)";
 				tweenManager.add(new TweenGroup().pack(
-					Tween.set(tweenSprite, TweenableSprite.ROTATION).target(0),
-					Tween.set(tweenSprite, TweenableSprite.OPACITY).target(0),
-					Tween.set(tweenSprite, TweenableSprite.POSITION_XY).target(-sprite.getWidth()/2, -sprite.getHeight()/2),
-					Tween.set(tweenSprite, TweenableSprite.SCALE_XY).target(10, 10),
-					Tween.to(tweenSprite, TweenableSprite.OPACITY, 1000, Sine.INOUT).target(1),
-					Tween.to(tweenSprite, TweenableSprite.SCALE_XY, 1000, Quart.INOUT).target(1, 1).delay(-1000),
-					Tween.to(tweenSprite, TweenableSprite.POSITION_XY, 1000, Elastic.OUT).target(-200, sprite.getY()).delay(200),
-					Tween.to(tweenSprite, TweenableSprite.ROTATION, 800, Cubic.INOUT).target(360).delay(-400)
+					Tween.set(tweenSprite, TweenSprite.ROTATION).target(0),
+					Tween.set(tweenSprite, TweenSprite.OPACITY).target(0),
+					Tween.set(tweenSprite, TweenSprite.POSITION_XY).target(-sprite.getWidth()/2, -sprite.getHeight()/2),
+					Tween.set(tweenSprite, TweenSprite.SCALE_XY).target(10, 10),
+					Tween.to(tweenSprite, TweenSprite.OPACITY, 1000, Sine.INOUT).target(1),
+					Tween.to(tweenSprite, TweenSprite.SCALE_XY, 1000, Quart.INOUT).target(1, 1).delay(-1000),
+					Tween.to(tweenSprite, TweenSprite.POSITION_XY, 1000, Elastic.OUT).target(-200, sprite.getY()).delay(200),
+					Tween.to(tweenSprite, TweenSprite.ROTATION, 800, Cubic.INOUT).target(360).delay(-400)
 				).sequence().repeat(1, 500).start());
 				break;
 
