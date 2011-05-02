@@ -69,9 +69,9 @@ public class App implements ApplicationListener {
 		tweenSprite = new TweenSprite(sprite);
 
 		// Demo of the Tween.call possibility. It's just a timer :)
-		Tween call = Tween.call(callback).delay(2000).start();
+		Tween call = Tween.call(callback).delay(1000).start();
 		tweenManager.add(call);
-		text = "Idle (auto-start in 2 second)";
+		text = "Idle (auto-start in 1 second)";
 	}
 
 	private IterationCompleteCallback callback = new IterationCompleteCallback() {
@@ -109,7 +109,11 @@ public class App implements ApplicationListener {
 	private void startNextTween() {
 		switch (state) {
 			case 0:
-				text = "Demo (with one auto-repeat)";
+				text = "Demo (click to override)";
+				tweenManager.kill(tweenSprite, TweenSprite.ROTATION);
+				tweenManager.kill(tweenSprite, TweenSprite.OPACITY);
+				tweenManager.kill(tweenSprite, TweenSprite.POSITION_XY);
+				tweenManager.kill(tweenSprite, TweenSprite.SCALE_XY);
 				tweenManager.add(new TweenGroup().pack(
 					Tween.set(tweenSprite, TweenSprite.ROTATION).target(0),
 					Tween.set(tweenSprite, TweenSprite.OPACITY).target(0),
@@ -119,7 +123,7 @@ public class App implements ApplicationListener {
 					Tween.to(tweenSprite, TweenSprite.SCALE_XY, 1000, Quart.INOUT).target(1, 1).delay(-1000),
 					Tween.to(tweenSprite, TweenSprite.POSITION_XY, 1000, Elastic.OUT).target(-200, sprite.getY()).delay(200),
 					Tween.to(tweenSprite, TweenSprite.ROTATION, 800, Cubic.INOUT).target(360).delay(-400)
-				).sequence().repeat(1, 500).start());
+				).sequence().start());
 				break;
 
 			default:

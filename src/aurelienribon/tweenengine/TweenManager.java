@@ -22,7 +22,6 @@ public class TweenManager {
 	// -------------------------------------------------------------------------
 
 	private final ArrayList<Tween> tweens;
-	private OverwriteRules owrRule = OverwriteRules.NONE;
 
 	/**
 	 * Instantiates a new manager.
@@ -41,38 +40,7 @@ public class TweenManager {
 	 * @return The manager, for instruction chaining.
 	 */
 	public final TweenManager add(Tween tween) {
-		if (!tweens.contains(tween)) {
-			switch (owrRule) {
-				case NONE:
-					tweens.add(tween);
-					break;
-
-				case KEEP_NEW:
-					for (int i=tweens.size()-1; i>=0; i--) {
-						Tween oldTween = tweens.get(i);
-						if (oldTween.getTarget() == tween.getTarget()
-						&& oldTween.getTweenType() == tween.getTweenType()) {
-							tweens.remove(i);
-						}
-					}
-					tweens.add(tween);
-					break;
-
-				case KEEP_OLD:
-					boolean canAdd = true;
-					for (int i=tweens.size()-1; i>=0; i--) {
-						Tween oldTween = tweens.get(i);
-						if (oldTween.getTarget() == tween.getTarget()
-						&& oldTween.getTweenType() == tween.getTweenType()) {
-							canAdd = false;
-							break;
-						}
-					}
-					if (canAdd)
-						tweens.add(tween);
-					break;
-			}
-		}
+		tweens.add(tween);
 		return this;
 	}
 
@@ -89,11 +57,6 @@ public class TweenManager {
 		return this;
 	}
 
-	public TweenManager setOverwriteRule(OverwriteRules rule) {
-		owrRule = rule;
-		return this;
-	}
-
 	/**
 	 * Clears the manager from every tween.
 	 */
@@ -102,12 +65,51 @@ public class TweenManager {
 	}
 
 	/**
-	 * Returns true if the given tween is managed by this TweenManager.
-	 * @param tween A tween.
-	 * @return True if the tween is part of this manager.
+	 * Returns true if the manager contains any valid tween associated to the
+	 * given target.
 	 */
-	public boolean contains(Tween tween) {
-		return tweens.contains(tween);
+	public final boolean contains(Tweenable target) {
+		for (int i=0; i<tweens.size(); i++) {
+			Tween tween = tweens.get(i);
+			if (tween.getTarget() == target && !tween.isFinished())
+				return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Returns true if the manager contains any valid tween associated to the
+	 * given target and tween type.
+	 */
+	public final boolean contains(Tweenable target, int tweenType) {
+		for (int i=0; i<tweens.size(); i++) {
+			Tween tween = tweens.get(i);
+			if (tween.getTarget() == target && tween.getTweenType() == tweenType && !tween.isFinished())
+				return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Kills every valid tween associated to the given target.
+	 */
+	public final void kill(Tweenable target) {
+		for (int i=0; i<tweens.size(); i++) {
+			Tween tween = tweens.get(i);
+			if (tween.getTarget() == target && !tween.isFinished())
+				tween.kill();
+		}
+	}
+
+	/**
+	 * Kills every valid tween associated to the given target and tween type.
+	 */
+	public final void kill(Tweenable target, int tweenType) {
+		for (int i=0; i<tweens.size(); i++) {
+			Tween tween = tweens.get(i);
+			if (tween.getTarget() == target && tween.getTweenType() == tweenType && !tween.isFinished())
+				tween.kill();
+		}
 	}
 
 	/**
@@ -119,27 +121,51 @@ public class TweenManager {
 	}
 
 	/**
-	 * Gets an array containing all the tweens in the group.
-	 * @return An array containing all the tweens in the group.
+	 * Gets an array containing every tween in the manager.
+	 * <b>Warning:</b> this method allocates an array.
 	 */
 	public Tween[] getTweens() {
 		return tweens.toArray(new Tween[tweens.size()]);
 	}
 
 	/**
-	 * Updates every tween with the current time.
+	 * Gets an array containing every tween in the manager dedicated to the
+	 * given target.
+	 * <b>Warning:</b> this method allocates an ArrayList and an array.
 	 */
-	public final void update() {
-		update(System.currentTimeMillis());
+	public Tween[] getTweens(Tweenable target) {
+		ArrayList<Tween> selectedTweens = new ArrayList<Tween>();
+		for (int i=0; i<tweens.size(); i++) {
+			Tween tween = tweens.get(i);
+			if (tween.getTarget() == target && !tween.isFinished())
+				selectedTweens.add(tween);
+		}
+		return selectedTweens.toArray(new Tween[selectedTweens.size()]);
 	}
 
 	/**
-	 * Updates every tween with a custom time. Handles the tween life-cycle
+	 * Gets an array containing every tween in the manager dedicated to the
+	 * given target and tween type.
+	 * <b>Warning:</b> this method allocates an ArrayList and an array.
+	 */
+	public Tween[] getTweens(Tweenable target, int tweenType) {
+		ArrayList<Tween> selectedTweens = new ArrayList<Tween>();
+		for (int i=0; i<tweens.size(); i++) {
+			Tween tween = tweens.get(i);
+			if (tween.getTarget() == target && tween.getTweenType() == tweenType && !tween.isFinished())
+				selectedTweens.add(tween);
+		}
+		return selectedTweens.toArray(new Tween[selectedTweens.size()]);
+	}
+
+	/**
+	 * Updates every tween with the current time. Handles the tween life-cycle
 	 * automatically. If a tween is finished, it will be removed from the
 	 * manager.
-	 * @param currentMillis A time specified in milliseconds.
 	 */
-	public final void update(long currentMillis) {
+	public final void update() {
+		long currentMillis = System.currentTimeMillis();
+
 		for (int i=0; i<tweens.size(); i++) {
 			Tween tween = tweens.get(i);
 			if (tween.isFinished()) {
