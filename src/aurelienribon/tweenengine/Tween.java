@@ -1,11 +1,5 @@
 package aurelienribon.tweenengine;
 
-import aurelienribon.tweenengine.callbacks.CompleteCallback;
-import aurelienribon.tweenengine.callbacks.DelayEndedCallback;
-import aurelienribon.tweenengine.callbacks.IterationCompleteCallback;
-import aurelienribon.tweenengine.callbacks.KillCallback;
-import aurelienribon.tweenengine.callbacks.PoolCallback;
-import aurelienribon.tweenengine.callbacks.StartCallback;
 import aurelienribon.tweenengine.utils.Pool;
 import java.util.ArrayList;
 
@@ -233,14 +227,15 @@ public class Tween {
 	 * tween by using the classic constructor.
 	 *
 	 * @param callback The callback that will be triggered at the end of the
-	 * delay (if any specified).
+	 * delay (if specified). A repeat behavior can be set to the tween to
+	 * trigger it more than once.
 	 * @return The generated Tween.
 	 */
-	public static Tween call(IterationCompleteCallback callback) {
+	public static Tween call(TweenCallback callback) {
 		Tween tween = pool.get();
 		tween.reset();
 		tween.__build(null, -1, 0, null);
-		tween.addCallback(callback);
+		tween.addIterationCompleteCallback(callback);
 		tween.isPooled = isPoolEnabled;
 		return tween;
 	}
@@ -277,18 +272,21 @@ public class Tween {
 	private boolean isFinished;
 
 	// Callbacks
-	private final ArrayList<CompleteCallback> completeCallbacks;
-	private final ArrayList<IterationCompleteCallback> iterationCompleteCallbacks;
-	private final ArrayList<KillCallback> killCallbacks;
-	private final ArrayList<PoolCallback> poolCallbacks;
-	private final ArrayList<StartCallback> startCallbacks;
-	private final ArrayList<DelayEndedCallback> delayEndedCallbacks;
+	private final ArrayList<TweenCallback> startCallbacks;
+	private final ArrayList<TweenCallback> endOfDelayCallbacks;
+	private final ArrayList<TweenCallback> iterationCompleteCallbacks;
+	private final ArrayList<TweenCallback> completeCallbacks;
+	private final ArrayList<TweenCallback> killCallbacks;
+	private final ArrayList<TweenCallback> poolCallbacks;
 
 	// Repeat
 	private int repeatCnt;
 	private int iteration;
 	private int repeatDelayMillis;
 	private long endRepeatDelayMillis;
+
+	// UserData
+	private Object userData;
 
 	// Misc
 	private final float[] localTmp = new float[MAX_COMBINED_TWEENS];
@@ -309,12 +307,12 @@ public class Tween {
 		targetValues = new float[MAX_COMBINED_TWEENS];
 		targetMinusStartValues = new float[MAX_COMBINED_TWEENS];
 
-		completeCallbacks = new ArrayList<CompleteCallback>(3);
-		iterationCompleteCallbacks = new ArrayList<IterationCompleteCallback>(3);
-		killCallbacks = new ArrayList<KillCallback>(3);
-		poolCallbacks = new ArrayList<PoolCallback>(3);
-		startCallbacks = new ArrayList<StartCallback>(3);
-		delayEndedCallbacks = new ArrayList<DelayEndedCallback>(3);
+		startCallbacks = new ArrayList<TweenCallback>(3);
+		endOfDelayCallbacks = new ArrayList<TweenCallback>(3);
+		iterationCompleteCallbacks = new ArrayList<TweenCallback>(3);
+		completeCallbacks = new ArrayList<TweenCallback>(3);
+		killCallbacks = new ArrayList<TweenCallback>(3);
+		poolCallbacks = new ArrayList<TweenCallback>(3);
 
 		reset();
 		__build(target, tweenType, durationMillis, equation);
@@ -421,17 +419,69 @@ public class Tween {
 
 	/**
 	 * Adds a callback to the tween.
-	 * @param callback A callback, see tweenengine.callbacks package for the
-	 * available callbacks.
+	 * The callback is triggered when start() is called on the tween.
+	 * @param callback A tween callback.
 	 * @return The current tween for chaining instructions.
 	 */
-	public Tween addCallback(TweenCallback callback) {
-		if (callback instanceof CompleteCallback)
-			completeCallbacks.add((CompleteCallback) callback);
-		else if (callback instanceof IterationCompleteCallback)
-			iterationCompleteCallbacks.add((IterationCompleteCallback) callback);
-		else if (callback instanceof KillCallback)
-			killCallbacks.add((KillCallback) callback);
+	public Tween addStartCallback(TweenCallback callback) {
+		startCallbacks.add(callback);
+		return this;
+	}
+
+	/**
+	 * Adds a callback to the tween.
+	 * The callback is triggered at the end of the delay.
+	 * @param callback A tween callback.
+	 * @return The current tween for chaining instructions.
+	 */
+	public Tween addEndOfDelayCallback(TweenCallback callback) {
+		endOfDelayCallbacks.add(callback);
+		return this;
+	}
+
+	/**
+	 * Adds a callback to the tween.
+	 * The callback is triggered on each iteration ending. If no repeat
+	 * behavior was specified, this callback is similar to a Types.COMPLETE
+	 * callback.
+	 * @param callback A tween callback.
+	 * @return The current tween for chaining instructions.
+	 */
+	public Tween addIterationCompleteCallback(TweenCallback callback) {
+		iterationCompleteCallbacks.add(callback);
+		return this;
+	}
+
+	/**
+	 * Adds a callback to the tween.
+	 * The callback is triggered at the end of the tween.
+	 * @param callback A tween callback.
+	 * @return The current tween for chaining instructions.
+	 */
+	public Tween addCompleteCallback(TweenCallback callback) {
+		completeCallbacks.add(callback);
+		return this;
+	}
+
+	/**
+	 * Adds a callback to the tween.
+	 * The callback is triggered if the tween is manually killed.
+	 * @param callback A tween callback.
+	 * @return The current tween for chaining instructions.
+	 */
+	public Tween addKillCallback(TweenCallback callback) {
+		killCallbacks.add(callback);
+		return this;
+	}
+
+	/**
+	 * Adds a callback to the tween.
+	 * The callback is triggered right before a tween is sent back to the pool.
+	 * @param callback A tween callback.
+	 * @return The current tween for chaining instructions.
+	 */
+	public Tween addPoolCallback(TweenCallback callback) {
+		poolCallbacks.add(callback);
 		return this;
 	}
 
@@ -455,6 +505,30 @@ public class Tween {
 	 */
 	public Tween reverse() {
 		isReversed = !isReversed;
+		return this;
+	}
+
+	/**
+	 * Sets an object attached to this tween. It can be useful in order to
+	 * retrieve some data from a TweenCallback.
+	 * @param data Any kind of object.
+	 * @return The current tween for chaining instructions.
+	 */
+	public Tween setUserData(Object data) {
+		userData = data;
+		return this;
+	}
+
+	/**
+	 * Convenience method to add a single tween to a manager and avoids the
+	 * verbose <i>myManager.add(Tween.to(....).delay(...).start());</i>.
+	 * This method only makes sense for single tweens. If you use a TweenGroup,
+	 * the addition to the manager is automatic.
+	 * @param manager A TweenManager.
+	 * @return The current tween for chaining instructions.
+	 */
+	public Tween addToManager(TweenManager manager) {
+		manager.add(this);
 		return this;
 	}
 
@@ -547,6 +621,26 @@ public class Tween {
 	 */
 	public boolean isFinished() {
 		return isFinished;
+	}
+
+	/**
+	 * Gets the attached user data, or null if none.
+	 * @return The attached user data.
+	 */
+	public Object getUserData() {
+		return userData;
+	}
+
+	/**
+	 * Updates the tween state. Using this method can be unsafe if tween
+	 * pooling was first enabled. <b>The recommanded behavior is to use a
+	 * TweenManager instead.</b>
+	 * @param currentMillis The current milliseconds. You would generally
+	 * want to use <i>System.currentMillis()</i> and pass the result to
+	 * every unsafeUpdate call.
+	 */
+	public final void unsafeUpdate(long currentMillis) {
+		update(currentMillis);
 	}
 
 	// -------------------------------------------------------------------------
@@ -713,44 +807,46 @@ public class Tween {
 		this.killCallbacks.clear();
 		this.poolCallbacks.clear();
 		this.startCallbacks.clear();
-		this.delayEndedCallbacks.clear();
+		this.endOfDelayCallbacks.clear();
 
 		this.repeatCnt = 0;
 		this.iteration = 0;
 		this.repeatDelayMillis = 0;
+
+		this.userData = null;
 	}
 
 	private boolean shouldRepeat() {
 		return (repeatCnt < 0) || (iteration < repeatCnt);
 	}
 
-	private void callCompleteCallbacks() {
-		for (int i=completeCallbacks.size()-1; i>=0; i--)
-			completeCallbacks.get(i).onComplete(this);
+	private void callStartCallbacks() {
+		for (int i=startCallbacks.size()-1; i>=0; i--)
+			startCallbacks.get(i).tweenEventOccured(TweenCallback.Types.START, this);
+	}
+
+	private void callDelayEndedCallbacks() {
+		for (int i=endOfDelayCallbacks.size()-1; i>=0; i--)
+			endOfDelayCallbacks.get(i).tweenEventOccured(TweenCallback.Types.END_OF_DELAY, this);
 	}
 
 	private void callIterationCompleteCallbacks() {
 		for (int i=iterationCompleteCallbacks.size()-1; i>=0; i--)
-			iterationCompleteCallbacks.get(i).onIterationComplete(this);
+			iterationCompleteCallbacks.get(i).tweenEventOccured(TweenCallback.Types.ITERATION_COMPLETE, this);
 	}
 
-	private void callKillCallbacks() {		
+	private void callCompleteCallbacks() {
+		for (int i=completeCallbacks.size()-1; i>=0; i--)
+			completeCallbacks.get(i).tweenEventOccured(TweenCallback.Types.COMPLETE, this);
+	}
+
+	private void callKillCallbacks() {
 		for (int i=killCallbacks.size()-1; i>=0; i--)
-			killCallbacks.get(i).onKill(this);
+			killCallbacks.get(i).tweenEventOccured(TweenCallback.Types.KILL, this);
 	}
 
 	private void callPoolCallbacks() {
 		for (int i=poolCallbacks.size()-1; i>=0; i--)
-			poolCallbacks.get(i).onPool(this);
-	}
-
-	private void callStartCallbacks() {
-		for (int i=startCallbacks.size()-1; i>=0; i--)
-			startCallbacks.get(i).onStart(this);
-	}
-
-	private void callDelayEndedCallbacks() {
-		for (int i=delayEndedCallbacks.size()-1; i>=0; i--)
-			delayEndedCallbacks.get(i).onDelayEnded(this);
+			poolCallbacks.get(i).tweenEventOccured(TweenCallback.Types.POOL, this);
 	}
 }
