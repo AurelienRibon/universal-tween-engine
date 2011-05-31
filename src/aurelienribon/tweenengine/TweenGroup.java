@@ -56,6 +56,19 @@ public class TweenGroup {
 	// API
 	// -------------------------------------------------------------------------
 
+	private static TweenGroup tmp;
+
+	/**
+	 * Convenience method to avoid useless allocation. The returned instance is
+	 * always the same, be careful.
+	 * @return A temporary group instance.
+	 */
+	public static TweenGroup tmp() {
+		if (tmp == null)
+			tmp = new TweenGroup();
+		return tmp;
+	}
+
 	/**
 	 * Adds the given tweens to the group. Please note that the internal storage
 	 * is cleared at the beginning of the operation.

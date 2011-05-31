@@ -726,7 +726,9 @@ public class Tween {
 
 			if (target != null) {
 				for (int i=0; i<combinedTweenCount; i++)
-					localTmp[i] = startValues[i] + targetMinusStartValues[i];
+					localTmp[i] = isReversed
+						? targetValues[i] - targetMinusStartValues[i]
+						: startValues[i] + targetMinusStartValues[i];
 				target.onTweenUpdated(tweenType, localTmp);
 			}
 
