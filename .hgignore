@@ -1,5 +1,15 @@
 syntax: glob
+
+*.zip
+
+tween-engine-api/manifest.mf
 tween-engine-api/nbbuild.xml
+tween-engine-api/build/*
+tween-engine-api/dist/*
 tween-engine-api/nbproject/*
+
+tween-engine-demo/manifest.mf
 tween-engine-demo/nbbuild.xml
+tween-engine-demo/build/*
+tween-engine-demo/dist/*
 tween-engine-demo/nbproject/*
