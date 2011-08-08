@@ -12,15 +12,6 @@
 	<property name="prj.api.filename" value="tween-engine-api" />
 	<property name="prj.demo.dir" value="tween-engine-demo" />
 	<property name="prj.demo.filename" value="tween-engine-demo" />
-	
-	<!-- classpaths for executable jars -->
-	<pathconvert property="prj.demo.classpath" pathsep=" ">
-		<path><fileset dir="${prj.demo.dir}" includes="libs/**/*.jar" /></path>
-		<chainedmapper>
-			<flattenmapper />
-			<globmapper from="*" to="libs/*" />
-		</chainedmapper>
-	</pathconvert>
 
 	<!-- ****************************************************************** -->
 	<!-- Tasks -->
@@ -53,6 +44,16 @@
 	<target name="package" depends="compile">
 		<jar destfile="${prj.api.dir}/${prj.api.filename}.jar" basedir="${prj.api.dir}/bin" />
 		<jar destfile="${prj.api.dir}/${prj.api.filename}-sources.jar" basedir="${prj.api.dir}/src" />
+		
+		<copy file="${prj.api.dir}/${prj.api.filename}.jar" todir="${prj.demo.dir}/libs" />
+		<copy file="${prj.api.dir}/${prj.api.filename}-sources.jar" todir="${prj.demo.dir}/libs" />
+		<pathconvert property="prj.demo.classpath" pathsep=" ">
+			<path><fileset dir="${prj.demo.dir}" includes="libs/**/*.jar" /></path>
+			<chainedmapper>
+				<flattenmapper />
+				<globmapper from="*" to="libs/*" />
+			</chainedmapper>
+		</pathconvert>
 		<jar destfile="${prj.demo.dir}/${prj.demo.filename}.jar" basedir="${prj.demo.dir}/bin">
 			<manifest>
 				<attribute name="Main-Class" value="Main"/>
