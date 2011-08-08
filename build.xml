@@ -72,4 +72,15 @@
 	<target name="all" depends="zip">
 		<antcall target="clean"/>
 	</target>
+
+	<!-- run-demo -->
+	<target name="run-demo">
+		<delete dir="temp"/>
+		<unzip src="${prj.demo.filename}-${version}.zip" dest="temp"/>
+		<exec executable="java" dir="temp">
+			<arg value="-jar"/>
+			<arg value="${prj.demo.filename}.jar"/>
+		</exec>
+		<delete dir="temp"/>
+	</target>
 </project>
