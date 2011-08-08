@@ -1,3 +1,5 @@
 syntax: glob
-TweenEngine-lib/*
-TweenEngine-test/*
+tween-engine-api/nbbuild.xml
+tween-engine-api/nbproject/*
+tween-engine-demo/nbbuild.xml
+tween-engine-demo/nbproject/*

@@ -1,0 +1,76 @@
+<project name="tween-engine" default="all" basedir=".">
+	<property name="version" value="4.4" />
+
+	<property name="prj.api.dir" value="tween-engine-api" />
+	<property name="prj.api.filename" value="tween-engine-api" />
+	<property name="prj.demo.dir" value="tween-engine-demo" />
+	<property name="prj.demo.filename" value="tween-engine-demo" />
+	
+	<pathconvert property="prj.demo.classpath" pathsep=" ">
+		<path><fileset dir="${prj.demo.dir}" includes="libs/**/*.jar" /></path>
+		<chainedmapper>
+			<flattenmapper />
+			<globmapper from="*" to="libs/*" />
+		</chainedmapper>
+	</pathconvert>
+	
+	<!-- clean -->	
+	<target name="clean">
+		<delete includeEmptyDirs="true">
+			<fileset dir="${prj.api.dir}" includes="*.jar, bin/, build/, dist/"/>
+		</delete>
+		<delete includeEmptyDirs="true">
+			<fileset dir="${prj.demo.dir}" includes="*.jar, bin/, build/, dist/"/>
+		</delete>
+	</target>
+
+	<!-- init -->
+	<target name="init" depends="clean">
+		<mkdir dir="${prj.api.dir}/bin/" />
+		<mkdir dir="${prj.demo.dir}/bin/" />
+	</target>
+
+	<!-- compile -->
+	<target name="compile" depends="init">
+		<!-- build engine api -->
+		<javac target="1.6" source="1.6" debug="on" srcdir="${prj.api.dir}/src/" destdir="${prj.api.dir}/bin/" />
+
+		<!-- build engine demo -->
+		<javac target="1.6" source="1.6" debug="on" srcdir="${prj.demo.dir}/src/" destdir="${prj.demo.dir}/bin/">
+			<classpath>
+				<pathelement location="${prj.api.dir}/bin/" />
+				<fileset file="${prj.demo.dir}/libs/*.jar" />
+			</classpath>
+		</javac>	
+	</target>
+	
+	<!-- package -->
+	<target name="package" depends="compile">
+		<!-- jars engine-api -->
+		<jar destfile="${prj.api.dir}/${prj.api.filename}.jar" basedir="${prj.api.dir}/bin" />
+		<jar destfile="${prj.api.dir}/${prj.api.filename}-sources.jar" basedir="${prj.api.dir}/src" />
+
+		<!-- jars engine-demo -->
+		<jar destfile="${prj.demo.dir}/${prj.demo.filename}.jar" basedir="${prj.demo.dir}/bin">
+			<manifest>
+				<attribute name="Main-Class" value="Main"/>
+				<attribute name="Class-Path" value="${prj.demo.classpath}" />
+			</manifest>
+		</jar>
+	</target>
+
+	<!-- zip -->
+	<target name="zip" depends="package">
+		<zip destfile="${prj.api.filename}-${version}.zip">
+			<fileset dir="${prj.api.dir}" includes="*.jar" />
+		</zip>
+		<zip destfile="${prj.demo.filename}-${version}.zip">
+			<fileset dir="${prj.demo.dir}" includes="*.jar, libs/, data/" />
+		</zip>
+	</target>
+	
+	<!-- all -->
+	<target name="all" depends="zip">
+		<antcall target="clean"/>
+	</target>
+</project>

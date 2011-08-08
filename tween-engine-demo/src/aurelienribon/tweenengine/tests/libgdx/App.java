@@ -1,9 +1,9 @@
 package aurelienribon.tweenengine.tests.libgdx;
 
 import aurelienribon.tweenengine.Tween;
+import aurelienribon.tweenengine.TweenCallback;
 import aurelienribon.tweenengine.TweenGroup;
 import aurelienribon.tweenengine.TweenManager;
-import aurelienribon.tweenengine.callbacks.IterationCompleteCallback;
 import aurelienribon.tweenengine.equations.Cubic;
 import aurelienribon.tweenengine.equations.Elastic;
 import aurelienribon.tweenengine.equations.Quart;
@@ -50,7 +50,7 @@ public class App implements ApplicationListener {
 		font.setColor(Color.BLACK);
 
 		// Creation of the Sprite, classic way
-		texture = new Texture(Gdx.files.internal("test-data/logo.png"));
+		texture = new Texture(Gdx.files.internal("data/logo.png"));
 		sprite = new Sprite(texture);
 		sprite.setOrigin(sprite.getWidth()/2, sprite.getHeight()/2);
 		sprite.setPosition(-sprite.getWidth()/2, -sprite.getHeight()/2);
@@ -69,17 +69,13 @@ public class App implements ApplicationListener {
 		tweenSprite = new TweenSprite(sprite);
 
 		// Demo of the Tween.call possibility. It's just a timer :)
-		Tween call = Tween.call(callback).delay(1000).start();
-		tweenManager.add(call);
+		Tween.call(new TweenCallback() {
+			@Override public void tweenEventOccured(Types eventType, Tween tween) {
+				startNextTween();
+			}
+		}).delay(1000).addToManager(tweenManager).start();
 		text = "Idle (auto-start in 1 second)";
 	}
-
-	private IterationCompleteCallback callback = new IterationCompleteCallback() {
-		@Override
-		public void onIterationComplete(Tween tween) {
-			startNextTween();
-		}
-	};
 
 	@Override
 	public void render() {
@@ -100,6 +96,11 @@ public class App implements ApplicationListener {
 		font.draw(sb, "Tweens in pool: " + Tween.getPoolSize(), 5, 25);
 		sb.end();
 	}
+
+	@Override public void resize(int width, int height) {}
+	@Override public void pause() {}
+	@Override public void resume() {}
+	@Override public void dispose() {}
 
 	// -------------------------------------------------------------------------
 	// STATE MACHINE
@@ -147,22 +148,4 @@ public class App implements ApplicationListener {
 			return true;
 		}
 	};
-
-	// -------------------------------------------------------------------------
-
-	@Override
-	public void resize(int width, int height) {
-	}
-
-	@Override
-	public void pause() {
-	}
-
-	@Override
-	public void resume() {
-	}
-
-	@Override
-	public void dispose() {
-	}
 }
