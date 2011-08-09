@@ -14,7 +14,7 @@
 	<property name="prj.demo.filename" value="tween-engine-demo" />
 
 	<!-- ****************************************************************** -->
-	<!-- Tasks -->
+	<!-- Build tasks -->
 	<!-- ****************************************************************** -->
 	
 	<!-- clean -->	
@@ -42,11 +42,12 @@
 	
 	<!-- package -->
 	<target name="package" depends="compile">
+		<!-- api -->
 		<jar destfile="${prj.api.dir}/${prj.api.filename}.jar" basedir="${prj.api.dir}/bin" />
 		<jar destfile="${prj.api.dir}/${prj.api.filename}-sources.jar" basedir="${prj.api.dir}/src" />
 		
+		<!-- demo -->
 		<copy file="${prj.api.dir}/${prj.api.filename}.jar" todir="${prj.demo.dir}/libs" />
-		<copy file="${prj.api.dir}/${prj.api.filename}-sources.jar" todir="${prj.demo.dir}/libs" />
 		<pathconvert property="prj.demo.classpath" pathsep=" ">
 			<path><fileset dir="${prj.demo.dir}" includes="libs/**/*.jar" /></path>
 			<chainedmapper>
@@ -54,6 +55,7 @@
 				<globmapper from="*" to="libs/*" />
 			</chainedmapper>
 		</pathconvert>
+		<delete file="${prj.demo.dir}/libs/${prj.api.filename}.jar"/>
 		<jar destfile="${prj.demo.dir}/${prj.demo.filename}.jar" basedir="${prj.demo.dir}/bin">
 			<manifest>
 				<attribute name="Main-Class" value="Main"/>
@@ -64,13 +66,27 @@
 
 	<!-- zip -->
 	<target name="zip" depends="package">
-		<zip destfile="${prj.api.filename}-${version}.zip"><fileset dir="${prj.api.dir}" includes="*.jar" /></zip>
-		<zip destfile="${prj.demo.filename}-${version}.zip"><fileset dir="${prj.demo.dir}" includes="*.jar, libs/, data/" /></zip>
+		<zip destfile="${prj.api.filename}-${version}.zip">
+			<fileset dir="${prj.api.dir}" includes="*.jar" />
+		</zip>
+		<zip destfile="${prj.demo.filename}-${version}.zip">
+			<fileset dir="${prj.demo.dir}" includes="*.jar, libs/, data/" />
+			<zipfileset file="${prj.api.dir}/${prj.api.filename}.jar" fullpath="libs/${prj.api.filename}.jar"/>
+		</zip>
 	</target>
 	
 	<!-- all -->
 	<target name="all" depends="zip">
 		<antcall target="clean"/>
+	</target>
+
+	<!-- ****************************************************************** -->
+	<!-- Run tasks -->
+	<!-- ****************************************************************** -->
+	
+	<!-- run-list -->
+	<target name="run-list">
+		<echo>run-demo</echo>
 	</target>
 
 	<!-- run-demo -->
