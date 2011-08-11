@@ -119,6 +119,17 @@ public class TweenGroup {
 		}
 		return this;
 	}
+	
+	/**
+	 * Convenience method to add a group to a manager and avoid the
+	 * verbose <i>myManager.add(myGroup.pack()...);</i>.
+	 * @param manager A TweenManager.
+	 * @return The group, for instruction chaining.
+	 */
+	public TweenGroup addToManager(TweenManager manager) {
+		manager.add(this);
+		return this;
+	}
 
 	/**
 	 * Repeats the tween group for a given number of times. For infinity

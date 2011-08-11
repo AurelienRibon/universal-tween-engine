@@ -520,10 +520,8 @@ public class Tween {
 	}
 
 	/**
-	 * Convenience method to add a single tween to a manager and avoids the
+	 * Convenience method to add a single tween to a manager and avoid the
 	 * verbose <i>myManager.add(Tween.to(....).delay(...).start());</i>.
-	 * This method only makes sense for single tweens. If you use a TweenGroup,
-	 * the addition to the manager is automatic.
 	 * @param manager A TweenManager.
 	 * @return The current tween for chaining instructions.
 	 */
