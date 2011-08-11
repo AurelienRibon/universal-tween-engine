@@ -123,6 +123,9 @@ public class TweenGroup {
 	/**
 	 * Convenience method to add a group to a manager and avoid the
 	 * verbose <i>myManager.add(myGroup.pack()...);</i>.
+	 * <br/><br/>
+	 * <b>Warning</b>: calling this method will empty the group. Be sure
+	 * to call what you need (like .start()) before!
 	 * @param manager A TweenManager.
 	 * @return The group, for instruction chaining.
 	 */
