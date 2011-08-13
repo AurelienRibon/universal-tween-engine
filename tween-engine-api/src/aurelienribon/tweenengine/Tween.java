@@ -37,6 +37,7 @@ import java.util.ArrayList;
  * @see Tweenable
  * @see TweenManager
  * @see TweenGroup
+ * 
  * @author Aurelien Ribon (aurelien.ribon@gmail.com)
  */
 public class Tween {
@@ -123,11 +124,50 @@ public class Tween {
 	 * @param durationMillis The duration of the interpolation, in milliseconds.
 	 * @param equation The easing equation used during the interpolation.
 	 * @return The generated Tween.
+	 * @see Tweenable
+	 * @see TweenEquation
 	 */
 	public static Tween to(Tweenable target, int tweenType, int durationMillis, TweenEquation equation) {
 		Tween tween = pool.get();
 		tween.reset();
 		tween.__build(target, tweenType, durationMillis, equation);
+		tween.isPooled = isPoolEnabled;
+		return tween;
+	}
+
+	/**
+	 * Convenience method to create a new interpolation.
+	 *
+	 * <br/><br/>
+	 * You need to set the target values of the interpolation by using one
+	 * of the ".target()" methods. The interpolation will run from the current
+	 * values (retrieved after the delay, if any) to these target values.
+	 *
+	 * <br/><br/>
+	 * The following lines are equivalent (if pooling has been disabled):
+	 *
+	 * <br/><br/>
+	 * <pre>
+	 * Tween.to(myObject, Types.POSITION, 1000, Quad.INOUT).target(50, 70);
+	 * new Tween(myObject, Types.POSITION, 1000, Quad.INOUT).target(50, 70);
+	 * </pre>
+	 *
+	 * Several options such as delays and callbacks can be added to the tween.
+	 * This method hides some of the internal optimizations such as object
+	 * reuse for convenience. However, you can control the creation of the
+	 * tween by using the classic constructor.
+	 *
+	 * @param target The target of the interpolation.
+	 * @param durationMillis The duration of the interpolation, in milliseconds.
+	 * @param equation The easing equation used during the interpolation.
+	 * @return The generated Tween.
+	 * @see SimpleTweenable
+	 * @see TweenEquation
+	 */
+	public static Tween to(SimpleTweenable target, int durationMillis, TweenEquation equation) {
+		Tween tween = pool.get();
+		tween.reset();
+		tween.__build(target, 0, durationMillis, equation);
 		tween.isPooled = isPoolEnabled;
 		return tween;
 	}
@@ -159,11 +199,51 @@ public class Tween {
 	 * @param durationMillis The duration of the interpolation, in milliseconds.
 	 * @param equation The easing equation used during the interpolation.
 	 * @return The generated Tween.
+	 * @see Tweenable
+	 * @see TweenEquation
 	 */
 	public static Tween from(Tweenable target, int tweenType, int durationMillis, TweenEquation equation) {
 		Tween tween = pool.get();
 		tween.reset();
 		tween.__build(target, tweenType, durationMillis, equation);
+		tween.isPooled = isPoolEnabled;
+		tween.reverse();
+		return tween;
+	}
+
+	/**
+	 * Convenience method to create a new reversed interpolation.
+	 *
+	 * <br/><br/>
+	 * You need to set the target values of the interpolation by using one
+	 * of the ".target()" methods. The interpolation will run from these target
+	 * values to the current values (retrieved after the delay, if any).
+	 *
+	 * <br/><br/>
+	 * The following lines are equivalent (if pooling has been disabled):
+	 *
+	 * <br/><br/>
+	 * <pre>
+	 * Tween.from(myObject, Types.POSITION, 1000, Quad.INOUT).target(50, 70);
+	 * new Tween(myObject, Types.POSITION, 1000, Quad.INOUT).target(50, 70).reverse();
+	 * </pre>
+	 *
+	 * Several options such as delays and callbacks can be added to the tween.
+	 * This method hides some of the internal optimizations such as object
+	 * reuse for convenience. However, you can control the creation of the
+	 * tween by using the classic constructor.
+	 *
+	 * @param target The target of the interpolation.
+	 * @param durationMillis The duration of the interpolation, in milliseconds.
+	 * @param equation The easing equation used during the interpolation.
+	 * @return The generated Tween.
+	 * @see SimpleTweenable
+	 * @see TweenEquation
+	 */
+	public static Tween from(SimpleTweenable target, int durationMillis, TweenEquation equation) {
+		Tween tween = pool.get();
+		tween.reset();
+		tween.__build(target, 0, durationMillis, equation);
 		tween.isPooled = isPoolEnabled;
 		tween.reverse();
 		return tween;
@@ -195,11 +275,47 @@ public class Tween {
 	 * @param target The target of the interpolation.
 	 * @param tweenType The desired type of interpolation.
 	 * @return The generated Tween.
+	 * @see Tweenable
 	 */
 	public static Tween set(Tweenable target, int tweenType) {
 		Tween tween = pool.get();
 		tween.reset();
 		tween.__build(target, tweenType, 0, null);
+		tween.isPooled = isPoolEnabled;
+		return tween;
+	}
+
+	/**
+	 * Convenience method to create a new instantaneous interpolation (as a
+	 * result, this is not really an "interpolation").
+	 *
+	 * <br/><br/>
+	 * You need to set the target values of the interpolation by using one
+	 * of the ".target()" methods. The interpolation will directly apply these
+	 * target values. Of course, a delay can be specified, like in every tween.
+	 *
+	 * <br/><br/>
+	 * The following lines are equivalent (if pooling has been disabled):
+	 *
+	 * <br/><br/>
+	 * <pre>
+	 * Tween.set(myObject, Types.POSITION).target(50, 70);
+	 * new Tween(myObject, Types.POSITION, 0, null).target(50, 70);
+	 * </pre>
+	 *
+	 * Several options such as delays and callbacks can be added to the tween.
+	 * This method hides some of the internal optimizations such as object
+	 * reuse for convenience. However, you can control the creation of the
+	 * tween by using the classic constructor.
+	 *
+	 * @param target The target of the interpolation.
+	 * @return The generated Tween.
+	 * @see SimpleTweenable
+	 */
+	public static Tween set(SimpleTweenable target) {
+		Tween tween = pool.get();
+		tween.reset();
+		tween.__build(target, 0, 0, null);
 		tween.isPooled = isPoolEnabled;
 		return tween;
 	}
@@ -230,6 +346,7 @@ public class Tween {
 	 * delay (if specified). A repeat behavior can be set to the tween to
 	 * trigger it more than once.
 	 * @return The generated Tween.
+	 * @see TweenCallback
 	 */
 	public static Tween call(TweenCallback callback) {
 		Tween tween = pool.get();
