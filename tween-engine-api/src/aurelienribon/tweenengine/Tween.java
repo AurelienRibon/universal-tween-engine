@@ -131,7 +131,6 @@ public class Tween {
 		Tween tween = pool.get();
 		tween.reset();
 		tween.__build(target, tweenType, durationMillis, equation);
-		tween.isPooled = isPoolEnabled;
 		return tween;
 	}
 
@@ -168,7 +167,6 @@ public class Tween {
 		Tween tween = pool.get();
 		tween.reset();
 		tween.__build(target, 0, durationMillis, equation);
-		tween.isPooled = isPoolEnabled;
 		return tween;
 	}
 
@@ -206,7 +204,6 @@ public class Tween {
 		Tween tween = pool.get();
 		tween.reset();
 		tween.__build(target, tweenType, durationMillis, equation);
-		tween.isPooled = isPoolEnabled;
 		tween.reverse();
 		return tween;
 	}
@@ -244,7 +241,6 @@ public class Tween {
 		Tween tween = pool.get();
 		tween.reset();
 		tween.__build(target, 0, durationMillis, equation);
-		tween.isPooled = isPoolEnabled;
 		tween.reverse();
 		return tween;
 	}
@@ -281,7 +277,6 @@ public class Tween {
 		Tween tween = pool.get();
 		tween.reset();
 		tween.__build(target, tweenType, 0, null);
-		tween.isPooled = isPoolEnabled;
 		return tween;
 	}
 
@@ -316,7 +311,6 @@ public class Tween {
 		Tween tween = pool.get();
 		tween.reset();
 		tween.__build(target, 0, 0, null);
-		tween.isPooled = isPoolEnabled;
 		return tween;
 	}
 
@@ -353,7 +347,6 @@ public class Tween {
 		tween.reset();
 		tween.__build(null, -1, 0, null);
 		tween.addIterationCompleteCallback(callback);
-		tween.isPooled = isPoolEnabled;
 		return tween;
 	}
 
@@ -369,6 +362,7 @@ public class Tween {
 	// General
 	private boolean isReversed;
 	private boolean isPooled;
+	private boolean isRelative;
 
 	// Values
 	private int combinedTweenCount;
@@ -531,6 +525,70 @@ public class Tween {
 		if (targetValues.length > MAX_COMBINED_TWEENS)
 			throw new RuntimeException("You cannot set more than " + MAX_COMBINED_TWEENS + " targets.");
 		System.arraycopy(targetValues, 0, this.targetValues, 0, targetValues.length);
+		return this;
+	}
+
+	/**
+	 * Sets the target value of the interpolation, relatively to the current
+	 * value. If not reversed, the interpolation will run from the current value
+	 * to this target value.
+	 * @param targetValue The relative target value of the interpolation.
+	 * @return The current tween for chaining instructions.
+	 */
+	public Tween targetRelative(float targetValue) {
+		isRelative = true;
+		return target(targetValue);
+	}
+
+	/**
+	 * Sets the target values of the interpolation, relatively to the current
+	 * values. If not reversed, the interpolation will run from the current
+	 * values to these target values.
+	 * @param targetValue1 The 1st relative target value of the interpolation.
+	 * @param targetValue2 The 2nd relative target value of the interpolation.
+	 * @return The current tween for chaining instructions.
+	 */
+	public Tween targetRelative(float targetValue1, float targetValue2) {
+		isRelative = true;
+		return target(targetValue1, targetValue2);
+	}
+
+	/**
+	 * Sets the target values of the interpolation, relatively to the current
+	 * values. If not reversed, the interpolation will run from the current
+	 * values to these target values.
+	 * @param targetValue1 The 1st relative target value of the interpolation.
+	 * @param targetValue2 The 2nd relative target value of the interpolation.
+	 * @param targetValue3 The 3rd relative target value of the interpolation.
+	 * @return The current tween for chaining instructions.
+	 */
+	public Tween targetRelative(float targetValue1, float targetValue2, float targetValue3) {
+		isRelative = true;
+		return target(targetValue1, targetValue2, targetValue3);
+	}
+
+	/**
+	 * Sets the target values of the interpolation, relatively to the current
+	 * values. If not reversed, the interpolation will run from the current
+	 * values to these target values.
+	 * <br/><br/>
+	 * The other methods are convenience to avoid the allocation of an array.
+	 * @param targetValues The relative target values of the interpolation.
+	 * @return The current tween for chaining instructions.
+	 */
+	public Tween targetRelative(float... targetValues) {
+		isRelative = true;
+		return target(targetValues);
+	}
+
+	/**
+	 * Sets the target value(s) of the interpolation as the current value(s) of
+	 * the Tweenable object. If not reversed, the interpolation will run from
+	 * the current value(s) to the(se) target value(s).
+	 * @return
+	 */
+	public Tween targetCurrent() {
+		target.getTweenValues(tweenType, targetValues);
 		return this;
 	}
 
@@ -823,8 +881,10 @@ public class Tween {
 				target.onTweenUpdated(tweenType, startValues);
 			} else if (target != null) {
 				target.getTweenValues(tweenType, startValues);
-				for (int i=0; i<combinedTweenCount; i++)
+				for (int i=0; i<combinedTweenCount; i++) {
+					targetValues[i] += isRelative ? startValues[i] : 0;
 					targetMinusStartValues[i] = targetValues[i] - startValues[i];
+				}
 			}
 
 			callDelayEndedCallbacks();
@@ -840,10 +900,11 @@ public class Tween {
 			isEnded = true;
 
 			if (target != null) {
-				for (int i=0; i<combinedTweenCount; i++)
+				for (int i=0; i<combinedTweenCount; i++) {
 					localTmp[i] = isReversed
 						? targetValues[i] - targetMinusStartValues[i]
 						: startValues[i] + targetMinusStartValues[i];
+				}
 				target.onTweenUpdated(tweenType, localTmp);
 			}
 
@@ -862,12 +923,13 @@ public class Tween {
 
 	private void updateTarget(long currentMillis) {
 		if (target != null) {
-			for (int i=0; i<combinedTweenCount; i++)
+			for (int i=0; i<combinedTweenCount; i++) {
 				localTmp[i] = equation.compute(
 					currentMillis - endDelayMillis,
 					isReversed ? targetValues[i] : startValues[i],
 					isReversed ? -targetMinusStartValues[i] : +targetMinusStartValues[i],
 					durationMillis);
+			}
 			target.onTweenUpdated(tweenType, localTmp);
 		}
 	}
@@ -909,7 +971,8 @@ public class Tween {
 
 		this.isReversed = false;
 		this.isInitialized = false;
-		this.isPooled = false;
+		this.isPooled = isPoolEnabled;
+		this.isRelative = false;
 
 		this.combinedTweenCount = 0;
 

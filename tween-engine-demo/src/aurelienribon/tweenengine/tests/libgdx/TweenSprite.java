@@ -5,11 +5,10 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 
 public class TweenSprite implements Tweenable {
-	public static final int ORIGIN_XY = 1;
-	public static final int POSITION_XY = 2;
-	public static final int SCALE_XY = 3;
-	public static final int ROTATION = 4;
-	public static final int OPACITY = 5;
+	public static final int POSITION_XY = 1;
+	public static final int SCALE_XY = 2;
+	public static final int ROTATION = 3;
+	public static final int OPACITY = 4;
 
 	private Sprite sprite;
 
@@ -20,28 +19,23 @@ public class TweenSprite implements Tweenable {
 	@Override
 	public int getTweenValues(int tweenType, float[] returnValues) {
 		switch (tweenType) {
-			case OPACITY:
-				returnValues[0] = sprite.getColor().a;
-				return 1;
-
-			case ORIGIN_XY:
-				returnValues[0] = sprite.getOriginX();
-				returnValues[1] = sprite.getOriginY();
+			case POSITION_XY:
+				returnValues[0] = sprite.getX() + sprite.getOriginX();
+				returnValues[1] = sprite.getY() + sprite.getOriginY();
 				return 2;
 
-			case POSITION_XY:
-				returnValues[0] = sprite.getX();
-				returnValues[1] = sprite.getY();
+			case SCALE_XY:
+				returnValues[0] = sprite.getScaleX();
+				returnValues[1] = sprite.getScaleY();
 				return 2;
 
 			case ROTATION:
 				returnValues[0] = sprite.getRotation();
 				return 1;
 
-			case SCALE_XY:
-				returnValues[0] = sprite.getScaleX();
-				returnValues[1] = sprite.getScaleY();
-				return 2;
+			case OPACITY:
+				returnValues[0] = sprite.getColor().a;
+				return 1;
 
 			default: assert false; return -1;
 		}
@@ -50,26 +44,24 @@ public class TweenSprite implements Tweenable {
 	@Override
 	public void onTweenUpdated(int tweenType, float[] newValues) {
 		switch (tweenType) {
-			case OPACITY:
-				Color c = sprite.getColor();
-				c.set(c.r, c.g, c.b, newValues[0]);
-				sprite.setColor(c);
-				break;
-
-			case ORIGIN_XY:
-				sprite.setOrigin(newValues[0], newValues[1]);
-				break;
-
 			case POSITION_XY:
-				sprite.setPosition(newValues[0], newValues[1]);
+				sprite.setPosition(
+					newValues[0] - sprite.getOriginX(),
+					newValues[1] - sprite.getOriginY());
+				break;
+
+			case SCALE_XY:
+				sprite.setScale(newValues[0], newValues[1]);
 				break;
 
 			case ROTATION:
 				sprite.setRotation(newValues[0]);
 				break;
 
-			case SCALE_XY:
-				sprite.setScale(newValues[0], newValues[1]);
+			case OPACITY:
+				Color c = sprite.getColor();
+				c.set(c.r, c.g, c.b, newValues[0]);
+				sprite.setColor(c);
 				break;
 
 			default: assert false;
