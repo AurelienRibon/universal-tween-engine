@@ -5,7 +5,7 @@
 	<!-- ****************************************************************** -->
 	
 	<!-- version -->
-	<property name="version" value="4.4" />
+	<property name="version" value="5.0" />
 
 	<!-- projects properties -->
 	<property name="prj.api.dir" value="tween-engine-api" />

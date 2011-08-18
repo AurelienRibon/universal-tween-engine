@@ -40,7 +40,7 @@ import java.util.ArrayList;
  * 
  * @author Aurelien Ribon (aurelien.ribon@gmail.com)
  */
-public class Tween {
+public class Tween implements Groupable {
 
 	// -------------------------------------------------------------------------
 	// Static
@@ -61,6 +61,13 @@ public class Tween {
 	 */
 	public static void setPoolEnabled(boolean value) {
 		isPoolEnabled = value;
+	}
+
+	/**
+	 * Returns true if object pooling is enabled.
+	 */
+	public static boolean isPoolEnabled() {
+		return isPoolEnabled;
 	}
 
 	/**
@@ -430,31 +437,6 @@ public class Tween {
 	}
 
 	/**
-	 * Starts or restart the interpolation.
-	 * @return The current tween for chaining instructions.
-	 */
-	public Tween start() {
-		startMillis = System.currentTimeMillis();
-		endDelayMillis = startMillis + delayMillis;
-
-		if (iteration > 0 && repeatDelayMillis < 0)
-			endDelayMillis = Math.max(endDelayMillis + repeatDelayMillis, startMillis);
-
-		endMillis = endDelayMillis + durationMillis;
-		endRepeatDelayMillis = Math.max(endMillis, endMillis + repeatDelayMillis);
-
-		isInitialized = true;
-		isStarted = true;
-		isDelayEnded = false;
-		isEnded = false;
-		isFinished = false;
-
-		callStartCallbacks();
-
-		return this;
-	}
-
-	/**
 	 * Kills the interpolation. If pooling was enabled when this tween was
 	 * created, the tween will be freed, cleared, and returned to the pool. As
 	 * a result, you shouldn't use it anymore.
@@ -469,7 +451,7 @@ public class Tween {
 	 * @param millis The delay, in milliseconds.
 	 * @return The current tween for chaining instructions.
 	 */
-	public Tween delay(int millis) {
+	@Override public Tween delay(int millis) {
 		this.delayMillis += millis;
 		return this;
 	}
@@ -695,8 +677,12 @@ public class Tween {
 	}
 
 	/**
-	 * Convenience method to add a single tween to a manager and avoid the
-	 * verbose <i>myManager.add(Tween.to(....).delay(...).start());</i>.
+	 * Convenience method to add a single tween to a manager. Both usages are
+	 * equivalent:<br/>
+	 * <pre>
+	 * myManager.add(Tween.to(...));
+	 * Tween.to(...).addToManager(myManager);
+	 * </pre>
 	 * @param manager A TweenManager.
 	 * @return The current tween for chaining instructions.
 	 */
@@ -741,7 +727,7 @@ public class Tween {
 	 * Gets the tween duration.
 	 * @return The tween duration.
 	 */
-	public int getDuration() {
+	@Override public int getDuration() {
 		return durationMillis;
 	}
 
@@ -749,7 +735,7 @@ public class Tween {
 	 * Gets the tween delay.
 	 * @return The tween delay.
 	 */
-	public int getDelay() {
+	@Override public int getDelay() {
 		return delayMillis;
 	}
 
@@ -805,12 +791,41 @@ public class Tween {
 	}
 
 	/**
+	 * Starts or restart the interpolation. Using this method can lead to some
+	 * side-effects if you call it multiple times. <b>The recommanded behavior
+	 * is to add the tween to a Tween Manager instead.</b>
+	 * @param currentMillis The current milliseconds. You would generally
+	 * want to use <i>System.currentMillis()</i> and pass the result to
+	 * every unsafeStart call to help synchronization.
+	 */
+	public Tween unsafeStart(long currentMillis) {
+		startMillis = currentMillis;
+		endDelayMillis = startMillis + delayMillis;
+
+		if (iteration > 0 && repeatDelayMillis < 0)
+			endDelayMillis = Math.max(endDelayMillis + repeatDelayMillis, startMillis);
+
+		endMillis = endDelayMillis + durationMillis;
+		endRepeatDelayMillis = Math.max(endMillis, endMillis + repeatDelayMillis);
+
+		isInitialized = true;
+		isStarted = true;
+		isDelayEnded = false;
+		isEnded = false;
+		isFinished = false;
+
+		callStartCallbacks();
+
+		return this;
+	}
+
+	/**
 	 * Updates the tween state. Using this method can be unsafe if tween
 	 * pooling was first enabled. <b>The recommanded behavior is to use a
 	 * TweenManager instead.</b>
 	 * @param currentMillis The current milliseconds. You would generally
 	 * want to use <i>System.currentMillis()</i> and pass the result to
-	 * every unsafeUpdate call.
+	 * every unsafeUpdate call to help synchronization.
 	 */
 	public final void unsafeUpdate(long currentMillis) {
 		update(currentMillis);
@@ -855,7 +870,6 @@ public class Tween {
 	private boolean checkForValidity() {
 		if (isFinished && isPooled && isInitialized) {
 			callPoolCallbacks();
-			reset();
 			pool.free(this);
 			return true;
 		} else if (isFinished) {
@@ -867,7 +881,7 @@ public class Tween {
 	private boolean checkForRepetition(long currentMillis) {
 		if (shouldRepeat() && currentMillis >= endRepeatDelayMillis) {
 			iteration += 1;
-			start();
+			unsafeStart(System.currentTimeMillis());
 			return true;
 		}
 		return false;

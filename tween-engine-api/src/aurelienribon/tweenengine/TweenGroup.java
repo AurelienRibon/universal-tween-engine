@@ -1,185 +1,183 @@
 package aurelienribon.tweenengine;
 
+import aurelienribon.tweenengine.utils.Pool;
 import java.util.ArrayList;
 
 /**
- * A TweenGroup can be used to group multiple tweens and to act on all of them
- * at once. Its main use lies in the sequence() method, which automatically 
- * delays the tweens so they will be executed one after the other. Another
- * option you might want to give a look is the repeat() method. It allows the
- * repetition of a whole sequence when the last running tween reaches its end.
+ * A TweenGroup can be used to create complex animations made of sequences and
+ * parallel sets of Tweens.
  *
  * <br/><br/>
- * The following example will move the target horizontal position from its
- * current location to x=200, then from x=200 to x=100, and finally from
- * x=100 to x=200, but this last transition will only occur 1000ms after the
- * previous one. Notice the ".sequence()" method call, if it has not been
- * called, the 3 tweens would have started together, and not one after the
- * other.
+ * The following example will create an animation sequence composed of 5 parts:
+ * <br/>
+ * 1. First, Opacity and Scale are reset to 0. <br/>
+ * 2. Then, Opacity and Scale are tweened to 1. <br/>
+ * 3. Then, the animation is paused for 1s. <br/>
+ * 4. Then, Position is tweened to x=100. <br/>
+ * 5. Then, Rotation is tweened to 360°. <br/>
  *
  * <br/><br/>
  * <pre>
- * new TweenGroup().pack(
- *     Tween.to(myObject, POSITION_X, 500, Quad.INOUT).target(200),
- *     Tween.to(myObject, POSITION_X, 500, Quad.INOUT).target(100),
- *     Tween.to(myObject, POSITION_X, 500, Quad.INOUT).target(200).delay(1000)
- * ).sequence().start();
+ * TweenGroup.asSequence(
+ *     TweenGroup.asParallel(
+ *         Tween.set(myObject, OPACITY).target(0),
+ *         Tween.set(myObject, SCALE).target(0, 0),
+ *     ),
+ *     TweenGroup.asParallel(
+ *          Tween.to(myObject, OPACITY, 500, Quad.INOUT).target(1),
+ *          Tween.to(myObject, SCALE, 500, Quad.INOUT).target(1, 1),
+ *     ),
+ *     TweenGroup.asDelay(1000),
+ *     Tween.to(myObject, POSITION_X, 500, Quad.INOUT).target(100)
+ *     Tween.to(myObject, ROTATION, 500, Quad.INOUT).target(360)
+ * ).addToManager(myManager);
  * </pre>
  *
- * Note that you can reuse the same TweenGroup again and again since the pack()
- * method clears its content.
+ * Note that you can call .asSequence(), .asParallel() and .asDelay() inside
+ * any other .asSequence() or .asParallel() call.
  *
  * <br/><br/>
- * Alike individual tweens, add the group to a TweenManager and update the
- * latter periodically.
+ * <b>Alike individual tweens, add the group to a TweenManager and update the
+ * latter periodically.</b>
  *
  * @see Tween
  * @see TweenManager
  * @author Aurelien Ribon (aurelien.ribon@gmail.com)
  */
-public class TweenGroup {
+public class TweenGroup implements Groupable {
+	static final Pool<TweenGroup> pool;
 
+	static {
+		pool = new Pool<TweenGroup>(15) {
+			@Override protected TweenGroup getNew() {
+				return new TweenGroup();
+			}
+		};
+	}
+	
 	// -------------------------------------------------------------------------
-	// TweenGroup Implementation
+	// STATIC FACTORIES
 	// -------------------------------------------------------------------------
-
-	final ArrayList<Tween> tweens;
 
 	/**
-	 * Creates a new TweenGroup.
+	 * Sequences the tweens given as parameters to call them one after the
+	 * other. Note that you can call other .asSequence(), .asParallel() or
+	 * .asDelay() methods inside this one.
+	 * @param tweens A list of objects made of Tweens and TweenGroups.
+	 * @return The TweenGroup created.
 	 */
-	public TweenGroup() {
-		tweens = new ArrayList<Tween>(10);
+	public static TweenGroup asSequence(Groupable... tweens) {
+		TweenGroup group = pool.get();
+		group.reset();
+		group.isPooled = Tween.isPoolEnabled();
+
+		for (int i=0, n=tweens.length; i<n; i++)
+			group.groupables.add(tweens[i]);
+
+		for (int i=1, n=group.groupables.size(); i<n; i++) {
+			Groupable obj = group.groupables.get(i);
+			Groupable prevObj = group.groupables.get(i-1);
+			obj.delay(prevObj.getDuration() + prevObj.getDelay());
+		}
+
+		for (int i=0, n=group.groupables.size(); i<n; i++) {
+			Groupable obj = group.groupables.get(i);
+			group.duration += obj.getDelay() + obj.getDuration();
+		}
+		return group;
+	}
+
+	/**
+	 * Creates a group that will run its tweens at the same time. Note that you
+	 * can call other .asSequence(), .asParallel() or .asDelay() methods inside
+	 * this one.
+	 * @param tweens A list of objects made of Tweens and TweenGroups.
+	 * @return The TweenGroup created.
+	 */
+	public static TweenGroup asParallel(Groupable... tweens) {
+		TweenGroup group = pool.get();
+		group.reset();
+		group.isPooled = Tween.isPoolEnabled();
+
+		for (int i=0, n=tweens.length; i<n; i++)
+			group.groupables.add(tweens[i]);
+
+		for (int i=0, n=group.groupables.size(); i<n; i++) {
+			Groupable obj = group.groupables.get(i);
+			group.duration = Math.max(group.duration, obj.getDelay() + obj.getDuration());
+		}
+		return group;
+	}
+
+	/**
+	 * Creates an empty group that acts as a delay. Only useful when called
+	 * inside sequences.
+	 * @param millis The delay duration, in milliseconds.
+	 * @return The TweenGroup created.
+	 */
+	public static TweenGroup asDelay(int millis) {
+		TweenGroup group = new TweenGroup();
+		group.reset();
+		group.isPooled = Tween.isPoolEnabled();
+		group.duration = millis;
+		return group;
+	}
+
+	// -------------------------------------------------------------------------
+	// IMPLEMENTATION
+	// -------------------------------------------------------------------------
+
+	final ArrayList<Groupable> groupables = new ArrayList<Groupable>(10);
+	boolean isPooled = false;
+	private int duration = 0;
+	private int delay = 0;
+
+	private TweenGroup() {
+	}
+
+	private void reset() {
+		groupables.clear();
+		duration = 0;
+		delay = 0;
+		isPooled = false;
 	}
 
 	// -------------------------------------------------------------------------
 	// API
 	// -------------------------------------------------------------------------
 
-	private static TweenGroup tmp;
-
 	/**
-	 * Convenience method to avoid useless allocation. The returned instance is
-	 * always the same, be careful.
-	 * @return A temporary group instance.
+	 * Gets the duration of the group.
 	 */
-	public static TweenGroup tmp() {
-		if (tmp == null)
-			tmp = new TweenGroup();
-		return tmp;
+	@Override public int getDuration() {
+		return duration;
 	}
 
 	/**
-	 * Adds the given tweens to the group. Please note that the internal storage
-	 * is cleared at the beginning of the operation.
-	 * @param tweens Some tweens to group.
-	 * @return The group, for instruction chaining.
+	 * Gets the delay of the group.
 	 */
-	public TweenGroup pack(Tween... tweens) {
-		this.tweens.clear();
-		for (int i=0; i<tweens.length; i++)
-			this.tweens.add(tweens[i]);
-		return this;
+	@Override public int getDelay() {
+		return delay;
 	}
 
 	/**
-	 * Modifies the delays of every tween in the group in order to sequence
-	 * them one after the other.
-	 * @return The group, for instruction chaining.
+	 * Delays the group.
 	 */
-	public TweenGroup sequence() {
-		for (int i=1; i<tweens.size(); i++) {
-			Tween tween = tweens.get(i);
-			Tween previousTween = tweens.get(i-1);
-			tween.delay(previousTween.getDuration() + previousTween.getDelay());
-		}
-		return this;
-	}
-
-	/**
-	 * Starts every tween in the group.
-	 * @return The group, for instruction chaining.
-	 */
-	public TweenGroup start() {
-		for (int i=0; i<tweens.size(); i++) {
-			tweens.get(i).start();
-		}
-		return this;
-	}
-
-	/**
-	 * Convenience method to add a delay to every tween in the group.
-	 * @param millis A delay, in milliseconds.
-	 * @return The group, for instruction chaining.
-	 */
-	public TweenGroup delay(int millis) {
-		for (int i=0; i<tweens.size(); i++) {
-			Tween tween = tweens.get(i);
-			tween.delay(millis);
-		}
+	@Override public TweenGroup delay(int millis) {
+		this.delay = millis;
+		for (int i=0, n=groupables.size(); i<n; i++)
+			groupables.get(i).delay(millis);
 		return this;
 	}
 	
 	/**
-	 * Convenience method to add a group to a manager and avoid the
-	 * verbose <i>myManager.add(myGroup.pack()...);</i>.
-	 * <br/><br/>
-	 * <b>Warning</b>: calling this method will empty the group. Be sure
-	 * to call what you need (like .start()) before!
+	 * Convenience method to add a group to a manager and start every tween at
+	 * once.
 	 * @param manager A TweenManager.
 	 * @return The group, for instruction chaining.
 	 */
 	public TweenGroup addToManager(TweenManager manager) {
 		manager.add(this);
 		return this;
-	}
-
-	/**
-	 * Repeats the tween group for a given number of times. For infinity
-	 * repeats,use Tween.INFINITY.
-	 * 
-	 * <br/><br/>
-	 * <b>Attention:</b> Using this method is different from setting a repeat
-	 * count to every tween individually. Indeed, repetition delays are added
-	 * to tweens such that every tween will repeat at the same time, and not
-	 * right after each one has ended an iteration. This behavior is illustrated
-	 * below:
-	 *
-	 * <br/><br/>
-	 * <pre>
-	 * With individual repeat() calls:
-	 * Tween 1: -- -- -- -- -- end
-	 * Tween 2: ----- ----- ----- ----- ----- end
-	 *
-	 * With TweenGroup repeat() call:
-	 * Tween 1: --    --    --    --    --    end
-	 * Tween 2: ----- ----- ----- ----- ----- end
-	 * </pre>
-	 *
-	 * @param count The number of repetitions.
-	 * @param delayMillis A delay, in milliseconds, before every repetition.
-	 * @return The group, for instruction chaining.
-	 */
-	public TweenGroup repeat(int count, int delayMillis) {
-		int totalDuration = computeDuration();
-		for (int i=0; i<tweens.size(); i++) {
-			Tween tween = tweens.get(i);
-			int delay = totalDuration + delayMillis - (tween.getDuration() + tween.getDelay());
-			tween.repeat(count, delay);
-		}
-		return this;
-	}
-
-	// -------------------------------------------------------------------------
-	// Private methods
-	// -------------------------------------------------------------------------
-
-	private int computeDuration() {
-		int duration = 0;
-		for (int i=0; i<tweens.size(); i++) {
-			Tween tween = tweens.get(i);
-			duration = Math.max(duration, tween.getDelay() + tween.getDuration());
-		}
-		return duration;
 	}
 }

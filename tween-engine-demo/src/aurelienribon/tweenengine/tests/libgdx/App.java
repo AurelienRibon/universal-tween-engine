@@ -92,8 +92,7 @@ public class App implements ApplicationListener {
 		text = "Idle (auto-start in 1 second)";
 		Tween.call(timerCallback)
 			.delay(1000)
-			.addToManager(tweenManager)
-			.start();
+			.addToManager(tweenManager);
 	}
 
 	private final TweenCallback timerCallback = new TweenCallback() {
@@ -122,6 +121,7 @@ public class App implements ApplicationListener {
 		}
 		sb.end();
 
+		sb.getProjectionMatrix().setToOrtho2D(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		sb.begin();
 		font.draw(sb, text, 5, 65);
 		font.draw(sb, "Running tweens: " + tweenManager.getTweenCount(), 5, 45);
@@ -144,57 +144,67 @@ public class App implements ApplicationListener {
 		float targetX3 = (6f/5f)*3 - 3;
 		float targetX4 = (6f/5f)*4 - 3;
 
-		// Animation of sprite1
-		TweenGroup.tmp().pack(
-			Tween.set(tweenSprite1, TweenSprite.POSITION_XY).target(0, 0),
-			Tween.set(tweenSprite1, TweenSprite.SCALE_XY).target(10, 10),
-			Tween.set(tweenSprite1, TweenSprite.ROTATION).target(0),
-			Tween.set(tweenSprite1, TweenSprite.OPACITY).target(0),
-
-			Tween.to(tweenSprite1, TweenSprite.OPACITY, 1000, Quart.INOUT).target(1),
-			Tween.to(tweenSprite1, TweenSprite.SCALE_XY, 1000, Quart.INOUT).target(1, 1).delay(-1000),
-			Tween.to(tweenSprite1, TweenSprite.POSITION_XY, 1000, Back.OUT).target(targetX1, 0).delay(-500),
-			Tween.to(tweenSprite1, TweenSprite.ROTATION, 800, Cubic.INOUT).target(360)
-		).sequence().start().addToManager(tweenManager);
-
-		// Animation of sprite2
-		TweenGroup.tmp().pack(
-			Tween.set(tweenSprite2, TweenSprite.POSITION_XY).target(0, 0),
-			Tween.set(tweenSprite2, TweenSprite.SCALE_XY).target(10, 10),
-			Tween.set(tweenSprite2, TweenSprite.ROTATION).target(0),
-			Tween.set(tweenSprite2, TweenSprite.OPACITY).target(0),
-
-			Tween.to(tweenSprite2, TweenSprite.OPACITY, 1000, Quart.INOUT).target(1).delay(200),
-			Tween.to(tweenSprite2, TweenSprite.SCALE_XY, 1000, Quart.INOUT).target(1, 1).delay(-1000),
-			Tween.to(tweenSprite2, TweenSprite.POSITION_XY, 1000, Back.OUT).target(targetX2, 0).delay(-500),
-			Tween.to(tweenSprite2, TweenSprite.ROTATION, 800, Cubic.INOUT).target(360)
-		).sequence().start().addToManager(tweenManager);
-
-		// Animation of sprite3
-		TweenGroup.tmp().pack(
-			Tween.set(tweenSprite3, TweenSprite.POSITION_XY).target(0, 0),
-			Tween.set(tweenSprite3, TweenSprite.SCALE_XY).target(10, 10),
-			Tween.set(tweenSprite3, TweenSprite.ROTATION).target(0),
-			Tween.set(tweenSprite3, TweenSprite.OPACITY).target(0),
-
-			Tween.to(tweenSprite3, TweenSprite.OPACITY, 1000, Quart.INOUT).target(1).delay(400),
-			Tween.to(tweenSprite3, TweenSprite.SCALE_XY, 1000, Quart.INOUT).target(1, 1).delay(-1000),
-			Tween.to(tweenSprite3, TweenSprite.POSITION_XY, 1000, Back.OUT).target(targetX3, 0).delay(-500),
-			Tween.to(tweenSprite3, TweenSprite.ROTATION, 800, Cubic.INOUT).target(360)
-		).sequence().start().addToManager(tweenManager);
-
-		// Animation of sprite4
-		TweenGroup.tmp().pack(
-			Tween.set(tweenSprite4, TweenSprite.POSITION_XY).target(0, 0),
-			Tween.set(tweenSprite4, TweenSprite.SCALE_XY).target(10, 10),
-			Tween.set(tweenSprite4, TweenSprite.ROTATION).target(0),
-			Tween.set(tweenSprite4, TweenSprite.OPACITY).target(0),
-
-			Tween.to(tweenSprite4, TweenSprite.OPACITY, 1000, Quart.INOUT).target(1).delay(600),
-			Tween.to(tweenSprite4, TweenSprite.SCALE_XY, 1000, Quart.INOUT).target(1, 1).delay(-1000),
-			Tween.to(tweenSprite4, TweenSprite.POSITION_XY, 1000, Back.OUT).target(targetX4, 0).delay(-500),
-			Tween.to(tweenSprite4, TweenSprite.ROTATION, 800, Cubic.INOUT).target(360)
-		).sequence().start().addToManager(tweenManager);
+		TweenGroup.asParallel(
+			TweenGroup.asSequence(
+				TweenGroup.asParallel(
+					Tween.set(tweenSprite1, TweenSprite.POSITION_XY).target(0, 0),
+					Tween.set(tweenSprite1, TweenSprite.SCALE_XY).target(10, 10),
+					Tween.set(tweenSprite1, TweenSprite.ROTATION).target(0),
+					Tween.set(tweenSprite1, TweenSprite.OPACITY).target(0)
+				),
+				TweenGroup.asParallel(
+					Tween.to(tweenSprite1, TweenSprite.OPACITY, 1000, Quart.INOUT).target(1),
+					Tween.to(tweenSprite1, TweenSprite.SCALE_XY, 1000, Quart.INOUT).target(1, 1)
+				),
+				Tween.to(tweenSprite1, TweenSprite.POSITION_XY, 1000, Back.OUT).target(targetX1, 0).delay(-500),
+				Tween.to(tweenSprite1, TweenSprite.ROTATION, 800, Cubic.INOUT).target(360)
+			),
+			TweenGroup.asSequence(
+				TweenGroup.asParallel(
+					Tween.set(tweenSprite2, TweenSprite.POSITION_XY).target(0, 0),
+					Tween.set(tweenSprite2, TweenSprite.SCALE_XY).target(10, 10),
+					Tween.set(tweenSprite2, TweenSprite.ROTATION).target(0),
+					Tween.set(tweenSprite2, TweenSprite.OPACITY).target(0)
+				),
+				TweenGroup.asDelay(200),
+				TweenGroup.asParallel(
+					Tween.to(tweenSprite2, TweenSprite.OPACITY, 1000, Quart.INOUT).target(1),
+					Tween.to(tweenSprite2, TweenSprite.SCALE_XY, 1000, Quart.INOUT).target(1, 1)
+				),
+				Tween.to(tweenSprite2, TweenSprite.POSITION_XY, 1000, Back.OUT).target(targetX2, 0).delay(-500),
+				Tween.to(tweenSprite2, TweenSprite.ROTATION, 800, Cubic.INOUT).target(360)
+			),
+			TweenGroup.asSequence(
+				TweenGroup.asParallel(
+					Tween.set(tweenSprite3, TweenSprite.POSITION_XY).target(0, 0),
+					Tween.set(tweenSprite3, TweenSprite.SCALE_XY).target(10, 10),
+					Tween.set(tweenSprite3, TweenSprite.ROTATION).target(0),
+					Tween.set(tweenSprite3, TweenSprite.OPACITY).target(0)
+				),
+				TweenGroup.asDelay(400),
+				TweenGroup.asParallel(
+					Tween.to(tweenSprite3, TweenSprite.OPACITY, 1000, Quart.INOUT).target(1),
+					Tween.to(tweenSprite3, TweenSprite.SCALE_XY, 1000, Quart.INOUT).target(1, 1)
+				),
+				Tween.to(tweenSprite3, TweenSprite.POSITION_XY, 1000, Back.OUT).target(targetX3, 0).delay(-500),
+				Tween.to(tweenSprite3, TweenSprite.ROTATION, 800, Cubic.INOUT).target(360)
+			),
+			TweenGroup.asSequence(
+				TweenGroup.asParallel(
+					Tween.set(tweenSprite4, TweenSprite.POSITION_XY).target(0, 0),
+					Tween.set(tweenSprite4, TweenSprite.SCALE_XY).target(10, 10),
+					Tween.set(tweenSprite4, TweenSprite.ROTATION).target(0),
+					Tween.set(tweenSprite4, TweenSprite.OPACITY).target(0)
+				),
+				TweenGroup.asDelay(600),
+				TweenGroup.asParallel(
+					Tween.to(tweenSprite4, TweenSprite.OPACITY, 1000, Quart.INOUT).target(1),
+					Tween.to(tweenSprite4, TweenSprite.SCALE_XY, 1000, Quart.INOUT).target(1, 1)
+				),
+				Tween.to(tweenSprite4, TweenSprite.POSITION_XY, 1000, Back.OUT).target(targetX4, 0).delay(-500),
+				Tween.to(tweenSprite4, TweenSprite.ROTATION, 800, Cubic.INOUT).target(360)
+			)
+		).addToManager(tweenManager);
 
 		tweenManager.update();
 	}

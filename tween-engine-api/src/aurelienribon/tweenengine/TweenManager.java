@@ -35,25 +35,42 @@ public class TweenManager {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Adds a new tween to the manager.
+	 * Adds a new tween to the manager and starts it.
 	 * @param tween A tween. Does nothing if it is already present.
 	 * @return The manager, for instruction chaining.
 	 */
 	public final TweenManager add(Tween tween) {
 		tweens.add(tween);
+		tween.unsafeStart(System.currentTimeMillis());
 		return this;
 	}
 
 	/**
-	 * Adds every tween from a tween group to the manager. Note that the group
-	 * will be cleared from its tweens, as says its specification. This is a
-	 * mandatory operation for a better management of the memory.
-	 * @param tweenGroup A tween group.
+	 * Adds every tween from a tween group to the manager, and starts them.
+	 * Note that the group will be cleared, as says its specification.
+	 * Therefore, only call this method as the last one!
+	 * @param group A tween group.
 	 * @return The manager, for instruction chaining.
 	 */
-	public final TweenManager add(TweenGroup tweenGroup) {
-		while (!tweenGroup.tweens.isEmpty())
-			add(tweenGroup.tweens.remove(0));
+	public final TweenManager add(TweenGroup group) {
+		long currentMillis = System.currentTimeMillis();
+
+		while (!group.groupables.isEmpty()) {
+			Groupable obj = group.groupables.remove(0);
+			if (obj instanceof Tween) {
+				Tween tween = ((Tween)obj);
+				tweens.add(tween);
+				tween.unsafeStart(currentMillis);
+			} else if (obj instanceof TweenGroup) {
+				add((TweenGroup)obj);
+			} else {
+				throw new RuntimeException("A group is neither a Tween nor a "
+					+ "TweenGroup.");
+			}
+		}
+
+		if (group.isPooled)
+			TweenGroup.pool.free(group);
 		return this;
 	}
 
