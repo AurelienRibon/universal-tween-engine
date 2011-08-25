@@ -72,18 +72,7 @@ public class TweenGroup implements Groupable {
 		group.isPooled = Tween.isPoolEnabled();
 
 		for (int i=0, n=tweens.length; i<n; i++)
-			group.groupables.add(tweens[i]);
-
-		for (int i=1, n=group.groupables.size(); i<n; i++) {
-			Groupable obj = group.groupables.get(i);
-			Groupable prevObj = group.groupables.get(i-1);
-			obj.delay(prevObj.getDuration() + prevObj.getDelay());
-		}
-
-		for (int i=0, n=group.groupables.size(); i<n; i++) {
-			Groupable obj = group.groupables.get(i);
-			group.duration += obj.getDelay() + obj.getDuration();
-		}
+			group.addInSequence(tweens[i]);
 		return group;
 	}
 
@@ -100,12 +89,7 @@ public class TweenGroup implements Groupable {
 		group.isPooled = Tween.isPoolEnabled();
 
 		for (int i=0, n=tweens.length; i<n; i++)
-			group.groupables.add(tweens[i]);
-
-		for (int i=0, n=group.groupables.size(); i<n; i++) {
-			Groupable obj = group.groupables.get(i);
-			group.duration = Math.max(group.duration, obj.getDelay() + obj.getDuration());
-		}
+			group.addInParallel(tweens[i]);
 		return group;
 	}
 
@@ -132,9 +116,6 @@ public class TweenGroup implements Groupable {
 	private int duration = 0;
 	private int delay = 0;
 
-	private TweenGroup() {
-	}
-
 	private void reset() {
 		groupables.clear();
 		duration = 0;
@@ -145,6 +126,26 @@ public class TweenGroup implements Groupable {
 	// -------------------------------------------------------------------------
 	// API
 	// -------------------------------------------------------------------------
+
+	public void addInSequence(Groupable grp) {
+		if (grp == null)
+			return;
+		if (groupables.isEmpty()) {
+			groupables.add(grp);
+		} else {
+			Groupable last = groupables.get(groupables.size()-1);
+			grp.delay(last.getDelay() + last.getDuration());
+			groupables.add(grp);
+		}
+		duration += grp.getDelay() + grp.getDuration();
+	}
+
+	public void addInParallel(Groupable grp) {
+		if (grp == null)
+			return;
+		groupables.add(grp);
+		duration = Math.max(duration, grp.getDelay() + grp.getDuration());
+	}
 
 	/**
 	 * Gets the duration of the group.
@@ -164,7 +165,7 @@ public class TweenGroup implements Groupable {
 	 * Delays the group.
 	 */
 	@Override public TweenGroup delay(int millis) {
-		this.delay = millis;
+		this.delay += millis;
 		for (int i=0, n=groupables.size(); i<n; i++)
 			groupables.get(i).delay(millis);
 		return this;

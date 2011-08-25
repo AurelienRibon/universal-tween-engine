@@ -63,9 +63,6 @@ public class TweenManager {
 				tween.unsafeStart(currentMillis);
 			} else if (obj instanceof TweenGroup) {
 				add((TweenGroup)obj);
-			} else {
-				throw new RuntimeException("A group is neither a Tween nor a "
-					+ "TweenGroup.");
 			}
 		}
 
