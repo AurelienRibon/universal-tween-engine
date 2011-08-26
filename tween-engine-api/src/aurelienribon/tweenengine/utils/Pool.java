@@ -8,15 +8,20 @@ import java.util.ArrayList;
  */
 public abstract class Pool<T> {
 	private final ArrayList<T> objects;
+	private final Callback<T> callback;
 
-	public Pool (int initCapacity) {
-		objects = new ArrayList<T>(initCapacity);
+	public Pool (int initCapacity, Callback<T> callback) {
+		this.objects = new ArrayList<T>(initCapacity);
+		this.callback = callback;
 	}
 
 	protected abstract T getNew();
 
 	public T get() {
-		return objects.isEmpty() ? getNew() : objects.remove(objects.size()-1);
+		T obj = objects.isEmpty() ? getNew() : objects.remove(objects.size()-1);
+		if (callback != null)
+			callback.act(obj);
+		return obj;
 	}
 
 	public void free(T obj) {
@@ -30,5 +35,9 @@ public abstract class Pool<T> {
 
 	public int size() {
 		return objects.size();
+	}
+
+	public interface Callback<T> {
+		public void act(T obj);
 	}
 }

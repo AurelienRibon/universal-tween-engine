@@ -55,8 +55,8 @@ public class TweenManager {
 	public final TweenManager add(TweenGroup group) {
 		long currentMillis = System.currentTimeMillis();
 
-		while (!group.groupables.isEmpty()) {
-			Groupable obj = group.groupables.remove(0);
+		for (int i=0, n=group.groupables.size(); i<n; i++) {
+			Groupable obj = group.groupables.get(i);
 			if (obj instanceof Tween) {
 				Tween tween = ((Tween)obj);
 				tweens.add(tween);
@@ -65,6 +65,8 @@ public class TweenManager {
 				add((TweenGroup)obj);
 			}
 		}
+
+		group.reset();
 
 		if (group.isPooled)
 			TweenGroup.pool.free(group);

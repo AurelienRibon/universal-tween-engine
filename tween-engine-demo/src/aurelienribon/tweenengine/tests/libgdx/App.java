@@ -71,6 +71,10 @@ public class App implements ApplicationListener {
 		sprite2.setOrigin(0.5f, 0.5f);
 		sprite3.setOrigin(0.5f, 0.5f);
 		sprite4.setOrigin(0.5f, 0.5f);
+		sprite1.setPosition((6f/5f)*1 - 3 - 0.5f, -0.5f);
+		sprite2.setPosition((6f/5f)*2 - 3 - 0.5f, -0.5f);
+		sprite3.setPosition((6f/5f)*3 - 3 - 0.5f, -0.5f);
+		sprite4.setPosition((6f/5f)*4 - 3 - 0.5f, -0.5f);
 
 		// Creation of a TweenManager
 		Tween.setPoolEnabled(true);
@@ -139,69 +143,64 @@ public class App implements ApplicationListener {
 	// -------------------------------------------------------------------------
 
 	private void start() {
-		float targetX1 = (6f/5f)*1 - 3;
-		float targetX2 = (6f/5f)*2 - 3;
-		float targetX3 = (6f/5f)*3 - 3;
-		float targetX4 = (6f/5f)*4 - 3;
-
-		TweenGroup.asParallel(
-			TweenGroup.asSequence(
-				TweenGroup.asParallel(
+		TweenGroup.parallel(
+			TweenGroup.sequence(
+				TweenGroup.parallel(
 					Tween.set(tweenSprite1, TweenSprite.POSITION_XY).target(0, 0),
 					Tween.set(tweenSprite1, TweenSprite.SCALE_XY).target(10, 10),
 					Tween.set(tweenSprite1, TweenSprite.ROTATION).target(0),
 					Tween.set(tweenSprite1, TweenSprite.OPACITY).target(0)
 				),
-				TweenGroup.asParallel(
+				TweenGroup.parallel(
 					Tween.to(tweenSprite1, TweenSprite.OPACITY, 1000, Quart.INOUT).target(1),
 					Tween.to(tweenSprite1, TweenSprite.SCALE_XY, 1000, Quart.INOUT).target(1, 1)
 				),
-				Tween.to(tweenSprite1, TweenSprite.POSITION_XY, 1000, Back.OUT).target(targetX1, 0).delay(-500),
+				Tween.to(tweenSprite1, TweenSprite.POSITION_XY, 1000, Back.OUT).targetCurrent().delay(-500),
 				Tween.to(tweenSprite1, TweenSprite.ROTATION, 800, Cubic.INOUT).target(360)
 			),
-			TweenGroup.asSequence(
-				TweenGroup.asParallel(
+			TweenGroup.sequence(
+				TweenGroup.parallel(
 					Tween.set(tweenSprite2, TweenSprite.POSITION_XY).target(0, 0),
 					Tween.set(tweenSprite2, TweenSprite.SCALE_XY).target(10, 10),
 					Tween.set(tweenSprite2, TweenSprite.ROTATION).target(0),
 					Tween.set(tweenSprite2, TweenSprite.OPACITY).target(0)
 				),
-				TweenGroup.asDelay(200),
-				TweenGroup.asParallel(
+				TweenGroup.tempo(200),
+				TweenGroup.parallel(
 					Tween.to(tweenSprite2, TweenSprite.OPACITY, 1000, Quart.INOUT).target(1),
 					Tween.to(tweenSprite2, TweenSprite.SCALE_XY, 1000, Quart.INOUT).target(1, 1)
 				),
-				Tween.to(tweenSprite2, TweenSprite.POSITION_XY, 1000, Back.OUT).target(targetX2, 0).delay(-500),
+				Tween.to(tweenSprite2, TweenSprite.POSITION_XY, 1000, Back.OUT).targetCurrent().delay(-500),
 				Tween.to(tweenSprite2, TweenSprite.ROTATION, 800, Cubic.INOUT).target(360)
 			),
-			TweenGroup.asSequence(
-				TweenGroup.asParallel(
+			TweenGroup.sequence(
+				TweenGroup.parallel(
 					Tween.set(tweenSprite3, TweenSprite.POSITION_XY).target(0, 0),
 					Tween.set(tweenSprite3, TweenSprite.SCALE_XY).target(10, 10),
 					Tween.set(tweenSprite3, TweenSprite.ROTATION).target(0),
 					Tween.set(tweenSprite3, TweenSprite.OPACITY).target(0)
 				),
-				TweenGroup.asDelay(400),
-				TweenGroup.asParallel(
+				TweenGroup.tempo(400),
+				TweenGroup.parallel(
 					Tween.to(tweenSprite3, TweenSprite.OPACITY, 1000, Quart.INOUT).target(1),
 					Tween.to(tweenSprite3, TweenSprite.SCALE_XY, 1000, Quart.INOUT).target(1, 1)
 				),
-				Tween.to(tweenSprite3, TweenSprite.POSITION_XY, 1000, Back.OUT).target(targetX3, 0).delay(-500),
+				Tween.to(tweenSprite3, TweenSprite.POSITION_XY, 1000, Back.OUT).targetCurrent().delay(-500),
 				Tween.to(tweenSprite3, TweenSprite.ROTATION, 800, Cubic.INOUT).target(360)
 			),
-			TweenGroup.asSequence(
-				TweenGroup.asParallel(
+			TweenGroup.sequence(
+				TweenGroup.parallel(
 					Tween.set(tweenSprite4, TweenSprite.POSITION_XY).target(0, 0),
 					Tween.set(tweenSprite4, TweenSprite.SCALE_XY).target(10, 10),
 					Tween.set(tweenSprite4, TweenSprite.ROTATION).target(0),
 					Tween.set(tweenSprite4, TweenSprite.OPACITY).target(0)
 				),
-				TweenGroup.asDelay(600),
-				TweenGroup.asParallel(
+				TweenGroup.tempo(600),
+				TweenGroup.parallel(
 					Tween.to(tweenSprite4, TweenSprite.OPACITY, 1000, Quart.INOUT).target(1),
 					Tween.to(tweenSprite4, TweenSprite.SCALE_XY, 1000, Quart.INOUT).target(1, 1)
 				),
-				Tween.to(tweenSprite4, TweenSprite.POSITION_XY, 1000, Back.OUT).target(targetX4, 0).delay(-500),
+				Tween.to(tweenSprite4, TweenSprite.POSITION_XY, 1000, Back.OUT).targetCurrent().delay(-500),
 				Tween.to(tweenSprite4, TweenSprite.ROTATION, 800, Cubic.INOUT).target(360)
 			)
 		).addToManager(tweenManager);

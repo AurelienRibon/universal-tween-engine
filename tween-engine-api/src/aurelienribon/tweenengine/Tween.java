@@ -27,7 +27,7 @@ import java.util.ArrayList;
  * <br/><br/>
  * <pre>
  * Tween.to(myObject, POSITION_XY, 500, Quad.INOUT)
- *      .target(200, 300).delay(1000).repeat(2).start();
+ *      .target(200, 300).delay(1000).repeat(2).addToManager(myManager);
  * </pre>
  *
  * You need to periodicaly update the tween engine, in order to compute the new
@@ -45,6 +45,8 @@ public class Tween implements Groupable {
 	// -------------------------------------------------------------------------
 	// Static
 	// -------------------------------------------------------------------------
+
+	private static boolean isPoolEnabled = false;
 
 	/** If you need to repeat your tween for infinity, use this. */
 	public static final int INFINITY = -1;
@@ -89,16 +91,18 @@ public class Tween implements Groupable {
 
 	// -------------------------------------------------------------------------
 
-	private static boolean isPoolEnabled = false;
-	private static final Pool<Tween> pool;
+	private static final Pool.Callback<Tween> poolCallback = new Pool.Callback<Tween>() {
+		@Override public void act(Tween obj) {
+			obj.reset();
+			obj.isPooled = Tween.isPoolEnabled();
+		}
+	};
 
-	static {
-		pool = new Pool<Tween>(20) {
-			@Override protected Tween getNew() {
-				return new Tween(null, -1, 0, null);
-			}
-		};
-	}
+	private static final Pool<Tween> pool = new Pool<Tween>(20, poolCallback) {
+		@Override protected Tween getNew() {
+			return new Tween(null, -1, 0, null);
+		}
+	};
 
 	// -------------------------------------------------------------------------
 	// Factories
@@ -136,7 +140,6 @@ public class Tween implements Groupable {
 	 */
 	public static Tween to(Tweenable target, int tweenType, int durationMillis, TweenEquation equation) {
 		Tween tween = pool.get();
-		tween.reset();
 		tween.__build(target, tweenType, durationMillis, equation);
 		return tween;
 	}
@@ -172,7 +175,6 @@ public class Tween implements Groupable {
 	 */
 	public static Tween to(SimpleTweenable target, int durationMillis, TweenEquation equation) {
 		Tween tween = pool.get();
-		tween.reset();
 		tween.__build(target, 0, durationMillis, equation);
 		return tween;
 	}
@@ -209,7 +211,6 @@ public class Tween implements Groupable {
 	 */
 	public static Tween from(Tweenable target, int tweenType, int durationMillis, TweenEquation equation) {
 		Tween tween = pool.get();
-		tween.reset();
 		tween.__build(target, tweenType, durationMillis, equation);
 		tween.reverse();
 		return tween;
@@ -246,7 +247,6 @@ public class Tween implements Groupable {
 	 */
 	public static Tween from(SimpleTweenable target, int durationMillis, TweenEquation equation) {
 		Tween tween = pool.get();
-		tween.reset();
 		tween.__build(target, 0, durationMillis, equation);
 		tween.reverse();
 		return tween;
@@ -282,7 +282,6 @@ public class Tween implements Groupable {
 	 */
 	public static Tween set(Tweenable target, int tweenType) {
 		Tween tween = pool.get();
-		tween.reset();
 		tween.__build(target, tweenType, 0, null);
 		return tween;
 	}
@@ -316,7 +315,6 @@ public class Tween implements Groupable {
 	 */
 	public static Tween set(SimpleTweenable target) {
 		Tween tween = pool.get();
-		tween.reset();
 		tween.__build(target, 0, 0, null);
 		return tween;
 	}
@@ -351,7 +349,6 @@ public class Tween implements Groupable {
 	 */
 	public static Tween call(TweenCallback callback) {
 		Tween tween = pool.get();
-		tween.reset();
 		tween.__build(null, -1, 0, null);
 		tween.addIterationCompleteCallback(callback);
 		return tween;
@@ -437,6 +434,237 @@ public class Tween implements Groupable {
 	}
 
 	/**
+	 * Sets the target value of the interpolation. The interpolation will run
+	 * from the <b>value at start time (after the delay, if any)</b> to this
+	 * target value.
+	 * <br/><br/>
+	 * To sum-up:<br/>
+	 * - start value: value at start time, after delay<br/>
+	 * - end value: param
+	 * @param targetValue The target value of the interpolation.
+	 * @return The current tween for chaining instructions.
+	 */
+	public Tween target(float targetValue) {
+		targetValues[0] = targetValue;
+		return this;
+	}
+
+	/**
+	 * Sets the target values of the interpolation. The interpolation will run
+	 * from the <b>values at start time (after the delay, if any)</b> to these
+	 * target values.
+	 * <br/><br/>
+	 * To sum-up:<br/>
+	 * - start values: values at start time, after delay<br/>
+	 * - end values: params
+	 * @param targetValue1 The 1st target value of the interpolation.
+	 * @param targetValue2 The 2nd target value of the interpolation.
+	 * @return The current tween for chaining instructions.
+	 */
+	public Tween target(float targetValue1, float targetValue2) {
+		targetValues[0] = targetValue1;
+		targetValues[1] = targetValue2;
+		return this;
+	}
+
+	/**
+	 * Sets the target values of the interpolation. The interpolation will run
+	 * from the <b>values at start time (after the delay, if any)</b> to these
+	 * target values.
+	 * <br/><br/>
+	 * To sum-up:<br/>
+	 * - start values: values at start time, after delay<br/>
+	 * - end values: params
+	 * @param targetValue1 The 1st target value of the interpolation.
+	 * @param targetValue2 The 2nd target value of the interpolation.
+	 * @param targetValue3 The 3rd target value of the interpolation.
+	 * @return The current tween for chaining instructions.
+	 */
+	public Tween target(float targetValue1, float targetValue2, float targetValue3) {
+		targetValues[0] = targetValue1;
+		targetValues[1] = targetValue2;
+		targetValues[2] = targetValue3;
+		return this;
+	}
+
+	/**
+	 * Sets the target values of the interpolation. The interpolation will run
+	 * from the <b>values at start time (after the delay, if any)</b> to these
+	 * target values.
+	 * <br/><br/>
+	 * To sum-up:<br/>
+	 * - start values: values at start time, after delay<br/>
+	 * - end values: params
+	 * @param targetValues The target values of the interpolation.
+	 * @return The current tween for chaining instructions.
+	 */
+	public Tween target(float... targetValues) {
+		if (targetValues.length > MAX_COMBINED_TWEENS)
+			throw new RuntimeException("You cannot set more than " + MAX_COMBINED_TWEENS + " targets.");
+		System.arraycopy(targetValues, 0, this.targetValues, 0, targetValues.length);
+		return this;
+	}
+
+	/**
+	 * Sets the target value of the interpolation, relatively to the <b>value
+	 * at start time (after the delay, if any)</b>.
+	 * <br/><br/>
+	 * To sum-up:<br/>
+	 * - start value: value at start time, after delay<br/>
+	 * - end value: param + value at start time, after delay
+	 * @param targetValue The relative target value of the interpolation.
+	 * @return The current tween for chaining instructions.
+	 */
+	public Tween targetRelative(float targetValue) {
+		isRelative = true;
+		targetValues[0] = targetValue;
+		return this;
+	}
+
+	/**
+	 * Sets the target values of the interpolation, relatively to the <b>values
+	 * at start time (after the delay, if any)</b>.
+	 * <br/><br/>
+	 * To sum-up:<br/>
+	 * - start values: values at start time, after delay<br/>
+	 * - end values: params + values at start time, after delay
+	 * @param targetValue1 The 1st relative target value of the interpolation.
+	 * @param targetValue2 The 2nd relative target value of the interpolation.
+	 * @return The current tween for chaining instructions.
+	 */
+	public Tween targetRelative(float targetValue1, float targetValue2) {
+		isRelative = true;
+		targetValues[0] = targetValue1;
+		targetValues[1] = targetValue2;
+		return this;
+	}
+
+	/**
+	 * Sets the target values of the interpolation, relatively to the <b>values
+	 * at start time (after the delay, if any)</b>.
+	 * <br/><br/>
+	 * To sum-up:<br/>
+	 * - start values: values at start time, after delay<br/>
+	 * - end values: params + values at start time, after delay
+	 * @param targetValue1 The 1st relative target value of the interpolation.
+	 * @param targetValue2 The 2nd relative target value of the interpolation.
+	 * @param targetValue3 The 3rd relative target value of the interpolation.
+	 * @return The current tween for chaining instructions.
+	 */
+	public Tween targetRelative(float targetValue1, float targetValue2, float targetValue3) {
+		isRelative = true;
+		targetValues[0] = targetValue1;
+		targetValues[1] = targetValue2;
+		targetValues[2] = targetValue3;
+		return this;
+	}
+
+	/**
+	 * Sets the target values of the interpolation, relatively to the <b>values
+	 * at start time (after the delay, if any)</b>.
+	 * <br/><br/>
+	 * To sum-up:<br/>
+	 * - start values: values at start time, after delay<br/>
+	 * - end values: params + values at start time, after delay
+	 * @param targetValues The relative target values of the interpolation.
+	 * @return The current tween for chaining instructions.
+	 */
+	public Tween targetRelative(float... targetValues) {
+		if (targetValues.length > MAX_COMBINED_TWEENS)
+			throw new RuntimeException("You cannot set more than " + MAX_COMBINED_TWEENS + " targets.");
+		System.arraycopy(targetValues, 0, this.targetValues, 0, targetValues.length);
+		isRelative = true;
+		return this;
+	}
+
+	/**
+	 * Sets the target value(s) of the interpolation as <b>the current value(s),
+	 * the one(s) present when this call is made</b>.
+	 * <br/><br/>
+	 * To sum-up:<br/>
+	 * - start value: value at start time, after delay<br/>
+	 * - end value: value at current time
+	 * @return The current tween for chaining instructions.
+	 */
+	public Tween targetCurrent() {
+		target.getTweenValues(tweenType, targetValues);
+		return this;
+	}
+
+	/**
+	 * Sets the target value of the interpolation, relatively to the <b>the
+	 * current value, the one present when this call is made</b>.
+	 * <br/><br/>
+	 * To sum-up:<br/>
+	 * - start value: value at start time, after delay<br/>
+	 * - end value: param + value at current time
+	 * @param targetValue The relative target value of the interpolation.
+	 * @return The current tween for chaining instructions.
+	 */
+	public Tween targetCurrentRelative(float targetValue) {
+		target.getTweenValues(tweenType, targetValues);
+		targetValues[0] += targetValue;
+		return this;
+	}
+
+	/**
+	 * Sets the target values of the interpolation, relatively to the <b>the
+	 * current values, the ones present when this call is made</b>.
+	 * <br/><br/>
+	 * To sum-up:<br/>
+	 * - start values: values at start time, after delay<br/>
+	 * - end values: params + values at current time
+	 * @param targetValue1 The 1st relative target value of the interpolation.
+	 * @param targetValue2 The 2nd relative target value of the interpolation.
+	 * @return The current tween for chaining instructions.
+	 */
+	public Tween targetCurrentRelative(float targetValue1, float targetValue2) {
+		target.getTweenValues(tweenType, targetValues);
+		targetValues[0] += targetValue1;
+		targetValues[1] += targetValue2;
+		return this;
+	}
+
+	/**
+	 * Sets the target values of the interpolation, relatively to the <b>the
+	 * current values, the ones present when this call is made</b>.
+	 * <br/><br/>
+	 * To sum-up:<br/>
+	 * - start values: values at start time, after delay<br/>
+	 * - end values: params + values at current time
+	 * @param targetValue1 The 1st relative target value of the interpolation.
+	 * @param targetValue2 The 2nd relative target value of the interpolation.
+	 * @param targetValue3 The 3rd relative target value of the interpolation.
+	 * @return The current tween for chaining instructions.
+	 */
+	public Tween targetCurrentRelative(float targetValue1, float targetValue2, float targetValue3) {
+		target.getTweenValues(tweenType, targetValues);
+		targetValues[0] += targetValue1;
+		targetValues[1] += targetValue2;
+		targetValues[2] += targetValue3;
+		return this;
+	}
+
+	/**
+	 * Sets the target values of the interpolation, relatively to the <b>the
+	 * current values, the ones present when this call is made</b>.
+	 * <br/><br/>
+	 * To sum-up:<br/>
+	 * - start values: values at start time, after delay<br/>
+	 * - end values: params + values at current time
+	 * @param targetValues The relative target values of the interpolation.
+	 * @return The current tween for chaining instructions.
+	 */
+	public Tween targetCurrentRelative(float... targetValues) {
+		if (targetValues.length > MAX_COMBINED_TWEENS)
+			throw new RuntimeException("You cannot set more than " + MAX_COMBINED_TWEENS + " targets.");
+		target.getTweenValues(tweenType, targetValues);
+		for (int i=0, n=targetValues.length; i<n; i++)
+			this.targetValues[i] += targetValues[i];
+		return this;
+	}
+
+	/**
 	 * Kills the interpolation. If pooling was enabled when this tween was
 	 * created, the tween will be freed, cleared, and returned to the pool. As
 	 * a result, you shouldn't use it anymore.
@@ -451,126 +679,9 @@ public class Tween implements Groupable {
 	 * @param millis The delay, in milliseconds.
 	 * @return The current tween for chaining instructions.
 	 */
-	@Override public Tween delay(int millis) {
+	@Override
+	public Tween delay(int millis) {
 		this.delayMillis += millis;
-		return this;
-	}
-
-	/**
-	 * Sets the target value of the interpolation. If not reversed, the
-	 * interpolation will run from the current value to this target value.
-	 * @param targetValue The target value of the interpolation.
-	 * @return The current tween for chaining instructions.
-	 */
-	public Tween target(float targetValue) {
-		targetValues[0] = targetValue;
-		return this;
-	}
-
-	/**
-	 * Sets the target values of the interpolation. If not reversed, the
-	 * interpolation will run from the current values to these target values.
-	 * @param targetValue1 The 1st target value of the interpolation.
-	 * @param targetValue2 The 2nd target value of the interpolation.
-	 * @return The current tween for chaining instructions.
-	 */
-	public Tween target(float targetValue1, float targetValue2) {
-		targetValues[0] = targetValue1;
-		targetValues[1] = targetValue2;
-		return this;
-	}
-
-	/**
-	 * Sets the target values of the interpolation. If not reversed, the
-	 * interpolation will run from the current values to these target values.
-	 * @param targetValue1 The 1st target value of the interpolation.
-	 * @param targetValue2 The 2nd target value of the interpolation.
-	 * @param targetValue3 The 3rd target value of the interpolation.
-	 * @return The current tween for chaining instructions.
-	 */
-	public Tween target(float targetValue1, float targetValue2, float targetValue3) {
-		targetValues[0] = targetValue1;
-		targetValues[1] = targetValue2;
-		targetValues[2] = targetValue3;
-		return this;
-	}
-
-	/**
-	 * Sets the target values of the interpolation. If not reversed, the
-	 * interpolation will run from the current values to these target values.
-	 * <br/><br/>
-	 * The other methods are convenience to avoid the allocation of an array.
-	 * @param targetValues The target values of the interpolation.
-	 * @return The current tween for chaining instructions.
-	 */
-	public Tween target(float... targetValues) {
-		if (targetValues.length > MAX_COMBINED_TWEENS)
-			throw new RuntimeException("You cannot set more than " + MAX_COMBINED_TWEENS + " targets.");
-		System.arraycopy(targetValues, 0, this.targetValues, 0, targetValues.length);
-		return this;
-	}
-
-	/**
-	 * Sets the target value of the interpolation, relatively to the current
-	 * value. If not reversed, the interpolation will run from the current value
-	 * to this target value.
-	 * @param targetValue The relative target value of the interpolation.
-	 * @return The current tween for chaining instructions.
-	 */
-	public Tween targetRelative(float targetValue) {
-		isRelative = true;
-		return target(targetValue);
-	}
-
-	/**
-	 * Sets the target values of the interpolation, relatively to the current
-	 * values. If not reversed, the interpolation will run from the current
-	 * values to these target values.
-	 * @param targetValue1 The 1st relative target value of the interpolation.
-	 * @param targetValue2 The 2nd relative target value of the interpolation.
-	 * @return The current tween for chaining instructions.
-	 */
-	public Tween targetRelative(float targetValue1, float targetValue2) {
-		isRelative = true;
-		return target(targetValue1, targetValue2);
-	}
-
-	/**
-	 * Sets the target values of the interpolation, relatively to the current
-	 * values. If not reversed, the interpolation will run from the current
-	 * values to these target values.
-	 * @param targetValue1 The 1st relative target value of the interpolation.
-	 * @param targetValue2 The 2nd relative target value of the interpolation.
-	 * @param targetValue3 The 3rd relative target value of the interpolation.
-	 * @return The current tween for chaining instructions.
-	 */
-	public Tween targetRelative(float targetValue1, float targetValue2, float targetValue3) {
-		isRelative = true;
-		return target(targetValue1, targetValue2, targetValue3);
-	}
-
-	/**
-	 * Sets the target values of the interpolation, relatively to the current
-	 * values. If not reversed, the interpolation will run from the current
-	 * values to these target values.
-	 * <br/><br/>
-	 * The other methods are convenience to avoid the allocation of an array.
-	 * @param targetValues The relative target values of the interpolation.
-	 * @return The current tween for chaining instructions.
-	 */
-	public Tween targetRelative(float... targetValues) {
-		isRelative = true;
-		return target(targetValues);
-	}
-
-	/**
-	 * Sets the target value(s) of the interpolation as the current value(s) of
-	 * the Tweenable object. If not reversed, the interpolation will run from
-	 * the current value(s) to the(se) target value(s).
-	 * @return
-	 */
-	public Tween targetCurrent() {
-		target.getTweenValues(tweenType, targetValues);
 		return this;
 	}
 
@@ -686,6 +797,7 @@ public class Tween implements Groupable {
 	 * @param manager A TweenManager.
 	 * @return The current tween for chaining instructions.
 	 */
+	@Override
 	public Tween addToManager(TweenManager manager) {
 		manager.add(this);
 		return this;
@@ -727,7 +839,8 @@ public class Tween implements Groupable {
 	 * Gets the tween duration.
 	 * @return The tween duration.
 	 */
-	@Override public int getDuration() {
+	@Override
+	public int getDuration() {
 		return durationMillis;
 	}
 
@@ -735,7 +848,8 @@ public class Tween implements Groupable {
 	 * Gets the tween delay.
 	 * @return The tween delay.
 	 */
-	@Override public int getDelay() {
+	@Override
+	public int getDelay() {
 		return delayMillis;
 	}
 
@@ -985,7 +1099,6 @@ public class Tween implements Groupable {
 
 		this.isReversed = false;
 		this.isInitialized = false;
-		this.isPooled = isPoolEnabled;
 		this.isRelative = false;
 
 		this.combinedTweenCount = 0;

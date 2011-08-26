@@ -22,7 +22,7 @@ public class App {
 		wnd.setVisible(true);
 
 		TweenManager manager = new TweenManager();
-		TweenGroup.asSequence(
+		TweenGroup.sequence(
 			Tween.to(label, TweenJLabel.POSITION, 1500, Elastic.OUT).target(500, 300).delay(500),
 			Tween.to(label, TweenJLabel.POSITION, 1000, Bounce.OUT).target(500, 20)
 		).addToManager(manager);
