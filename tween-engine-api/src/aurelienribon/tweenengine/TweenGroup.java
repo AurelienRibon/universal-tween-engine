@@ -2,6 +2,7 @@ package aurelienribon.tweenengine;
 
 import aurelienribon.tweenengine.utils.Pool;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A TweenGroup can be used to create complex animations made of sequences and
@@ -48,14 +49,17 @@ import java.util.ArrayList;
  */
 public class TweenGroup implements Groupable {
 	private static final Pool.Callback<TweenGroup> poolCallback = new Pool.Callback<TweenGroup>() {
-		@Override public void act(TweenGroup obj) {
+		@Override public void onPool(TweenGroup obj) {
 			obj.reset();
+		}
+
+		@Override public void onUnpool(TweenGroup obj) {
 			obj.isPooled = Tween.isPoolEnabled();
 		}
 	};
 
 	static final Pool<TweenGroup> pool = new Pool<TweenGroup>(15, poolCallback) {
-		@Override protected TweenGroup getNew() {return new TweenGroup();}
+		@Override protected TweenGroup create() {return new TweenGroup();}
 	};
 	
 	// -------------------------------------------------------------------------
@@ -127,7 +131,7 @@ public class TweenGroup implements Groupable {
 	// IMPLEMENTATION
 	// -------------------------------------------------------------------------
 
-	final ArrayList<Groupable> groupables = new ArrayList<Groupable>(10);
+	final List<Groupable> groupables = new ArrayList<Groupable>(10);
 	private int duration = 0;
 	private int delay = 0;
 	boolean isPooled = false;
@@ -139,7 +143,7 @@ public class TweenGroup implements Groupable {
 	}
 
 	// -------------------------------------------------------------------------
-	// PUCLIC API
+	// PUBLIC API
 	// -------------------------------------------------------------------------
 
 	/**
@@ -149,6 +153,7 @@ public class TweenGroup implements Groupable {
 	 */
 	public TweenGroup addInSequence(Groupable obj) {
 		if (obj != null) {
+			duration += obj.getDelay() + obj.getDuration();
 			if (groupables.isEmpty()) {
 				groupables.add(obj);
 			} else {
@@ -156,7 +161,6 @@ public class TweenGroup implements Groupable {
 				obj.delay(last.getDelay() + last.getDuration());
 				groupables.add(obj);
 			}
-			duration += obj.getDelay() + obj.getDuration();
 		}
 		return this;
 	}
@@ -233,9 +237,32 @@ public class TweenGroup implements Groupable {
 	 * @param manager A TweenManager.
 	 * @return The group, for instruction chaining.
 	 */
-	@Override
 	public TweenGroup addToManager(TweenManager manager) {
 		manager.add(this);
 		return this;
+	}
+
+	/**
+	 * Repeats the group for a given number of times.
+	 * @param count The number of desired repetition. For infinite repetition,
+	 * use Tween.INFINITY, or a negative number.
+	 * @param millis A delay before each repetition.
+	 * @return The group, for instruction chaining.
+	 */
+	@Override
+	public TweenGroup repeat(int count, int delayMillis) {
+		_repeat(count, duration + delayMillis);
+		return this;
+	}
+
+	private void _repeat(int count, int totalDuration) {
+		for (int i=0, n=groupables.size(); i<n; i++) {
+			Groupable obj = groupables.get(i);
+			if (obj instanceof Tween) {
+				obj.repeat(count, totalDuration - obj.getDuration() - obj.getDelay());
+			} else {
+				((TweenGroup)obj)._repeat(count, totalDuration);
+			}
+		}
 	}
 }

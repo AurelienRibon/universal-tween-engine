@@ -5,7 +5,7 @@
 	<!-- ****************************************************************** -->
 	
 	<!-- version -->
-	<property name="version" value="5.0" />
+	<property name="version" value="5.1" />
 
 	<!-- projects properties -->
 	<property name="prj.api.dir" value="tween-engine-api" />
@@ -78,25 +78,5 @@
 	<!-- all -->
 	<target name="all" depends="zip">
 		<antcall target="clean"/>
-	</target>
-
-	<!-- ****************************************************************** -->
-	<!-- Run tasks -->
-	<!-- ****************************************************************** -->
-	
-	<!-- run-list -->
-	<target name="run-list">
-		<echo>run-demo</echo>
-	</target>
-
-	<!-- run-demo -->
-	<target name="run-demo">
-		<delete dir="temp"/>
-		<unzip src="${prj.demo.filename}-${version}.zip" dest="temp"/>
-		<exec executable="java" dir="temp">
-			<arg value="-jar"/>
-			<arg value="${prj.demo.filename}.jar"/>
-		</exec>
-		<delete dir="temp"/>
 	</target>
 </project>

@@ -9,24 +9,37 @@ import java.util.ArrayList;
 public abstract class Pool<T> {
 	private final ArrayList<T> objects;
 	private final Callback<T> callback;
+	
+	public Pool() {
+		this.objects = new ArrayList<T>();
+		this.callback = null;
+	}
 
-	public Pool (int initCapacity, Callback<T> callback) {
+	public Pool(Callback<T> callback) {
+		this.objects = new ArrayList<T>();
+		this.callback = callback;
+	}
+
+	public Pool(int initCapacity, Callback<T> callback) {
 		this.objects = new ArrayList<T>(initCapacity);
 		this.callback = callback;
 	}
 
-	protected abstract T getNew();
+	protected abstract T create();
 
 	public T get() {
-		T obj = objects.isEmpty() ? getNew() : objects.remove(objects.size()-1);
+		T obj = objects.isEmpty() ? create() : objects.remove(objects.size()-1);
 		if (callback != null)
-			callback.act(obj);
+			callback.onUnpool(obj);
 		return obj;
 	}
 
 	public void free(T obj) {
-		if (!objects.contains(obj))
+		if (!objects.contains(obj)) {
+			if (callback != null)
+				callback.onPool(obj);
 			objects.add(obj);
+		}
 	}
 
 	public void clear() {
@@ -38,6 +51,7 @@ public abstract class Pool<T> {
 	}
 
 	public interface Callback<T> {
-		public void act(T obj);
+		public void onPool(T obj);
+		public void onUnpool(T obj);
 	}
 }

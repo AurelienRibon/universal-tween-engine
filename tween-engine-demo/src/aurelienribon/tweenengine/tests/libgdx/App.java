@@ -94,9 +94,7 @@ public class App implements ApplicationListener {
 
 		// Demo of the Tween.call possibility. It's just a timer :)
 		text = "Idle (auto-start in 1 second)";
-		Tween.call(timerCallback)
-			.delay(1000)
-			.addToManager(tweenManager);
+		Tween.call(timerCallback).delay(0).addToManager(tweenManager);
 	}
 
 	private final TweenCallback timerCallback = new TweenCallback() {
@@ -139,7 +137,7 @@ public class App implements ApplicationListener {
 	@Override public void dispose() {}
 
 	// -------------------------------------------------------------------------
-	// STATE MACHINE
+	// ANIMATION
 	// -------------------------------------------------------------------------
 
 	private void start() {
@@ -201,9 +199,15 @@ public class App implements ApplicationListener {
 					Tween.to(tweenSprite4, TweenSprite.SCALE_XY, 1000, Quart.INOUT).target(1, 1)
 				),
 				Tween.to(tweenSprite4, TweenSprite.POSITION_XY, 1000, Back.OUT).targetCurrent().delay(-500),
-				Tween.to(tweenSprite4, TweenSprite.ROTATION, 800, Cubic.INOUT).target(360)
+				Tween.to(tweenSprite4, TweenSprite.ROTATION, 800, Cubic.INOUT).target(360),
+
+				Tween.call(new TweenCallback() {
+					@Override public void tweenEventOccured(Types eventType, Tween tween) {
+						System.out.println("finished!");
+					}
+				})
 			)
-		).addToManager(tweenManager);
+		).repeat(10, 0).addToManager(tweenManager);
 
 		tweenManager.update();
 	}

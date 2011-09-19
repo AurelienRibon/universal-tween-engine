@@ -92,14 +92,17 @@ public class Tween implements Groupable {
 	// -------------------------------------------------------------------------
 
 	private static final Pool.Callback<Tween> poolCallback = new Pool.Callback<Tween>() {
-		@Override public void act(Tween obj) {
+		@Override public void onPool(Tween obj) {
 			obj.reset();
+		}
+
+		@Override public void onUnpool(Tween obj) {
 			obj.isPooled = Tween.isPoolEnabled();
 		}
 	};
 
 	private static final Pool<Tween> pool = new Pool<Tween>(20, poolCallback) {
-		@Override protected Tween getNew() {
+		@Override protected Tween create() {
 			return new Tween(null, -1, 0, null);
 		}
 	};
@@ -760,6 +763,7 @@ public class Tween implements Groupable {
 	 * @param millis A delay before each repetition.
 	 * @return The current tween for chaining instructions.
 	 */
+	@Override
 	public Tween repeat(int count, int delayMillis) {
 		repeatCnt = count;
 		repeatDelayMillis = delayMillis;
@@ -797,7 +801,6 @@ public class Tween implements Groupable {
 	 * @param manager A TweenManager.
 	 * @return The current tween for chaining instructions.
 	 */
-	@Override
 	public Tween addToManager(TweenManager manager) {
 		manager.add(this);
 		return this;
@@ -902,47 +905,6 @@ public class Tween implements Groupable {
 	 */
 	public Object getUserData() {
 		return userData;
-	}
-
-	/**
-	 * Starts or restart the interpolation. Using this method can lead to some
-	 * side-effects if you call it multiple times. <b>The recommanded behavior
-	 * is to add the tween to a Tween Manager instead.</b>
-	 * @param currentMillis The current milliseconds. You would generally
-	 * want to use <i>System.currentMillis()</i> and pass the result to
-	 * every unsafeStart call to help synchronization.
-	 */
-	public Tween unsafeStart(long currentMillis) {
-		startMillis = currentMillis;
-		endDelayMillis = startMillis + delayMillis;
-
-		if (iteration > 0 && repeatDelayMillis < 0)
-			endDelayMillis = Math.max(endDelayMillis + repeatDelayMillis, startMillis);
-
-		endMillis = endDelayMillis + durationMillis;
-		endRepeatDelayMillis = Math.max(endMillis, endMillis + repeatDelayMillis);
-
-		isInitialized = true;
-		isStarted = true;
-		isDelayEnded = false;
-		isEnded = false;
-		isFinished = false;
-
-		callStartCallbacks();
-
-		return this;
-	}
-
-	/**
-	 * Updates the tween state. Using this method can be unsafe if tween
-	 * pooling was first enabled. <b>The recommanded behavior is to use a
-	 * TweenManager instead.</b>
-	 * @param currentMillis The current milliseconds. You would generally
-	 * want to use <i>System.currentMillis()</i> and pass the result to
-	 * every unsafeUpdate call to help synchronization.
-	 */
-	public final void unsafeUpdate(long currentMillis) {
-		update(currentMillis);
 	}
 
 	// -------------------------------------------------------------------------
@@ -1067,8 +1029,8 @@ public class Tween implements Groupable {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * <b>Advanced use.</b>
-	 * <br/>Rebuilds a tween from the current one. May be used if you want to
+	 * <b>Advanced use.</b><br/>
+	 * Rebuilds a tween from the current one. May be used if you want to
 	 * build your own pool system. You should call __reset() before.
 	 */
 	public final void __build(Tweenable target, int tweenType, int durationMillis, TweenEquation equation) {
@@ -1086,6 +1048,49 @@ public class Tween implements Groupable {
 			if (this.combinedTweenCount < 1 || this.combinedTweenCount > MAX_COMBINED_TWEENS)
 				throw new RuntimeException("Min combined tweens = 1, max = " + MAX_COMBINED_TWEENS);
 		}
+	}
+
+	/**
+	 * <b>Advanced use.</b><br/>
+	 * Starts or restart the interpolation. Using this method can lead to some
+	 * side-effects if you call it multiple times. <b>The recommanded behavior
+	 * is to add the tween to a Tween Manager instead.</b>
+	 * @param currentMillis The current milliseconds. You would generally
+	 * want to use <i>System.currentMillis()</i> and pass the result to
+	 * every unsafeStart call to help synchronization.
+	 */
+	public final Tween unsafeStart(long currentMillis) {
+		startMillis = currentMillis;
+		endDelayMillis = startMillis + delayMillis;
+
+		if (iteration > 0 && repeatDelayMillis < 0)
+			endDelayMillis = Math.max(endDelayMillis + repeatDelayMillis, startMillis);
+
+		endMillis = endDelayMillis + durationMillis;
+		endRepeatDelayMillis = Math.max(endMillis, endMillis + repeatDelayMillis);
+
+		isInitialized = true;
+		isStarted = true;
+		isDelayEnded = false;
+		isEnded = false;
+		isFinished = false;
+
+		callStartCallbacks();
+
+		return this;
+	}
+
+	/**
+	 * <b>Advanced use.</b><br/>
+	 * Updates the tween state. Using this method can be unsafe if tween
+	 * pooling was first enabled. <b>The recommanded behavior is to use a
+	 * TweenManager instead.</b>
+	 * @param currentMillis The current milliseconds. You would generally
+	 * want to use <i>System.currentMillis()</i> and pass the result to
+	 * every unsafeUpdate call to help synchronization.
+	 */
+	public final void unsafeUpdate(long currentMillis) {
+		update(currentMillis);
 	}
 
 	// -------------------------------------------------------------------------
