@@ -188,7 +188,23 @@ public class TweenManager {
 				tweens.remove(i);
 				i -= 1;
 			}
-			tween.update(currentMillis);
+			tween.updateByTime(currentMillis);
+		}
+	}
+
+	/**
+	 * Updates every tween with a delta time. Handles the tween life-cycle
+	 * automatically. If a tween is finished, it will be removed from the
+	 * manager.
+	 */
+	public final void update(int deltaMillis) {
+		for (int i=0; i<tweens.size(); i++) {
+			Tween tween = tweens.get(i);
+			if (tween.isFinished()) {
+				tweens.remove(i);
+				i -= 1;
+			}
+			tween.updateByDelta(deltaMillis);
 		}
 	}
 }

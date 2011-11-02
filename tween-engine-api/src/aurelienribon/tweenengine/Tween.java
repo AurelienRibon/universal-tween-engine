@@ -383,6 +383,7 @@ public class Tween implements Groupable {
 	private int delayMillis;
 	private long endDelayMillis;
 	private long endMillis;
+	private long currentMillis;
 	private boolean isInitialized;
 	private boolean isStarted;
 	private boolean isDelayEnded;
@@ -911,7 +912,18 @@ public class Tween implements Groupable {
 	// Update engine
 	// -------------------------------------------------------------------------
 
-	final void update(long currentMillis) {
+	/**
+	 * <b>Advanced use.</b><br/>
+	 * Updates the tween state. Using this method can be unsafe if tween
+	 * pooling was first enabled. <b>The recommanded behavior is to use a
+	 * TweenManager instead.</b>
+	 * @param currentMillis The current milliseconds. You would generally
+	 * want to use <i>System.currentMillis()</i> and pass the result to
+	 * every updateByTime call to help synchronization.
+	 */
+	public final void updateByTime(long currentMillis) {
+		this.currentMillis = currentMillis;
+
 		// Is the tween valid ?
 		checkForValidity();
 
@@ -941,6 +953,20 @@ public class Tween implements Groupable {
 
 		// New values computation
 		updateTarget(currentMillis);
+	}
+
+	/**
+	 * <b>Advanced use.</b><br/>
+	 * Updates the tween state. Using this method can be unsafe if tween
+	 * pooling was first enabled. <b>The recommanded behavior is to use a
+	 * TweenManager instead.</b> Of course, you can give any delta time you
+	 * want. Therefore, slow or fast motion can be easily achieved.
+	 * @param deltaMillis A delta time, in milliseconds, between now and the
+	 * last call.
+	 */
+	public final void updateByDelta(int deltaMillis) {
+		currentMillis += deltaMillis;
+		updateByTime(currentMillis);
 	}
 
 	private boolean checkForValidity() {
@@ -1060,6 +1086,8 @@ public class Tween implements Groupable {
 	 * every unsafeStart call to help synchronization.
 	 */
 	public final Tween unsafeStart(long currentMillis) {
+		this.currentMillis = currentMillis;
+
 		startMillis = currentMillis;
 		endDelayMillis = startMillis + delayMillis;
 
@@ -1078,19 +1106,6 @@ public class Tween implements Groupable {
 		callStartCallbacks();
 
 		return this;
-	}
-
-	/**
-	 * <b>Advanced use.</b><br/>
-	 * Updates the tween state. Using this method can be unsafe if tween
-	 * pooling was first enabled. <b>The recommanded behavior is to use a
-	 * TweenManager instead.</b>
-	 * @param currentMillis The current milliseconds. You would generally
-	 * want to use <i>System.currentMillis()</i> and pass the result to
-	 * every unsafeUpdate call to help synchronization.
-	 */
-	public final void unsafeUpdate(long currentMillis) {
-		update(currentMillis);
 	}
 
 	// -------------------------------------------------------------------------
