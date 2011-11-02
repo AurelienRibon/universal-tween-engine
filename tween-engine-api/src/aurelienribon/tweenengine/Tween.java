@@ -82,6 +82,14 @@ public class Tween implements Groupable {
 	}
 
 	/**
+	 * Increases the pool capacity directly. Capacity defaults to 20.
+	 * @param minCapacity The minimum capacity of the pool.
+	 */
+	public static void ensurePoolCapacity(int minCapacity) {
+		pool.ensureCapacity(minCapacity);
+	}
+
+	/**
 	 * Clears every static resources and resets the static instance.
 	 */
 	public static void dispose() {

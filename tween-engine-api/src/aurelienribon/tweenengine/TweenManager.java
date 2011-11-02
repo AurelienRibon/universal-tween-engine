@@ -81,6 +81,14 @@ public class TweenManager {
 	}
 
 	/**
+	 * Increases the capacity of the manager directly. Defaults to 20.
+	 * @param minCapacity The minimum capacity of the manager.
+	 */
+	public void ensureCapacity(int minCapacity) {
+		tweens.ensureCapacity(minCapacity);
+	}
+
+	/**
 	 * Returns true if the manager contains any valid tween associated to the
 	 * given target.
 	 */
