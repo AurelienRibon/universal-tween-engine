@@ -4,8 +4,10 @@ import aurelienribon.tweenengine.Tween;
 import aurelienribon.tweenengine.TweenCallback;
 import aurelienribon.tweenengine.TweenGroup;
 import aurelienribon.tweenengine.TweenManager;
+import aurelienribon.tweenengine.Tweenable;
 import aurelienribon.tweenengine.equations.Back;
 import aurelienribon.tweenengine.equations.Cubic;
+import aurelienribon.tweenengine.equations.Quad;
 import aurelienribon.tweenengine.equations.Quart;
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
@@ -36,7 +38,7 @@ public class App implements ApplicationListener {
 	private TweenSprite tweenSprite3;
 	private TweenSprite tweenSprite4;
 
-	private boolean isStarted = false;
+	private boolean canBeRestarted = false;
 
 	@Override
 	public void create() {
@@ -93,16 +95,13 @@ public class App implements ApplicationListener {
 		tweenSprite4 = new TweenSprite(sprite4);
 
 		// Demo of the Tween.call possibility. It's just a timer :)
-		text = "Idle (auto-start in 1 second)";
-		Tween.call(timerCallback).delay(0).addToManager(tweenManager);
+		text = "Idle (auto-start in 2 second)";
+		Tween.call(new TweenCallback() {
+			@Override public void tweenEventOccured(Types eventType, Tween tween) {
+				start();
+			}
+		}).delay(2000).addToManager(tweenManager);
 	}
-
-	private final TweenCallback timerCallback = new TweenCallback() {
-		@Override public void tweenEventOccured(Types eventType, Tween tween) {
-			start();
-			isStarted = true;
-		}
-	};
 
 	@Override
 	public void render() {
@@ -115,19 +114,19 @@ public class App implements ApplicationListener {
 
 		sb.setProjectionMatrix(camera.combined);
 		sb.begin();
-		if (isStarted) {
-			sprite1.draw(sb);
-			sprite2.draw(sb);
-			sprite3.draw(sb);
-			sprite4.draw(sb);
-		}
+		sprite1.draw(sb);
+		sprite2.draw(sb);
+		sprite3.draw(sb);
+		sprite4.draw(sb);
 		sb.end();
 
 		sb.getProjectionMatrix().setToOrtho2D(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		sb.begin();
-		font.draw(sb, text, 5, 65);
-		font.draw(sb, "Running tweens: " + tweenManager.getTweenCount(), 5, 45);
-		font.draw(sb, "Tweens in pool: " + Tween.getPoolSize(), 5, 25);
+		font.setColor(Color.BLACK);
+		font.draw(sb, text, 5, 45);
+		font.setColor(0.5f, 0.5f, 0.5f, 1);
+		font.draw(sb, "Running tweens: " + tweenManager.getTweenCount(), 5, 25);
+		font.draw(sb, "Tweens in pool: " + Tween.getPoolSize(), 150, 25);
 		sb.end();
 	}
 
@@ -140,76 +139,59 @@ public class App implements ApplicationListener {
 	// ANIMATION
 	// -------------------------------------------------------------------------
 
-	private void start() {
-		TweenGroup.parallel(
-			TweenGroup.sequence(
-				TweenGroup.parallel(
-					Tween.set(tweenSprite1, TweenSprite.POSITION_XY).target(0, 0),
-					Tween.set(tweenSprite1, TweenSprite.SCALE_XY).target(10, 10),
-					Tween.set(tweenSprite1, TweenSprite.ROTATION).target(0),
-					Tween.set(tweenSprite1, TweenSprite.OPACITY).target(0)
-				),
-				TweenGroup.parallel(
-					Tween.to(tweenSprite1, TweenSprite.OPACITY, 1000, Quart.INOUT).target(1),
-					Tween.to(tweenSprite1, TweenSprite.SCALE_XY, 1000, Quart.INOUT).target(1, 1)
-				),
-				Tween.to(tweenSprite1, TweenSprite.POSITION_XY, 1000, Back.OUT).targetCurrent().delay(-500),
-				Tween.to(tweenSprite1, TweenSprite.ROTATION, 800, Cubic.INOUT).target(360)
+	private TweenGroup buildAnimation(Tweenable target, int delay) {
+		return TweenGroup.sequence(
+			TweenGroup.parallel(
+				Tween.set(target, TweenSprite.POSITION_XY).target(0, 0),
+				Tween.set(target, TweenSprite.SCALE_XY).target(10, 10),
+				Tween.set(target, TweenSprite.ROTATION).target(0),
+				Tween.set(target, TweenSprite.OPACITY).target(0)
 			),
-			TweenGroup.sequence(
-				TweenGroup.parallel(
-					Tween.set(tweenSprite2, TweenSprite.POSITION_XY).target(0, 0),
-					Tween.set(tweenSprite2, TweenSprite.SCALE_XY).target(10, 10),
-					Tween.set(tweenSprite2, TweenSprite.ROTATION).target(0),
-					Tween.set(tweenSprite2, TweenSprite.OPACITY).target(0)
-				),
-				TweenGroup.tempo(200),
-				TweenGroup.parallel(
-					Tween.to(tweenSprite2, TweenSprite.OPACITY, 1000, Quart.INOUT).target(1),
-					Tween.to(tweenSprite2, TweenSprite.SCALE_XY, 1000, Quart.INOUT).target(1, 1)
-				),
-				Tween.to(tweenSprite2, TweenSprite.POSITION_XY, 1000, Back.OUT).targetCurrent().delay(-500),
-				Tween.to(tweenSprite2, TweenSprite.ROTATION, 800, Cubic.INOUT).target(360)
+			TweenGroup.tempo(delay),
+			TweenGroup.parallel(
+				Tween.to(target, TweenSprite.OPACITY, 1000, Quart.INOUT).target(1),
+				Tween.to(target, TweenSprite.SCALE_XY, 1000, Quart.INOUT).target(1, 1)
 			),
-			TweenGroup.sequence(
-				TweenGroup.parallel(
-					Tween.set(tweenSprite3, TweenSprite.POSITION_XY).target(0, 0),
-					Tween.set(tweenSprite3, TweenSprite.SCALE_XY).target(10, 10),
-					Tween.set(tweenSprite3, TweenSprite.ROTATION).target(0),
-					Tween.set(tweenSprite3, TweenSprite.OPACITY).target(0)
-				),
-				TweenGroup.tempo(400),
-				TweenGroup.parallel(
-					Tween.to(tweenSprite3, TweenSprite.OPACITY, 1000, Quart.INOUT).target(1),
-					Tween.to(tweenSprite3, TweenSprite.SCALE_XY, 1000, Quart.INOUT).target(1, 1)
-				),
-				Tween.to(tweenSprite3, TweenSprite.POSITION_XY, 1000, Back.OUT).targetCurrent().delay(-500),
-				Tween.to(tweenSprite3, TweenSprite.ROTATION, 800, Cubic.INOUT).target(360)
-			),
-			TweenGroup.sequence(
-				TweenGroup.parallel(
-					Tween.set(tweenSprite4, TweenSprite.POSITION_XY).target(0, 0),
-					Tween.set(tweenSprite4, TweenSprite.SCALE_XY).target(10, 10),
-					Tween.set(tweenSprite4, TweenSprite.ROTATION).target(0),
-					Tween.set(tweenSprite4, TweenSprite.OPACITY).target(0)
-				),
-				TweenGroup.tempo(600),
-				TweenGroup.parallel(
-					Tween.to(tweenSprite4, TweenSprite.OPACITY, 1000, Quart.INOUT).target(1),
-					Tween.to(tweenSprite4, TweenSprite.SCALE_XY, 1000, Quart.INOUT).target(1, 1)
-				),
-				Tween.to(tweenSprite4, TweenSprite.POSITION_XY, 1000, Back.OUT).targetCurrent().delay(-500),
-				Tween.to(tweenSprite4, TweenSprite.ROTATION, 800, Cubic.INOUT).target(360),
-
-				Tween.call(new TweenCallback() {
-					@Override public void tweenEventOccured(Types eventType, Tween tween) {
-						System.out.println("finished!");
-					}
-				})
+			TweenGroup.tempo(-500),
+			Tween.to(target, TweenSprite.POSITION_XY, 1000, Back.OUT).targetCurrent(),
+			Tween.to(target, TweenSprite.ROTATION, 800, Cubic.INOUT).target(360),
+			TweenGroup.tempo(200),
+			TweenGroup.parallel(
+				Tween.to(target, TweenSprite.SCALE_XY, 300, Quad.IN).target(3, 3),
+				Tween.to(target, TweenSprite.OPACITY, 300, Quad.IN).target(0)
 			)
-		).repeat(10, 0).addToManager(tweenManager);
+		);
+	}
 
-		tweenManager.update();
+	private void start() {
+		TweenGroup.sequence(
+			// First, we show a message
+			Tween.call(new TweenCallback() {
+				private int cnt = 0;
+				@Override public void tweenEventOccured(Types eventType, Tween tween) {
+					text = "Current iteration: " + (++cnt)+ " / 5";
+				}
+			}),
+
+			// Then, we animate the sprites
+			TweenGroup.parallel(
+				buildAnimation(tweenSprite1, 0),
+				buildAnimation(tweenSprite2, 200),
+				buildAnimation(tweenSprite3, 400),
+				buildAnimation(tweenSprite4, 600)
+			),
+
+			// Finally, we invite the user to restart
+			Tween.call(new TweenCallback() {
+				private int cnt = 0;
+				@Override public void tweenEventOccured(Types eventType, Tween tween) {
+					if (++cnt == 5) {
+						text = "Done! Click to restart";
+						canBeRestarted = true;
+					}
+				}
+			})
+		).repeat(4, 0).addToManager(tweenManager);
 	}
 
 	// -------------------------------------------------------------------------
@@ -219,9 +201,10 @@ public class App implements ApplicationListener {
 	private InputProcessor inputProcessor = new InputAdapter() {
 		@Override
 		public boolean touchDown(int x, int y, int pointer, int button) {
-			if (isStarted) {
-				// If the user touches the screen, we kill every running tween and
-				// restart the animation.
+			if (canBeRestarted) {
+				canBeRestarted = false;
+				// If the user touches the screen, we kill every running tween
+				// and restart the animation.
 				tweenManager.kill(tweenSprite1);
 				tweenManager.kill(tweenSprite2);
 				tweenManager.kill(tweenSprite3);

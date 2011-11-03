@@ -41,7 +41,7 @@ public class TweenManager {
 	 */
 	public final TweenManager add(Tween tween) {
 		tweens.add(tween);
-		tween.unsafeStart(System.currentTimeMillis());
+		tween.start(System.currentTimeMillis());
 		return this;
 	}
 
@@ -60,7 +60,7 @@ public class TweenManager {
 			if (obj instanceof Tween) {
 				Tween tween = ((Tween)obj);
 				tweens.add(tween);
-				tween.unsafeStart(currentMillis);
+				tween.start(currentMillis);
 			} else if (obj instanceof TweenGroup) {
 				add((TweenGroup)obj);
 			}

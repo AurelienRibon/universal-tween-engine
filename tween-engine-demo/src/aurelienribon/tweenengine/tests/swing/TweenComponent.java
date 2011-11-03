@@ -1,17 +1,25 @@
 package aurelienribon.tweenengine.tests.swing;
 
-import javax.swing.JLabel;
 import aurelienribon.tweenengine.Tweenable;
+import java.awt.Component;
 
-public class TweenJLabel extends JLabel implements Tweenable {
+public class TweenComponent implements Tweenable {
 	public static final int POSITION = 0;
+
+	// -------------------------------------------------------------------------
+
+	private final Component model;
+
+	public TweenComponent(Component model) {
+		this.model = model;
+	}
 
 	@Override
 	public int getTweenValues(int tweenType, float[] returnValues) {
 		switch (tweenType) {
 			case POSITION:
-				returnValues[0] = getX();
-				returnValues[1] = getY();
+				returnValues[0] = model.getX();
+				returnValues[1] = model.getY();
 				return 2;
 		}
 		return 0;
@@ -21,7 +29,7 @@ public class TweenJLabel extends JLabel implements Tweenable {
 	public void onTweenUpdated(int tweenType, float[] newValues) {
 		switch (tweenType) {
 			case POSITION:
-				setLocation((int) newValues[0], (int) newValues[1]);
+				model.setLocation((int) newValues[0], (int) newValues[1]);
 				break;
 		}
 	}

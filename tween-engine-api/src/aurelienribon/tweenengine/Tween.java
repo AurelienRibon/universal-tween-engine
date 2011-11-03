@@ -2,6 +2,7 @@ package aurelienribon.tweenengine;
 
 import aurelienribon.tweenengine.utils.Pool;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Core class of the Tween Engine. It contains many static factory methods to
@@ -100,18 +101,15 @@ public class Tween implements Groupable {
 	// -------------------------------------------------------------------------
 
 	private static final Pool.Callback<Tween> poolCallback = new Pool.Callback<Tween>() {
-		@Override public void onPool(Tween obj) {
-			obj.reset();
-		}
-
-		@Override public void onUnpool(Tween obj) {
-			obj.isPooled = Tween.isPoolEnabled();
-		}
+		@Override public void onPool(Tween obj) {obj.reset();}
+		@Override public void onUnpool(Tween obj) {obj.isPooled = Tween.isPoolEnabled();}
 	};
 
 	private static final Pool<Tween> pool = new Pool<Tween>(20, poolCallback) {
 		@Override protected Tween create() {
-			return new Tween(null, -1, 0, null);
+			Tween tween = new Tween(null, -1, 0, null);
+			tween.reset();
+			return tween;
 		}
 	};
 
@@ -151,7 +149,7 @@ public class Tween implements Groupable {
 	 */
 	public static Tween to(Tweenable target, int tweenType, int durationMillis, TweenEquation equation) {
 		Tween tween = pool.get();
-		tween.__build(target, tweenType, durationMillis, equation);
+		tween.build(target, tweenType, durationMillis, equation);
 		return tween;
 	}
 
@@ -186,7 +184,7 @@ public class Tween implements Groupable {
 	 */
 	public static Tween to(SimpleTweenable target, int durationMillis, TweenEquation equation) {
 		Tween tween = pool.get();
-		tween.__build(target, 0, durationMillis, equation);
+		tween.build(target, 0, durationMillis, equation);
 		return tween;
 	}
 
@@ -222,7 +220,7 @@ public class Tween implements Groupable {
 	 */
 	public static Tween from(Tweenable target, int tweenType, int durationMillis, TweenEquation equation) {
 		Tween tween = pool.get();
-		tween.__build(target, tweenType, durationMillis, equation);
+		tween.build(target, tweenType, durationMillis, equation);
 		tween.reverse();
 		return tween;
 	}
@@ -258,7 +256,7 @@ public class Tween implements Groupable {
 	 */
 	public static Tween from(SimpleTweenable target, int durationMillis, TweenEquation equation) {
 		Tween tween = pool.get();
-		tween.__build(target, 0, durationMillis, equation);
+		tween.build(target, 0, durationMillis, equation);
 		tween.reverse();
 		return tween;
 	}
@@ -293,7 +291,7 @@ public class Tween implements Groupable {
 	 */
 	public static Tween set(Tweenable target, int tweenType) {
 		Tween tween = pool.get();
-		tween.__build(target, tweenType, 0, null);
+		tween.build(target, tweenType, 0, null);
 		return tween;
 	}
 
@@ -326,7 +324,7 @@ public class Tween implements Groupable {
 	 */
 	public static Tween set(SimpleTweenable target) {
 		Tween tween = pool.get();
-		tween.__build(target, 0, 0, null);
+		tween.build(target, 0, 0, null);
 		return tween;
 	}
 
@@ -360,7 +358,7 @@ public class Tween implements Groupable {
 	 */
 	public static Tween call(TweenCallback callback) {
 		Tween tween = pool.get();
-		tween.__build(null, -1, 0, null);
+		tween.build(null, -1, 0, null);
 		tween.addIterationCompleteCallback(callback);
 		return tween;
 	}
@@ -378,20 +376,22 @@ public class Tween implements Groupable {
 	private boolean isReversed;
 	private boolean isPooled;
 	private boolean isRelative;
+	private float speedFactor;
 
 	// Values
 	private int combinedTweenCount;
-	private final float[] startValues;
-	private final float[] targetValues;
-	private final float[] targetMinusStartValues;
+	private final float[] startValues = new float[MAX_COMBINED_TWEENS];
+	private final float[] targetValues = new float[MAX_COMBINED_TWEENS];
+	private final float[] targetMinusStartValues = new float[MAX_COMBINED_TWEENS];
 
 	// Timings
 	private long startMillis;
+	private long lastMillis;
 	private int durationMillis;
 	private int delayMillis;
-	private long endDelayMillis;
-	private long endMillis;
-	private long currentMillis;
+	private int endDelayMillis;
+	private int endMillis;
+	private int currentMillis;
 	private boolean isInitialized;
 	private boolean isStarted;
 	private boolean isDelayEnded;
@@ -399,18 +399,17 @@ public class Tween implements Groupable {
 	private boolean isFinished;
 
 	// Callbacks
-	private final ArrayList<TweenCallback> startCallbacks;
-	private final ArrayList<TweenCallback> endOfDelayCallbacks;
-	private final ArrayList<TweenCallback> iterationCompleteCallbacks;
-	private final ArrayList<TweenCallback> completeCallbacks;
-	private final ArrayList<TweenCallback> killCallbacks;
-	private final ArrayList<TweenCallback> poolCallbacks;
+	private final List<TweenCallback> startCallbacks = new ArrayList<TweenCallback>(3);;
+	private final List<TweenCallback> endOfDelayCallbacks = new ArrayList<TweenCallback>(3);;
+	private final List<TweenCallback> iterationCompleteCallbacks = new ArrayList<TweenCallback>(3);;
+	private final List<TweenCallback> completeCallbacks = new ArrayList<TweenCallback>(3);;
+	private final List<TweenCallback> killCallbacks = new ArrayList<TweenCallback>(3);;
+	private final List<TweenCallback> poolCallbacks = new ArrayList<TweenCallback>(3);;
 
 	// Repeat
 	private int repeatCnt;
 	private int iteration;
 	private int repeatDelayMillis;
-	private long endRepeatDelayMillis;
 
 	// UserData
 	private Object userData;
@@ -430,19 +429,90 @@ public class Tween implements Groupable {
 	 * @param equation The easing equation used during the interpolation.
 	 */
 	public Tween(Tweenable target, int tweenType, int durationMillis, TweenEquation equation) {
-		startValues = new float[MAX_COMBINED_TWEENS];
-		targetValues = new float[MAX_COMBINED_TWEENS];
-		targetMinusStartValues = new float[MAX_COMBINED_TWEENS];
-
-		startCallbacks = new ArrayList<TweenCallback>(3);
-		endOfDelayCallbacks = new ArrayList<TweenCallback>(3);
-		iterationCompleteCallbacks = new ArrayList<TweenCallback>(3);
-		completeCallbacks = new ArrayList<TweenCallback>(3);
-		killCallbacks = new ArrayList<TweenCallback>(3);
-		poolCallbacks = new ArrayList<TweenCallback>(3);
-
 		reset();
-		__build(target, tweenType, durationMillis, equation);
+		build(target, tweenType, durationMillis, equation);
+	}
+
+	private void reset() {
+		target = null;
+		tweenType = -1;
+		equation = null;
+
+		isReversed = false;
+		isInitialized = false;
+		isRelative = false;
+		speedFactor = 1;
+
+		combinedTweenCount = 0;
+
+		lastMillis = -1;
+		delayMillis = 0;
+		isStarted = false;
+		isDelayEnded = false;
+		isEnded = false;
+		isFinished = true;
+
+		completeCallbacks.clear();
+		iterationCompleteCallbacks.clear();
+		killCallbacks.clear();
+		poolCallbacks.clear();
+		startCallbacks.clear();
+		endOfDelayCallbacks.clear();
+
+		repeatCnt = 0;
+		iteration = 0;
+		repeatDelayMillis = 0;
+
+		userData = null;
+	}
+
+	private void build(Tweenable target, int tweenType, int durationMillis, TweenEquation equation) {
+		reset();
+		isInitialized = true;
+
+		this.target = target;
+		this.tweenType = tweenType;
+		this.durationMillis = durationMillis;
+		this.equation = equation;
+
+		if (target != null) {
+			combinedTweenCount = target.getTweenValues(tweenType, localTmp);
+			if (combinedTweenCount < 1 || combinedTweenCount > MAX_COMBINED_TWEENS)
+				throw new RuntimeException("Min combined tweens = 1, max = " + MAX_COMBINED_TWEENS);
+		}
+	}
+
+	// -------------------------------------------------------------------------
+	// Public API
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Starts or restart the interpolation. Using this method can lead to some
+	 * side-effects if you call it multiple times. <b>The recommanded behavior
+	 * is to add the tween to a Tween Manager instead.</b>
+	 * @param startMillis The starting milliseconds. You would generally
+	 * want to use <i>System.currentMillis()</i> and pass the result to
+	 * every unsafeStart call to help synchronization.
+	 */
+	public Tween start(long startMillis) {
+		this.startMillis = startMillis;
+		currentMillis = 0;
+
+		endDelayMillis = iteration == 0
+			? delayMillis
+			: Math.max(delayMillis + repeatDelayMillis, 0);
+
+		endMillis = endDelayMillis + durationMillis;
+
+		isInitialized = true;
+		isStarted = true;
+		isDelayEnded = false;
+		isEnded = false;
+		isFinished = false;
+
+		callStartCallbacks();
+
+		return this;
 	}
 
 	/**
@@ -693,7 +763,7 @@ public class Tween implements Groupable {
 	 */
 	@Override
 	public Tween delay(int millis) {
-		this.delayMillis += millis;
+		delayMillis += millis;
 		return this;
 	}
 
@@ -874,7 +944,7 @@ public class Tween implements Groupable {
 	}
 
 	/**
-	 * Getsthe total number of repetitions.
+	 * Gets the total number of repetitions.
 	 * @return The total number of repetitions.
 	 */
 	public int getRepeatCount() {
@@ -893,7 +963,7 @@ public class Tween implements Groupable {
 	 * Gets the number of remaining iterations.
 	 * @return The number of remaining iterations.
 	 */
-	public int getRemainingIterationCount() {
+	public int getRemainingIterationsCount() {
 		return repeatCnt - iteration;
 	}
 
@@ -925,42 +995,16 @@ public class Tween implements Groupable {
 	 * Updates the tween state. Using this method can be unsafe if tween
 	 * pooling was first enabled. <b>The recommanded behavior is to use a
 	 * TweenManager instead.</b>
-	 * @param currentMillis The current milliseconds. You would generally
+	 * @param millis The current milliseconds. You would generally
 	 * want to use <i>System.currentMillis()</i> and pass the result to
 	 * every updateByTime call to help synchronization.
 	 */
-	public final void updateByTime(long currentMillis) {
-		this.currentMillis = currentMillis;
-
-		// Is the tween valid ?
-		checkForValidity();
-
-		// Are we started ?
-		if (!isStarted)
-			return;
-
-		// Shall we repeat ?
-		if (checkForRepetition(currentMillis))
-			return;
-
-		// Is the tween ended ?
-		if (isEnded)
-			return;
-
-		// Wait for the end of the delay then either grab the start or end
-		// values if it is the first iteration, or restart from those values
-		// if the animation is replaying.
-		if (checkForEndOfDelay(currentMillis))
-			return;
-
-		// Test for the end of the tween. If true, set the target values to
-		// their final values (to avoid precision loss when moving fast), and
-		// call the callbacks.
-		if (checkForEndOfTween(currentMillis))
-			return;
-
-		// New values computation
-		updateTarget(currentMillis);
+	public final void updateByTime(long millis) {
+		int deltaMillis = lastMillis == -1 
+			? (int) (millis - startMillis)
+			: (int) (millis - lastMillis);
+		lastMillis = millis;
+		updateByDelta(deltaMillis);
 	}
 
 	/**
@@ -969,12 +1013,33 @@ public class Tween implements Groupable {
 	 * pooling was first enabled. <b>The recommanded behavior is to use a
 	 * TweenManager instead.</b> Of course, you can give any delta time you
 	 * want. Therefore, slow or fast motion can be easily achieved.
-	 * @param deltaMillis A delta time, in milliseconds, between now and the
+	 * @param millis A delta time, in milliseconds, between now and the
 	 * last call.
 	 */
-	public final void updateByDelta(int deltaMillis) {
-		currentMillis += deltaMillis;
-		updateByTime(currentMillis);
+	public final void updateByDelta(int millis) {
+		currentMillis += millis * speedFactor;
+
+		// Is the tween valid ?
+		if (checkForValidity()) return;
+
+		// Are we started ?
+		if (!isStarted) return;
+
+		// Is the tween ended ?
+		if (isEnded) return;
+
+		// Wait for the end of the delay then either grab the start or end
+		// values if it is the first iteration, or restart from those values
+		// if the animation is replaying.
+		if (checkForEndOfDelay()) return;
+
+		// Test for the end of the tween. If true, set the target values to
+		// their final values (to avoid precision loss when moving fast), and
+		// call the callbacks.
+		if (checkForEndOfTween()) return;
+
+		// New values computation
+		updateTarget();
 	}
 
 	private boolean checkForValidity() {
@@ -987,17 +1052,8 @@ public class Tween implements Groupable {
 		}
 		return false;
 	}
-
-	private boolean checkForRepetition(long currentMillis) {
-		if (shouldRepeat() && currentMillis >= endRepeatDelayMillis) {
-			iteration += 1;
-			unsafeStart(System.currentTimeMillis());
-			return true;
-		}
-		return false;
-	}
 	
-	private boolean checkForEndOfDelay(long currentMillis) {
+	private boolean checkForEndOfDelay() {
 		if (!isDelayEnded && currentMillis >= endDelayMillis) {
 			isDelayEnded = true;
 
@@ -1019,7 +1075,7 @@ public class Tween implements Groupable {
 		return false;
 	}
 
-	private boolean checkForEndOfTween(long currentMillis) {
+	private boolean checkForEndOfTween() {
 		if (!isEnded && currentMillis >= endMillis) {
 			isEnded = true;
 
@@ -1034,6 +1090,8 @@ public class Tween implements Groupable {
 
 			if (shouldRepeat()) {
 				callIterationCompleteCallbacks();
+				iteration += 1;
+				start(startMillis + currentMillis);
 			} else {
 				isFinished = true;
 				callIterationCompleteCallbacks();
@@ -1045,7 +1103,7 @@ public class Tween implements Groupable {
 		return false;
 	}
 
-	private void updateTarget(long currentMillis) {
+	private void updateTarget() {
 		if (target != null) {
 			for (int i=0; i<combinedTweenCount; i++) {
 				localTmp[i] = equation.compute(
@@ -1059,97 +1117,8 @@ public class Tween implements Groupable {
 	}
 
 	// -------------------------------------------------------------------------
-	// Expert features
-	// -------------------------------------------------------------------------
-
-	/**
-	 * <b>Advanced use.</b><br/>
-	 * Rebuilds a tween from the current one. May be used if you want to
-	 * build your own pool system. You should call __reset() before.
-	 */
-	public final void __build(Tweenable target, int tweenType, int durationMillis, TweenEquation equation) {
-		reset();
-
-		this.isInitialized = true;
-
-		this.target = target;
-		this.tweenType = tweenType;
-		this.durationMillis = durationMillis;
-		this.equation = equation;
-
-		if (target != null) {
-			this.combinedTweenCount = target.getTweenValues(tweenType, localTmp);
-			if (this.combinedTweenCount < 1 || this.combinedTweenCount > MAX_COMBINED_TWEENS)
-				throw new RuntimeException("Min combined tweens = 1, max = " + MAX_COMBINED_TWEENS);
-		}
-	}
-
-	/**
-	 * <b>Advanced use.</b><br/>
-	 * Starts or restart the interpolation. Using this method can lead to some
-	 * side-effects if you call it multiple times. <b>The recommanded behavior
-	 * is to add the tween to a Tween Manager instead.</b>
-	 * @param currentMillis The current milliseconds. You would generally
-	 * want to use <i>System.currentMillis()</i> and pass the result to
-	 * every unsafeStart call to help synchronization.
-	 */
-	public final Tween unsafeStart(long currentMillis) {
-		this.currentMillis = currentMillis;
-
-		startMillis = currentMillis;
-		endDelayMillis = startMillis + delayMillis;
-
-		if (iteration > 0 && repeatDelayMillis < 0)
-			endDelayMillis = Math.max(endDelayMillis + repeatDelayMillis, startMillis);
-
-		endMillis = endDelayMillis + durationMillis;
-		endRepeatDelayMillis = Math.max(endMillis, endMillis + repeatDelayMillis);
-
-		isInitialized = true;
-		isStarted = true;
-		isDelayEnded = false;
-		isEnded = false;
-		isFinished = false;
-
-		callStartCallbacks();
-
-		return this;
-	}
-
-	// -------------------------------------------------------------------------
 	// Helpers
 	// -------------------------------------------------------------------------
-
-	private void reset() {
-		this.target = null;
-		this.tweenType = -1;
-		this.equation = null;
-
-		this.isReversed = false;
-		this.isInitialized = false;
-		this.isRelative = false;
-
-		this.combinedTweenCount = 0;
-
-		this.delayMillis = 0;
-		this.isStarted = false;
-		this.isDelayEnded = false;
-		this.isEnded = false;
-		this.isFinished = true;
-
-		this.completeCallbacks.clear();
-		this.iterationCompleteCallbacks.clear();
-		this.killCallbacks.clear();
-		this.poolCallbacks.clear();
-		this.startCallbacks.clear();
-		this.endOfDelayCallbacks.clear();
-
-		this.repeatCnt = 0;
-		this.iteration = 0;
-		this.repeatDelayMillis = 0;
-
-		this.userData = null;
-	}
 
 	private boolean shouldRepeat() {
 		return (repeatCnt < 0) || (iteration < repeatCnt);
