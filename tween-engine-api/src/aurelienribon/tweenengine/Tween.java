@@ -916,6 +916,10 @@ public class Tween implements Groupable {
 		return userData;
 	}
 
+	public void setSpeed(float speedFactor) {
+		this.speedFactor = speedFactor;
+	}
+
 	// -------------------------------------------------------------------------
 	// Update engine
 	// -------------------------------------------------------------------------
@@ -941,10 +945,10 @@ public class Tween implements Groupable {
 		// if the animation is replaying.
 		if (checkEndOfDelay()) return;
 
-		// Test for the end of the tween. If true, set the target values to
+		// Test for the end of the iteration. If true, set the target values to
 		// their final values (to avoid precision loss when moving fast), and
 		// call the callbacks.
-		if (checkEndOfTween()) return;
+		if (checkIteration()) return;
 
 		updateTarget();
 	}
@@ -970,11 +974,11 @@ public class Tween implements Groupable {
 				}
 			}
 		}
-		return currentMillis <= endDelayMillis;
+		return 0 <= currentMillis && currentMillis <= endDelayMillis;
 	}
 
-	private boolean checkEndOfTween() {
-		if (currentMillis >= endMillis) {
+	private boolean checkIteration() {
+		if (currentMillis > endMillis) {
 			if (target != null) {
 				for (int i=0; i<combinedTweenCount; i++) {
 					localTmp[i] = isReversed
@@ -996,6 +1000,16 @@ public class Tween implements Groupable {
 
 			return true;
 		}
+
+		if (currentMillis < 0) {
+			if (iteration > 0) {
+				iteration -= 1;
+				start();
+				currentMillis = endMillis;
+			}
+			return true;
+		}
+
 		return false;
 	}
 

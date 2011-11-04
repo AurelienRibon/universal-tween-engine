@@ -141,20 +141,21 @@ public class App implements ApplicationListener {
 
 	private TweenGroup buildAnimation(Tweenable target, int delay) {
 		return TweenGroup.sequence(
-			TweenGroup.parallel(
-				Tween.set(target, TweenSprite.POSITION_XY).target(0, 0),
-				Tween.set(target, TweenSprite.SCALE_XY).target(10, 10),
-				Tween.set(target, TweenSprite.ROTATION).target(0),
-				Tween.set(target, TweenSprite.OPACITY).target(0)
-			),
+			Tween.set(target, TweenSprite.POSITION_XY).target(0, 0),
+			Tween.set(target, TweenSprite.SCALE_XY).target(10, 10),
+			Tween.set(target, TweenSprite.ROTATION).target(0),
+			Tween.set(target, TweenSprite.OPACITY).target(0),
+			
 			TweenGroup.tempo(delay),
 			TweenGroup.parallel(
 				Tween.to(target, TweenSprite.OPACITY, 1000, Quart.INOUT).target(1),
 				Tween.to(target, TweenSprite.SCALE_XY, 1000, Quart.INOUT).target(1, 1)
 			),
+
 			TweenGroup.tempo(-500),
 			Tween.to(target, TweenSprite.POSITION_XY, 1000, Back.OUT).targetCurrent(),
 			Tween.to(target, TweenSprite.ROTATION, 800, Cubic.INOUT).target(360),
+
 			TweenGroup.tempo(200),
 			TweenGroup.parallel(
 				Tween.to(target, TweenSprite.SCALE_XY, 300, Quad.IN).target(3, 3),
@@ -211,6 +212,13 @@ public class App implements ApplicationListener {
 				tweenManager.kill(tweenSprite4);
 				start();
 			}
+			return true;
+		}
+
+		@Override
+		public boolean touchMoved(int x, int y) {
+			float w = Gdx.graphics.getWidth();
+			tweenManager.setSpeed((x - w/2) / (w/4));
 			return true;
 		}
 	};

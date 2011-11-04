@@ -80,7 +80,7 @@ public class TweenManager {
 	 * given target.
 	 */
 	public final boolean contains(Tweenable target) {
-		for (int i=0; i<tweens.size(); i++) {
+		for (int i=0, n=tweens.size(); i<n; i++) {
 			Tween tween = tweens.get(i);
 			if (tween.getTarget() == target && !tween.isFinished())
 				return true;
@@ -93,7 +93,7 @@ public class TweenManager {
 	 * given target and tween type.
 	 */
 	public final boolean contains(Tweenable target, int tweenType) {
-		for (int i=0; i<tweens.size(); i++) {
+		for (int i=0, n=tweens.size(); i<n; i++) {
 			Tween tween = tweens.get(i);
 			if (tween.getTarget() == target && tween.getTweenType() == tweenType && !tween.isFinished())
 				return true;
@@ -105,7 +105,7 @@ public class TweenManager {
 	 * Kills every valid tween associated to the given target.
 	 */
 	public final void kill(Tweenable target) {
-		for (int i=0; i<tweens.size(); i++) {
+		for (int i=0, n=tweens.size(); i<n; i++) {
 			Tween tween = tweens.get(i);
 			if (tween.getTarget() == target && !tween.isFinished())
 				tween.kill();
@@ -116,7 +116,7 @@ public class TweenManager {
 	 * Kills every valid tween associated to the given target and tween type.
 	 */
 	public final void kill(Tweenable target, int tweenType) {
-		for (int i=0; i<tweens.size(); i++) {
+		for (int i=0, n=tweens.size(); i<n; i++) {
 			Tween tween = tweens.get(i);
 			if (tween.getTarget() == target && tween.getTweenType() == tweenType && !tween.isFinished())
 				tween.kill();
@@ -146,7 +146,7 @@ public class TweenManager {
 	 */
 	public Tween[] getTweens(Tweenable target) {
 		ArrayList<Tween> selectedTweens = new ArrayList<Tween>();
-		for (int i=0; i<tweens.size(); i++) {
+		for (int i=0, n=tweens.size(); i<n; i++) {
 			Tween tween = tweens.get(i);
 			if (tween.getTarget() == target && !tween.isFinished())
 				selectedTweens.add(tween);
@@ -161,7 +161,7 @@ public class TweenManager {
 	 */
 	public Tween[] getTweens(Tweenable target, int tweenType) {
 		ArrayList<Tween> selectedTweens = new ArrayList<Tween>();
-		for (int i=0; i<tweens.size(); i++) {
+		for (int i=0, n=tweens.size(); i<n; i++) {
 			Tween tween = tweens.get(i);
 			if (tween.getTarget() == target && tween.getTweenType() == tweenType && !tween.isFinished())
 				selectedTweens.add(tween);
@@ -189,13 +189,19 @@ public class TweenManager {
 	 * manager.
 	 */
 	public final void update(int deltaMillis) {
-		for (int i=0; i<tweens.size(); i++) {
+		for (int i=0, n=tweens.size(); i<n; i++) {
 			Tween tween = tweens.get(i);
 			if (tween.isFinished()) {
 				tweens.remove(i);
 				i -= 1;
+				n -= 1;
 			}
 			tween.update(deltaMillis);
 		}
+	}
+
+	public void setSpeed(float speedFactor) {
+		for (int i=0, n=tweens.size(); i<n; i++)
+			tweens.get(i).setSpeed(speedFactor);
 	}
 }
