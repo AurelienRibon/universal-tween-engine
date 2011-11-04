@@ -389,17 +389,14 @@ public class Tween implements Groupable {
 	private int endDelayMillis;
 	private int endMillis;
 	private int currentMillis;
-	private boolean isStarted;
-	private boolean isDelayEnded;
-	private boolean isFinished;
+	private int lastCurrentMillis;
+	private boolean isStarted; // true when the tween is started
+	private boolean isInitialized; // true when starting values have been retrieved (after first delay)
+	private boolean isFinished; // true when all repetitions are done or the tween has been killed
 
 	// Callbacks
-	private final List<TweenCallback> startCallbacks = new ArrayList<TweenCallback>(3);;
-	private final List<TweenCallback> endOfDelayCallbacks = new ArrayList<TweenCallback>(3);;
-	private final List<TweenCallback> iterationCompleteCallbacks = new ArrayList<TweenCallback>(3);;
-	private final List<TweenCallback> completeCallbacks = new ArrayList<TweenCallback>(3);;
-	private final List<TweenCallback> killCallbacks = new ArrayList<TweenCallback>(3);;
-	private final List<TweenCallback> poolCallbacks = new ArrayList<TweenCallback>(3);;
+	private final List<TweenCallback> iterationCompleteCallbacks = new ArrayList<TweenCallback>(3);
+	private final List<TweenCallback> completeCallbacks = new ArrayList<TweenCallback>(3);
 
 	// Repeat
 	private int repeatCnt;
@@ -441,15 +438,11 @@ public class Tween implements Groupable {
 
 		delayMillis = 0;
 		isStarted = false;
-		isDelayEnded = false;
+		isInitialized = false;
 		isFinished = true;
 
 		completeCallbacks.clear();
 		iterationCompleteCallbacks.clear();
-		killCallbacks.clear();
-		poolCallbacks.clear();
-		startCallbacks.clear();
-		endOfDelayCallbacks.clear();
 
 		repeatCnt = 0;
 		iteration = 0;
@@ -492,10 +485,7 @@ public class Tween implements Groupable {
 		endMillis = endDelayMillis + durationMillis;
 
 		isStarted = true;
-		isDelayEnded = false;
 		isFinished = false;
-
-		callStartCallbacks();
 
 		return this;
 	}
@@ -738,7 +728,6 @@ public class Tween implements Groupable {
 	 */
 	public void kill() {
 		isFinished = true;
-		callKillCallbacks();
 	}
 
 	/**
@@ -749,28 +738,6 @@ public class Tween implements Groupable {
 	@Override
 	public Tween delay(int millis) {
 		delayMillis += millis;
-		return this;
-	}
-
-	/**
-	 * Adds a callback to the tween.
-	 * The callback is triggered when start() is called on the tween.
-	 * @param callback A tween callback.
-	 * @return The current tween for chaining instructions.
-	 */
-	public Tween addStartCallback(TweenCallback callback) {
-		startCallbacks.add(callback);
-		return this;
-	}
-
-	/**
-	 * Adds a callback to the tween.
-	 * The callback is triggered at the end of the delay.
-	 * @param callback A tween callback.
-	 * @return The current tween for chaining instructions.
-	 */
-	public Tween addEndOfDelayCallback(TweenCallback callback) {
-		endOfDelayCallbacks.add(callback);
 		return this;
 	}
 
@@ -795,28 +762,6 @@ public class Tween implements Groupable {
 	 */
 	public Tween addCompleteCallback(TweenCallback callback) {
 		completeCallbacks.add(callback);
-		return this;
-	}
-
-	/**
-	 * Adds a callback to the tween.
-	 * The callback is triggered if the tween is manually killed.
-	 * @param callback A tween callback.
-	 * @return The current tween for chaining instructions.
-	 */
-	public Tween addKillCallback(TweenCallback callback) {
-		killCallbacks.add(callback);
-		return this;
-	}
-
-	/**
-	 * Adds a callback to the tween.
-	 * The callback is triggered right before a tween is sent back to the pool.
-	 * @param callback A tween callback.
-	 * @return The current tween for chaining instructions.
-	 */
-	public Tween addPoolCallback(TweenCallback callback) {
-		poolCallbacks.add(callback);
 		return this;
 	}
 
@@ -985,57 +930,50 @@ public class Tween implements Groupable {
 	 * last call.
 	 */
 	public final void update(int deltaMillis) {
+		lastCurrentMillis = currentMillis;
 		currentMillis += deltaMillis * speedFactor;
 
 		// Is the tween valid ?
-		if (checkForValidity()) return;
+		if (checkValidity()) return;
 
 		// Wait for the end of the delay then either grab the start or end
 		// values if it is the first iteration, or restart from those values
 		// if the animation is replaying.
-		if (checkForEndOfDelay()) return;
+		if (checkEndOfDelay()) return;
 
 		// Test for the end of the tween. If true, set the target values to
 		// their final values (to avoid precision loss when moving fast), and
 		// call the callbacks.
-		if (checkForEndOfTween()) return;
+		if (checkEndOfTween()) return;
 
-		// New values computation
 		updateTarget();
 	}
 
-	private boolean checkForValidity() {
-		if (isFinished && isPooled) {
-			callPoolCallbacks();
-			pool.free(this);
-		}
+	private boolean checkValidity() {
+		if (isFinished && isPooled) pool.free(this);
 		return isFinished || !isStarted;
 	}
 	
-	private boolean checkForEndOfDelay() {
-		if (!isDelayEnded && currentMillis >= endDelayMillis) {
-			isDelayEnded = true;
-
-			if (iteration > 0 && target != null) {
-				target.onTweenUpdated(tweenType, startValues);
-
-			} else if (target != null) {
-				target.getTweenValues(tweenType, startValues);
-				for (int i=0; i<combinedTweenCount; i++) {
-					targetValues[i] += isRelative ? startValues[i] : 0;
-					targetMinusStartValues[i] = targetValues[i] - startValues[i];
+	private boolean checkEndOfDelay() {
+		if (target != null) {
+			if ((lastCurrentMillis <= endDelayMillis && currentMillis > endDelayMillis)
+			|| (lastCurrentMillis >= endDelayMillis && currentMillis < endDelayMillis)) {
+				if (!isInitialized) {
+					isInitialized = true;
+					target.getTweenValues(tweenType, startValues);
+					for (int i=0; i<combinedTweenCount; i++) {
+						targetValues[i] += isRelative ? startValues[i] : 0;
+						targetMinusStartValues[i] = targetValues[i] - startValues[i];
+					}
+				} else {
+					target.onTweenUpdated(tweenType, startValues);
 				}
 			}
-
-			callDelayEndedCallbacks();
-
-		} else if (!isDelayEnded) {
-			return true;
 		}
-		return false;
+		return currentMillis <= endDelayMillis;
 	}
 
-	private boolean checkForEndOfTween() {
+	private boolean checkEndOfTween() {
 		if (currentMillis >= endMillis) {
 			if (target != null) {
 				for (int i=0; i<combinedTweenCount; i++) {
@@ -1082,16 +1020,6 @@ public class Tween implements Groupable {
 		return (repeatCnt < 0) || (iteration < repeatCnt);
 	}
 
-	private void callStartCallbacks() {
-		for (int i=startCallbacks.size()-1; i>=0; i--)
-			startCallbacks.get(i).tweenEventOccured(TweenCallback.Types.START, this);
-	}
-
-	private void callDelayEndedCallbacks() {
-		for (int i=endOfDelayCallbacks.size()-1; i>=0; i--)
-			endOfDelayCallbacks.get(i).tweenEventOccured(TweenCallback.Types.END_OF_DELAY, this);
-	}
-
 	private void callIterationCompleteCallbacks() {
 		for (int i=iterationCompleteCallbacks.size()-1; i>=0; i--)
 			iterationCompleteCallbacks.get(i).tweenEventOccured(TweenCallback.Types.ITERATION_COMPLETE, this);
@@ -1100,15 +1028,5 @@ public class Tween implements Groupable {
 	private void callCompleteCallbacks() {
 		for (int i=completeCallbacks.size()-1; i>=0; i--)
 			completeCallbacks.get(i).tweenEventOccured(TweenCallback.Types.COMPLETE, this);
-	}
-
-	private void callKillCallbacks() {
-		for (int i=killCallbacks.size()-1; i>=0; i--)
-			killCallbacks.get(i).tweenEventOccured(TweenCallback.Types.KILL, this);
-	}
-
-	private void callPoolCallbacks() {
-		for (int i=poolCallbacks.size()-1; i>=0; i--)
-			poolCallbacks.get(i).tweenEventOccured(TweenCallback.Types.POOL, this);
 	}
 }
