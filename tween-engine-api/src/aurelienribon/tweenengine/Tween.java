@@ -1,6 +1,5 @@
 package aurelienribon.tweenengine;
 
-import aurelienribon.tweenengine.utils.Pool;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -385,14 +384,11 @@ public class Tween implements Groupable {
 	private final float[] targetMinusStartValues = new float[MAX_COMBINED_TWEENS];
 
 	// Timings
-	private long startMillis;
-	private long lastMillis;
 	private int durationMillis;
 	private int delayMillis;
 	private int endDelayMillis;
 	private int endMillis;
 	private int currentMillis;
-	private boolean isInitialized;
 	private boolean isStarted;
 	private boolean isDelayEnded;
 	private boolean isEnded;
@@ -439,13 +435,11 @@ public class Tween implements Groupable {
 		equation = null;
 
 		isReversed = false;
-		isInitialized = false;
 		isRelative = false;
 		speedFactor = 1;
 
 		combinedTweenCount = 0;
 
-		lastMillis = -1;
 		delayMillis = 0;
 		isStarted = false;
 		isDelayEnded = false;
@@ -468,7 +462,6 @@ public class Tween implements Groupable {
 
 	private void build(Tweenable target, int tweenType, int durationMillis, TweenEquation equation) {
 		reset();
-		isInitialized = true;
 
 		this.target = target;
 		this.tweenType = tweenType;
@@ -490,12 +483,8 @@ public class Tween implements Groupable {
 	 * Starts or restart the interpolation. Using this method can lead to some
 	 * side-effects if you call it multiple times. <b>The recommanded behavior
 	 * is to add the tween to a Tween Manager instead.</b>
-	 * @param startMillis The starting milliseconds. You would generally
-	 * want to use <i>System.currentMillis()</i> and pass the result to
-	 * every unsafeStart call to help synchronization.
 	 */
-	public Tween start(long startMillis) {
-		this.startMillis = startMillis;
+	public Tween start() {
 		currentMillis = 0;
 
 		endDelayMillis = iteration == 0
@@ -504,7 +493,6 @@ public class Tween implements Groupable {
 
 		endMillis = endDelayMillis + durationMillis;
 
-		isInitialized = true;
 		isStarted = true;
 		isDelayEnded = false;
 		isEnded = false;
@@ -994,39 +982,16 @@ public class Tween implements Groupable {
 	 * <b>Advanced use.</b><br/>
 	 * Updates the tween state. Using this method can be unsafe if tween
 	 * pooling was first enabled. <b>The recommanded behavior is to use a
-	 * TweenManager instead.</b>
-	 * @param millis The current milliseconds. You would generally
-	 * want to use <i>System.currentMillis()</i> and pass the result to
-	 * every updateByTime call to help synchronization.
-	 */
-	public final void updateByTime(long millis) {
-		int deltaMillis = lastMillis == -1 
-			? (int) (millis - startMillis)
-			: (int) (millis - lastMillis);
-		lastMillis = millis;
-		updateByDelta(deltaMillis);
-	}
-
-	/**
-	 * <b>Advanced use.</b><br/>
-	 * Updates the tween state. Using this method can be unsafe if tween
-	 * pooling was first enabled. <b>The recommanded behavior is to use a
 	 * TweenManager instead.</b> Of course, you can give any delta time you
 	 * want. Therefore, slow or fast motion can be easily achieved.
-	 * @param millis A delta time, in milliseconds, between now and the
+	 * @param deltaMillis A delta time, in milliseconds, between now and the
 	 * last call.
 	 */
-	public final void updateByDelta(int millis) {
-		currentMillis += millis * speedFactor;
+	public final void update(int deltaMillis) {
+		currentMillis += deltaMillis * speedFactor;
 
 		// Is the tween valid ?
 		if (checkForValidity()) return;
-
-		// Are we started ?
-		if (!isStarted) return;
-
-		// Is the tween ended ?
-		if (isEnded) return;
 
 		// Wait for the end of the delay then either grab the start or end
 		// values if it is the first iteration, or restart from those values
@@ -1043,14 +1008,11 @@ public class Tween implements Groupable {
 	}
 
 	private boolean checkForValidity() {
-		if (isFinished && isPooled && isInitialized) {
+		if (isFinished && isPooled) {
 			callPoolCallbacks();
 			pool.free(this);
-			return true;
-		} else if (isFinished) {
-			return true;
 		}
-		return false;
+		return isFinished || !isStarted || isEnded;
 	}
 	
 	private boolean checkForEndOfDelay() {
@@ -1091,7 +1053,7 @@ public class Tween implements Groupable {
 			if (shouldRepeat()) {
 				callIterationCompleteCallbacks();
 				iteration += 1;
-				start(startMillis + currentMillis);
+				start();
 			} else {
 				isFinished = true;
 				callIterationCompleteCallbacks();

@@ -16,19 +16,8 @@ import java.util.ArrayList;
  * @author Aurelien Ribon (aurelien.ribon@gmail.com)
  */
 public class TweenManager {
-
-	// -------------------------------------------------------------------------
-	// Implementation
-	// -------------------------------------------------------------------------
-
-	private final ArrayList<Tween> tweens;
-
-	/**
-	 * Instantiates a new manager.
-	 */
-	public TweenManager() {
-		this.tweens = new ArrayList<Tween>(20);
-	}
+	private final ArrayList<Tween> tweens = new ArrayList<Tween>(20);
+	private long lastUpdateMillis = -1;
 
 	// -------------------------------------------------------------------------
 	// API
@@ -41,7 +30,7 @@ public class TweenManager {
 	 */
 	public final TweenManager add(Tween tween) {
 		tweens.add(tween);
-		tween.start(System.currentTimeMillis());
+		tween.start();
 		return this;
 	}
 
@@ -53,14 +42,12 @@ public class TweenManager {
 	 * @return The manager, for instruction chaining.
 	 */
 	public final TweenManager add(TweenGroup group) {
-		long currentMillis = System.currentTimeMillis();
-
 		for (int i=0, n=group.groupables.size(); i<n; i++) {
 			Groupable obj = group.groupables.get(i);
 			if (obj instanceof Tween) {
 				Tween tween = ((Tween)obj);
 				tweens.add(tween);
-				tween.start(currentMillis);
+				tween.start();
 			} else if (obj instanceof TweenGroup) {
 				add((TweenGroup)obj);
 			}
@@ -189,15 +176,11 @@ public class TweenManager {
 	 */
 	public final void update() {
 		long currentMillis = System.currentTimeMillis();
-
-		for (int i=0; i<tweens.size(); i++) {
-			Tween tween = tweens.get(i);
-			if (tween.isFinished()) {
-				tweens.remove(i);
-				i -= 1;
-			}
-			tween.updateByTime(currentMillis);
-		}
+		int deltaMillis = lastUpdateMillis > 0
+			? (int) (currentMillis - lastUpdateMillis)
+			: 0;
+		lastUpdateMillis = currentMillis;
+		update(deltaMillis);
 	}
 
 	/**
@@ -212,7 +195,7 @@ public class TweenManager {
 				tweens.remove(i);
 				i -= 1;
 			}
-			tween.updateByDelta(deltaMillis);
+			tween.update(deltaMillis);
 		}
 	}
 }

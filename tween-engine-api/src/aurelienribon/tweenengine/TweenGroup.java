@@ -1,6 +1,5 @@
 package aurelienribon.tweenengine;
 
-import aurelienribon.tweenengine.utils.Pool;
 import java.util.ArrayList;
 import java.util.List;
 
