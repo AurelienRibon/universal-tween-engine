@@ -391,7 +391,6 @@ public class Tween implements Groupable {
 	private int currentMillis;
 	private boolean isStarted;
 	private boolean isDelayEnded;
-	private boolean isEnded;
 	private boolean isFinished;
 
 	// Callbacks
@@ -443,7 +442,6 @@ public class Tween implements Groupable {
 		delayMillis = 0;
 		isStarted = false;
 		isDelayEnded = false;
-		isEnded = false;
 		isFinished = true;
 
 		completeCallbacks.clear();
@@ -495,7 +493,6 @@ public class Tween implements Groupable {
 
 		isStarted = true;
 		isDelayEnded = false;
-		isEnded = false;
 		isFinished = false;
 
 		callStartCallbacks();
@@ -1012,7 +1009,7 @@ public class Tween implements Groupable {
 			callPoolCallbacks();
 			pool.free(this);
 		}
-		return isFinished || !isStarted || isEnded;
+		return isFinished || !isStarted;
 	}
 	
 	private boolean checkForEndOfDelay() {
@@ -1021,6 +1018,7 @@ public class Tween implements Groupable {
 
 			if (iteration > 0 && target != null) {
 				target.onTweenUpdated(tweenType, startValues);
+
 			} else if (target != null) {
 				target.getTweenValues(tweenType, startValues);
 				for (int i=0; i<combinedTweenCount; i++) {
@@ -1038,9 +1036,7 @@ public class Tween implements Groupable {
 	}
 
 	private boolean checkForEndOfTween() {
-		if (!isEnded && currentMillis >= endMillis) {
-			isEnded = true;
-
+		if (currentMillis >= endMillis) {
 			if (target != null) {
 				for (int i=0; i<combinedTweenCount; i++) {
 					localTmp[i] = isReversed
