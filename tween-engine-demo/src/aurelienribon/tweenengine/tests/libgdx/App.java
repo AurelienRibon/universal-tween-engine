@@ -20,6 +20,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import java.util.Locale;
 
 public class App implements ApplicationListener {
 	private OrthographicCamera camera;
@@ -39,6 +40,9 @@ public class App implements ApplicationListener {
 	private TweenSprite tweenSprite4;
 
 	private boolean canBeRestarted = false;
+	private boolean canControlSpeed = false;
+	private float speed = 1;
+	private int iterationCnt = 0;
 
 	@Override
 	public void create() {
@@ -77,6 +81,10 @@ public class App implements ApplicationListener {
 		sprite2.setPosition((6f/5f)*2 - 3 - 0.5f, -0.5f);
 		sprite3.setPosition((6f/5f)*3 - 3 - 0.5f, -0.5f);
 		sprite4.setPosition((6f/5f)*4 - 3 - 0.5f, -0.5f);
+		sprite1.setColor(1, 1, 1, 0);
+		sprite2.setColor(1, 1, 1, 0);
+		sprite3.setColor(1, 1, 1, 0);
+		sprite4.setColor(1, 1, 1, 0);
 
 		// Creation of a TweenManager
 		Tween.setPoolEnabled(true);
@@ -95,10 +103,11 @@ public class App implements ApplicationListener {
 		tweenSprite4 = new TweenSprite(sprite4);
 
 		// Demo of the Tween.call possibility. It's just a timer :)
-		text = "Idle (auto-start in 2 second)";
+		text = "Idle (auto-start in 2 seconds)";
 		Tween.call(new TweenCallback() {
 			@Override public void tweenEventOccured(Types eventType, Tween tween) {
 				start();
+				canControlSpeed = true;
 			}
 		}).delay(2000).addToManager(tweenManager);
 	}
@@ -122,11 +131,12 @@ public class App implements ApplicationListener {
 
 		sb.getProjectionMatrix().setToOrtho2D(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 		sb.begin();
-		font.setColor(Color.BLACK);
-		font.draw(sb, text, 5, 45);
 		font.setColor(0.5f, 0.5f, 0.5f, 1);
-		font.draw(sb, "Running tweens: " + tweenManager.getTweenCount(), 5, 25);
+		font.draw(sb, "Move your mouse over the screen to change the animation speed", 5, Gdx.graphics.getHeight());
+		font.draw(sb, String.format(Locale.US, "Current speed: %.2f", speed), 5, Gdx.graphics.getHeight() - 20);
+		font.draw(sb, text, 5, 45);
 		font.draw(sb, "Tweens in pool: " + Tween.getPoolSize(), 150, 25);
+		font.draw(sb, "Running tweens: " + tweenManager.getTweenCount(), 5, 25);
 		sb.end();
 	}
 
@@ -139,14 +149,13 @@ public class App implements ApplicationListener {
 	// ANIMATION
 	// -------------------------------------------------------------------------
 
-	private TweenGroup buildAnimation(Tweenable target, int delay) {
+	private TweenGroup buildAnimation(Tweenable target, int delay1, int delay2) {
 		return TweenGroup.sequence(
 			Tween.set(target, TweenSprite.POSITION_XY).target(0, 0),
 			Tween.set(target, TweenSprite.SCALE_XY).target(10, 10),
 			Tween.set(target, TweenSprite.ROTATION).target(0),
-			Tween.set(target, TweenSprite.OPACITY).target(0),
 			
-			TweenGroup.tempo(delay),
+			TweenGroup.tempo(delay1),
 			TweenGroup.parallel(
 				Tween.to(target, TweenSprite.OPACITY, 1000, Quart.INOUT).target(1),
 				Tween.to(target, TweenSprite.SCALE_XY, 1000, Quart.INOUT).target(1, 1)
@@ -156,7 +165,7 @@ public class App implements ApplicationListener {
 			Tween.to(target, TweenSprite.POSITION_XY, 1000, Back.OUT).targetCurrent(),
 			Tween.to(target, TweenSprite.ROTATION, 800, Cubic.INOUT).target(360),
 
-			TweenGroup.tempo(200),
+			TweenGroup.tempo(delay2),
 			TweenGroup.parallel(
 				Tween.to(target, TweenSprite.SCALE_XY, 300, Quad.IN).target(3, 3),
 				Tween.to(target, TweenSprite.OPACITY, 300, Quad.IN).target(0)
@@ -165,34 +174,43 @@ public class App implements ApplicationListener {
 	}
 
 	private void start() {
+		Tween startMark = null;
+		Tween endMark = null;
+
+		// The animation itself
+
 		TweenGroup.sequence(
-			// First, we show a message
-			Tween.call(new TweenCallback() {
-				private int cnt = 0;
-				@Override public void tweenEventOccured(Types eventType, Tween tween) {
-					text = "Current iteration: " + (++cnt)+ " / 5";
-				}
-			}),
-
-			// Then, we animate the sprites
+			startMark = Tween.mark(),
 			TweenGroup.parallel(
-				buildAnimation(tweenSprite1, 0),
-				buildAnimation(tweenSprite2, 200),
-				buildAnimation(tweenSprite3, 400),
-				buildAnimation(tweenSprite4, 600)
+				buildAnimation(tweenSprite1, 0, 1400),
+				buildAnimation(tweenSprite2, 200, 1000),
+				buildAnimation(tweenSprite3, 400, 600),
+				buildAnimation(tweenSprite4, 600, 200)
 			),
-
-			// Finally, we invite the user to restart
-			Tween.call(new TweenCallback() {
-				private int cnt = 0;
-				@Override public void tweenEventOccured(Types eventType, Tween tween) {
-					if (++cnt == 5) {
-						text = "Done! Click to restart";
-						canBeRestarted = true;
-					}
-				}
-			})
+			endMark = Tween.mark()
 		).repeat(4, 0).addToManager(tweenManager);
+
+		// The event listeners (to change the text at the right moments)
+
+
+		startMark.addIterationCompleteCallback(new TweenCallback() {
+			@Override public void tweenEventOccured(Types eventType, Tween tween) {
+				text = "Iteration: " + (++iterationCnt) + " / 5";
+			}
+		});
+
+		startMark.addBackwardsIterationCompleteCallback(new TweenCallback() {
+			@Override public void tweenEventOccured(Types eventType, Tween tween) {
+				text = "Iteration: " + (--iterationCnt) + " / 5";
+			}
+		});
+
+		endMark.addCompleteCallback(new TweenCallback() {
+			@Override public void tweenEventOccured(Types eventType, Tween tween) {
+				text += " (click to restart)";
+				canBeRestarted = true;
+			}
+		});
 	}
 
 	// -------------------------------------------------------------------------
@@ -204,6 +222,7 @@ public class App implements ApplicationListener {
 		public boolean touchDown(int x, int y, int pointer, int button) {
 			if (canBeRestarted) {
 				canBeRestarted = false;
+				iterationCnt = 0;
 				// If the user touches the screen, we kill every running tween
 				// and restart the animation.
 				tweenManager.kill(tweenSprite1);
@@ -217,8 +236,11 @@ public class App implements ApplicationListener {
 
 		@Override
 		public boolean touchMoved(int x, int y) {
-			float w = Gdx.graphics.getWidth();
-			tweenManager.setSpeed((x - w/2) / (w/4));
+			if (canControlSpeed) {
+				int w = Gdx.graphics.getWidth();
+				speed = 4f * (x-w/2)/w;
+				tweenManager.setSpeed(speed);
+			}
 			return true;
 		}
 	};

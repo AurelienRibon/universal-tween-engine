@@ -200,6 +200,12 @@ public class TweenManager {
 		}
 	}
 
+	/**
+	 * Applies the given speed factor to every managed tweens. '1' is the
+	 * default. '2' would make the animation run at twice its speed, and so on.
+	 * Negative values are possible, they will make the animation go backwards.
+	 * @param speedFactor A speed coefficient.
+	 */
 	public void setSpeed(float speedFactor) {
 		for (int i=0, n=tweens.size(); i<n; i++)
 			tweens.get(i).setSpeed(speedFactor);

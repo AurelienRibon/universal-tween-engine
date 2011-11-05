@@ -331,11 +331,6 @@ public class Tween implements Groupable {
 	 * Convenience method to create a new simple timer.
 	 *
 	 * <br/><br/>
-	 * You need to set the target values of the interpolation by using one
-	 * of the ".target()" methods. The interpolation will run from the current
-	 * values (retrieved after the delay, if any) to these target values.
-	 *
-	 * <br/><br/>
 	 * The following lines are equivalent (if pooling has been disabled):
 	 *
 	 * <br/><br/>
@@ -359,6 +354,33 @@ public class Tween implements Groupable {
 		Tween tween = pool.get();
 		tween.build(null, -1, 0, null);
 		tween.addIterationCompleteCallback(callback);
+		return tween;
+	}
+
+	/**
+	 * Convenience method to create an empty tween. Such object is only usefull
+	 * when placed inside animation sequences (see TweenGroup), in which it
+	 * may act as a beacon, so you can set callbacks on it in order to trigger
+	 * then at the moment you need.
+	 *
+	 * <br/><br/>
+	 * The following lines are equivalent (if pooling has been disabled):
+	 *
+	 * <br/><br/>
+	 * <pre>
+	 * Tween.mark();
+	 * new Tween(null, -1, 0, null);
+	 * </pre>
+	 *
+	 * Several options such as delays and callbacks can be added to the tween.
+	 * This method hides some of the internal optimizations such as object
+	 * reuse for convenience. However, you can control the creation of the
+	 * tween by using the classic constructor.
+	 * @see TweenGroup
+	 */
+	public static Tween mark() {
+		Tween tween = pool.get();
+		tween.build(null, -1, 0, null);
 		return tween;
 	}
 
@@ -395,8 +417,7 @@ public class Tween implements Groupable {
 	private boolean isFinished; // true when all repetitions are done or the tween has been killed
 
 	// Callbacks
-	private final List<TweenCallback> iterationCompleteCallbacks = new ArrayList<TweenCallback>(3);
-	private final List<TweenCallback> completeCallbacks = new ArrayList<TweenCallback>(3);
+	private final List<CallbackTuple> callbacks = new ArrayList<CallbackTuple>();
 
 	// Repeat
 	private int repeatCnt;
@@ -441,8 +462,7 @@ public class Tween implements Groupable {
 		isInitialized = false;
 		isFinished = true;
 
-		completeCallbacks.clear();
-		iterationCompleteCallbacks.clear();
+		callbacks.clear();
 
 		repeatCnt = 0;
 		iteration = 0;
@@ -743,14 +763,12 @@ public class Tween implements Groupable {
 
 	/**
 	 * Adds a callback to the tween.
-	 * The callback is triggered on each iteration ending. If no repeat
-	 * behavior was specified, this callback is similar to a Types.COMPLETE
-	 * callback.
+	 * The callback is triggered on each iteration ending.
 	 * @param callback A tween callback.
 	 * @return The current tween for chaining instructions.
 	 */
 	public Tween addIterationCompleteCallback(TweenCallback callback) {
-		iterationCompleteCallbacks.add(callback);
+		callbacks.add(new CallbackTuple(callback, TweenCallback.Types.ITERATION_COMPLETE));
 		return this;
 	}
 
@@ -761,7 +779,31 @@ public class Tween implements Groupable {
 	 * @return The current tween for chaining instructions.
 	 */
 	public Tween addCompleteCallback(TweenCallback callback) {
-		completeCallbacks.add(callback);
+		callbacks.add(new CallbackTuple(callback, TweenCallback.Types.COMPLETE));
+		return this;
+	}
+
+	/**
+	 * Adds a callback to the tween.
+	 * The callback is triggered on each iteration ending, if the animation is
+	 * running backwards (ie. with a negative speed factor).
+	 * @param callback A tween callback.
+	 * @return The current tween for chaining instructions.
+	 */
+	public Tween addBackwardsIterationCompleteCallback(TweenCallback callback) {
+		callbacks.add(new CallbackTuple(callback, TweenCallback.Types.BACK_ITERATION_COMPLETE));
+		return this;
+	}
+
+	/**
+	 * Adds a callback to the tween.
+	 * The callback is triggered at the end of the tween, if the animation is
+	 * running backwards (ie. with a negative speed factor).
+	 * @param callback A tween callback.
+	 * @return The current tween for chaining instructions.
+	 */
+	public Tween addBackwardsCompleteCallback(TweenCallback callback) {
+		callbacks.add(new CallbackTuple(callback, TweenCallback.Types.BACK_COMPLETE));
 		return this;
 	}
 
@@ -916,6 +958,12 @@ public class Tween implements Groupable {
 		return userData;
 	}
 
+	/**
+	 * Changes the speed of the animation. '1' is the default. '2' would make
+	 * the animation run at twice its speed, and so on. Negative values are
+	 * possible, they will make the animation go backwards.
+	 * @param speedFactor A speed coefficient.
+	 */
 	public void setSpeed(float speedFactor) {
 		this.speedFactor = speedFactor;
 	}
@@ -978,6 +1026,7 @@ public class Tween implements Groupable {
 	}
 
 	private boolean checkIteration() {
+		// Forwards
 		if (currentMillis > endMillis) {
 			if (target != null) {
 				for (int i=0; i<combinedTweenCount; i++) {
@@ -988,24 +1037,28 @@ public class Tween implements Groupable {
 				target.onTweenUpdated(tweenType, localTmp);
 			}
 
-			if (shouldRepeat()) {
-				callIterationCompleteCallbacks();
+			if (iteration < repeatCnt || repeatCnt < 0) {
+				callCallbacks(TweenCallback.Types.ITERATION_COMPLETE);
 				iteration += 1;
 				start();
 			} else {
 				isFinished = true;
-				callIterationCompleteCallbacks();
-				callCompleteCallbacks();
+				callCallbacks(TweenCallback.Types.ITERATION_COMPLETE);
+				callCallbacks(TweenCallback.Types.COMPLETE);
 			}
 
 			return true;
 		}
 
+		// Backwards
 		if (currentMillis < 0) {
 			if (iteration > 0) {
+				callCallbacks(TweenCallback.Types.BACK_ITERATION_COMPLETE);
 				iteration -= 1;
 				start();
 				currentMillis = endMillis;
+			} else {
+				callCallbacks(TweenCallback.Types.BACK_COMPLETE);
 			}
 			return true;
 		}
@@ -1030,17 +1083,18 @@ public class Tween implements Groupable {
 	// Helpers
 	// -------------------------------------------------------------------------
 
-	private boolean shouldRepeat() {
-		return (repeatCnt < 0) || (iteration < repeatCnt);
+	private void callCallbacks(TweenCallback.Types type) {
+		for (int i=callbacks.size()-1; i>=0; i--)
+			if (callbacks.get(i).type == type)
+				callbacks.get(i).callback.tweenEventOccured(type, this);
 	}
 
-	private void callIterationCompleteCallbacks() {
-		for (int i=iterationCompleteCallbacks.size()-1; i>=0; i--)
-			iterationCompleteCallbacks.get(i).tweenEventOccured(TweenCallback.Types.ITERATION_COMPLETE, this);
-	}
-
-	private void callCompleteCallbacks() {
-		for (int i=completeCallbacks.size()-1; i>=0; i--)
-			completeCallbacks.get(i).tweenEventOccured(TweenCallback.Types.COMPLETE, this);
+	private class CallbackTuple {
+		public final TweenCallback callback;
+		public final TweenCallback.Types type;
+		public CallbackTuple(TweenCallback callback, TweenCallback.Types type) {
+			this.callback = callback;
+			this.type = type;
+		}
 	}
 }
