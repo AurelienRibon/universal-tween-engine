@@ -174,6 +174,7 @@ public class App implements ApplicationListener {
 	}
 
 	private void start() {
+		final int repeatCnt = 2;
 		Tween startMark = null;
 		Tween endMark = null;
 
@@ -188,20 +189,19 @@ public class App implements ApplicationListener {
 				buildAnimation(tweenSprite4, 600, 200)
 			),
 			endMark = Tween.mark()
-		).repeat(4, 0).addToManager(tweenManager);
+		).repeat(repeatCnt, 0).addToManager(tweenManager);
 
 		// The event listeners (to change the text at the right moments)
 
-
 		startMark.addIterationCompleteCallback(new TweenCallback() {
 			@Override public void tweenEventOccured(Types eventType, Tween tween) {
-				text = "Iteration: " + (++iterationCnt) + " / 5";
+				text = "Iteration: " + (++iterationCnt) + " / " + (repeatCnt+1);
 			}
 		});
 
 		startMark.addBackwardsIterationCompleteCallback(new TweenCallback() {
 			@Override public void tweenEventOccured(Types eventType, Tween tween) {
-				text = "Iteration: " + (--iterationCnt) + " / 5";
+				text = "Iteration: " + (--iterationCnt) + " / " + (repeatCnt+1);
 			}
 		});
 

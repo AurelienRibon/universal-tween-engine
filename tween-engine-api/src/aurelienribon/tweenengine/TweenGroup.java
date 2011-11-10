@@ -133,6 +133,8 @@ public class TweenGroup implements Groupable {
 	final List<Groupable> groupables = new ArrayList<Groupable>(10);
 	private int duration = 0;
 	private int delay = 0;
+	private int repeatCnt = 0;
+	private int repeatDelay = 0;
 	boolean isPooled = false;
 
 	public void reset() {
@@ -152,14 +154,10 @@ public class TweenGroup implements Groupable {
 	 */
 	public TweenGroup addInSequence(Groupable obj) {
 		if (obj != null) {
-			duration += obj.getDelay() + obj.getDuration();
-			if (groupables.isEmpty()) {
-				groupables.add(obj);
-			} else {
-				Groupable last = groupables.get(groupables.size()-1);
-				obj.delay(last.getDelay() + last.getDuration());
-				groupables.add(obj);
-			}
+			groupables.add(obj);
+			int objDelay = obj.getDelay();
+			obj.delay(duration);
+			duration += objDelay + obj.getDuration();
 		}
 		return this;
 	}
@@ -219,6 +217,23 @@ public class TweenGroup implements Groupable {
 	}
 
 	/**
+	 * Gets number of repetitions of the animation. '0' means that the
+	 * animation will only play once and terminate.
+	 */
+	@Override
+	public int getRepeatCount() {
+		return repeatCnt;
+	}
+
+	/**
+	 * Gets the current delay between each animation iteration, in milliseconds.
+	 */
+	@Override
+	public int getRepeatDelay() {
+		return repeatDelay;
+	}
+
+	/**
 	 * Adds a delay to the group.
 	 */
 	@Override
@@ -237,6 +252,7 @@ public class TweenGroup implements Groupable {
 	 * @return The group, for instruction chaining.
 	 */
 	public TweenGroup addToManager(TweenManager manager) {
+		validate(repeatCnt, duration + repeatDelay);
 		manager.add(this);
 		return this;
 	}
@@ -250,17 +266,18 @@ public class TweenGroup implements Groupable {
 	 */
 	@Override
 	public TweenGroup repeat(int count, int delayMillis) {
-		_repeat(count, duration + delayMillis);
+		this.repeatCnt = count;
+		this.repeatDelay = delayMillis >= 0 ? delayMillis : 0;
 		return this;
 	}
 
-	private void _repeat(int count, int totalDuration) {
+	private void validate(int repeatCnt, int animDuration) {
 		for (int i=0, n=groupables.size(); i<n; i++) {
 			Groupable obj = groupables.get(i);
 			if (obj instanceof Tween) {
-				obj.repeat(count, totalDuration - obj.getDuration() - obj.getDelay());
+				obj.repeat(repeatCnt, animDuration - obj.getDuration() - obj.getDelay());
 			} else {
-				((TweenGroup)obj)._repeat(count, totalDuration);
+				((TweenGroup)obj).validate(repeatCnt, animDuration);
 			}
 		}
 	}
