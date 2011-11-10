@@ -852,7 +852,6 @@ public class Tween implements Groupable {
 
 	/**
 	 * Gets the tween target.
-	 * @return The tween target.
 	 */
 	public Tweenable getTarget() {
 		return target;
@@ -860,7 +859,6 @@ public class Tween implements Groupable {
 
 	/**
 	 * Gets the tween type.
-	 * @return The tween type.
 	 */
 	public int getTweenType() {
 		return tweenType;
@@ -868,7 +866,6 @@ public class Tween implements Groupable {
 
 	/**
 	 * Gets the tween easing equation.
-	 * @return The tween easing equation.
 	 */
 	public TweenEquation getEquation() {
 		return equation;
@@ -876,7 +873,6 @@ public class Tween implements Groupable {
 
 	/**
 	 * Gets the tween target values.
-	 * @return The tween target values.
 	 */
 	public float[] getTargetValues() {
 		return targetValues;
@@ -884,7 +880,6 @@ public class Tween implements Groupable {
 
 	/**
 	 * Gets the tween duration.
-	 * @return The tween duration.
 	 */
 	@Override
 	public int getDuration() {
@@ -893,7 +888,6 @@ public class Tween implements Groupable {
 
 	/**
 	 * Gets the tween delay.
-	 * @return The tween delay.
 	 */
 	@Override
 	public int getDelay() {
@@ -902,7 +896,6 @@ public class Tween implements Groupable {
 
 	/**
 	 * Gets the number of combined tweens.
-	 * @return The number of combined tweens.
 	 */
 	public int getCombinedTweenCount() {
 		return combinedTweenCount;
@@ -910,7 +903,6 @@ public class Tween implements Groupable {
 
 	/**
 	 * Gets the total number of repetitions.
-	 * @return The total number of repetitions.
 	 */
 	@Override
 	public int getRepeatCount() {
@@ -919,7 +911,6 @@ public class Tween implements Groupable {
 
 	/**
 	 * Gets the delay before each repetition.
-	 * @return The delay before each repetition.
 	 */
 	@Override
 	public int getRepeatDelay() {
@@ -928,7 +919,6 @@ public class Tween implements Groupable {
 
 	/**
 	 * Gets the number of remaining iterations.
-	 * @return The number of remaining iterations.
 	 */
 	public int getRemainingIterationsCount() {
 		return repeatCnt - iteration;
@@ -939,7 +929,6 @@ public class Tween implements Groupable {
 	 * its end or has been killed). If this is the case and tween pooling is
 	 * enabled, the tween should no longer been used, since it will be reset
 	 * and returned to the pool.
-	 * @return True if the tween is finished.
 	 */
 	public boolean isFinished() {
 		return isFinished;
@@ -947,7 +936,6 @@ public class Tween implements Groupable {
 
 	/**
 	 * Gets the attached user data, or null if none.
-	 * @return The attached user data.
 	 */
 	public Object getUserData() {
 		return userData;
