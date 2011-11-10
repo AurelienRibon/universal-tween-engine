@@ -130,12 +130,12 @@ public class TweenGroup implements Groupable {
 	// IMPLEMENTATION
 	// -------------------------------------------------------------------------
 
-	final List<Groupable> groupables = new ArrayList<Groupable>(10);
+	private final List<Groupable> groupables = new ArrayList<Groupable>(10);
 	private int duration = 0;
 	private int delay = 0;
 	private int repeatCnt = 0;
 	private int repeatDelay = 0;
-	boolean isPooled = false;
+	private boolean isPooled = false;
 
 	public void reset() {
 		groupables.clear();
@@ -252,8 +252,10 @@ public class TweenGroup implements Groupable {
 	 * @return The group, for instruction chaining.
 	 */
 	public TweenGroup addToManager(TweenManager manager) {
-		validate(repeatCnt, duration + repeatDelay);
-		manager.add(this);
+		_validate(repeatCnt, duration + repeatDelay);
+		_addToManager(manager);
+		reset();
+		if (isPooled) TweenGroup.pool.free(this);
 		return this;
 	}
 
@@ -271,13 +273,27 @@ public class TweenGroup implements Groupable {
 		return this;
 	}
 
-	private void validate(int repeatCnt, int animDuration) {
+	private void _validate(int repeatCnt, int animDuration) {
 		for (int i=0, n=groupables.size(); i<n; i++) {
 			Groupable obj = groupables.get(i);
 			if (obj instanceof Tween) {
 				obj.repeat(repeatCnt, animDuration - obj.getDuration() - obj.getDelay());
 			} else {
-				((TweenGroup)obj).validate(repeatCnt, animDuration);
+				((TweenGroup)obj)._validate(repeatCnt, animDuration);
+			}
+		}
+	}
+
+	private void _addToManager(TweenManager manager) {
+		for (int i=0, n=groupables.size(); i<n; i++) {
+			Groupable obj = groupables.get(i);
+			if (obj instanceof Tween) {
+				Tween tween = (Tween) obj;
+				manager.tweens.add(tween);
+				tween.start();
+			} else if (obj instanceof TweenGroup) {
+				TweenGroup group = (TweenGroup) obj;
+				group._addToManager(manager);
 			}
 		}
 	}

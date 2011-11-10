@@ -16,7 +16,7 @@ import java.util.ArrayList;
  * @author Aurelien Ribon (aurelien.ribon@gmail.com)
  */
 public class TweenManager {
-	private final ArrayList<Tween> tweens = new ArrayList<Tween>(20);
+	final ArrayList<Tween> tweens = new ArrayList<Tween>(20);
 	private long lastUpdateMillis = -1;
 
 	// -------------------------------------------------------------------------
@@ -29,8 +29,7 @@ public class TweenManager {
 	 * @return The manager, for instruction chaining.
 	 */
 	public final TweenManager add(Tween tween) {
-		tweens.add(tween);
-		tween.start();
+		tween.addToManager(this);
 		return this;
 	}
 
@@ -42,21 +41,7 @@ public class TweenManager {
 	 * @return The manager, for instruction chaining.
 	 */
 	public final TweenManager add(TweenGroup group) {
-		for (int i=0, n=group.groupables.size(); i<n; i++) {
-			Groupable obj = group.groupables.get(i);
-			if (obj instanceof Tween) {
-				Tween tween = ((Tween)obj);
-				tweens.add(tween);
-				tween.start();
-			} else if (obj instanceof TweenGroup) {
-				add((TweenGroup)obj);
-			}
-		}
-
-		group.reset();
-
-		if (group.isPooled)
-			TweenGroup.pool.free(group);
+		group.addToManager(this);
 		return this;
 	}
 

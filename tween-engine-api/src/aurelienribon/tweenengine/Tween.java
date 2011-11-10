@@ -836,8 +836,8 @@ public class Tween implements Groupable {
 	}
 
 	/**
-	 * Convenience method to add a single tween to a manager. Both usages are
-	 * equivalent:<br/>
+	 * Convenience method to add a single tween to a manager. The tween is 
+	 * automatically started. Both following usages are equivalent:<br/>
 	 * <pre>
 	 * myManager.add(Tween.to(...));
 	 * Tween.to(...).addToManager(myManager);
@@ -846,7 +846,8 @@ public class Tween implements Groupable {
 	 * @return The current tween for chaining instructions.
 	 */
 	public Tween addToManager(TweenManager manager) {
-		manager.add(this);
+		manager.tweens.add(this);
+		start();
 		return this;
 	}
 
