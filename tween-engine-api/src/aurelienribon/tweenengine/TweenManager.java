@@ -1,6 +1,8 @@
 package aurelienribon.tweenengine;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * A TweenManager let you pack many tweens together, and update them at once.
@@ -117,41 +119,38 @@ public class TweenManager {
 	}
 
 	/**
-	 * Gets an array containing every tween in the manager.
-	 * <b>Warning:</b> this method allocates an array.
+	 * Gets an unmodifiable list containing every tween in the manager.
 	 */
-	public Tween[] getTweens() {
-		return tweens.toArray(new Tween[tweens.size()]);
+	public List<Tween> getTweens() {
+		return Collections.unmodifiableList(tweens);
 	}
 
 	/**
-	 * Gets an array containing every tween in the manager dedicated to the
-	 * given target.
-	 * <b>Warning:</b> this method allocates an ArrayList and an array.
+	 * Gets an unmodifiable list containing every tween in the manager
+	 * dedicated to the given target.
 	 */
-	public Tween[] getTweens(Tweenable target) {
-		ArrayList<Tween> selectedTweens = new ArrayList<Tween>();
+	public List<Tween> getTweens(Tweenable target) {
+		List<Tween> selectedTweens = new ArrayList<Tween>();
 		for (int i=0, n=tweens.size(); i<n; i++) {
 			Tween tween = tweens.get(i);
 			if (tween.getTarget() == target && !tween.isFinished())
 				selectedTweens.add(tween);
 		}
-		return selectedTweens.toArray(new Tween[selectedTweens.size()]);
+		return Collections.unmodifiableList(selectedTweens);
 	}
 
 	/**
-	 * Gets an array containing every tween in the manager dedicated to the
-	 * given target and tween type.
-	 * <b>Warning:</b> this method allocates an ArrayList and an array.
+	 * Gets an unmodifiable list containing every tween in the manager
+	 * dedicated to the given target and tween type.
 	 */
-	public Tween[] getTweens(Tweenable target, int tweenType) {
-		ArrayList<Tween> selectedTweens = new ArrayList<Tween>();
+	public List<Tween> getTweens(Tweenable target, int tweenType) {
+		List<Tween> selectedTweens = new ArrayList<Tween>();
 		for (int i=0, n=tweens.size(); i<n; i++) {
 			Tween tween = tweens.get(i);
 			if (tween.getTarget() == target && tween.getTweenType() == tweenType && !tween.isFinished())
 				selectedTweens.add(tween);
 		}
-		return selectedTweens.toArray(new Tween[selectedTweens.size()]);
+		return Collections.unmodifiableList(selectedTweens);
 	}
 
 	/**
