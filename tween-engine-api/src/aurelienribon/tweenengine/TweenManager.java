@@ -174,12 +174,11 @@ public class TweenManager {
 	 * manager.
 	 */
 	public final void update(int deltaMillis) {
-		for (int i=0, n=tweens.size(); i<n; i++) {
+		for (int i=0; i<tweens.size(); i++) {
 			Tween tween = tweens.get(i);
 			if (tween.isFinished()) {
 				tweens.remove(i);
 				i -= 1;
-				n -= 1;
 			}
 			tween.update(deltaMillis);
 		}
