@@ -21,6 +21,7 @@ public class TweenManager {
 	final ArrayList<Tween> tweens = new ArrayList<Tween>(20);
 	private long lastUpdateMillis = -1;
 	private boolean paused = false;
+	private float speedFactor = 1;
 
 	// -------------------------------------------------------------------------
 	// API
@@ -171,29 +172,46 @@ public class TweenManager {
 	/**
 	 * Updates every tween with a delta time. Handles the tween life-cycle
 	 * automatically. If a tween is finished, it will be removed from the
-	 * manager.
+	 * manager. The delta time will be modified according to the current
+	 * speed factor.
+	 * @return The delta time really applied to the tweens, in milliseconds.
 	 */
-	public final void update(int deltaMillis) {
-		if (paused) return;
-		for (int i=0; i<tweens.size(); i++) {
-			Tween tween = tweens.get(i);
-			if (tween.isFinished()) {
-				tweens.remove(i);
-				i -= 1;
+	public final int update(int deltaMillis) {
+		if (paused) return 0;
+		deltaMillis *= speedFactor;
+
+		if (deltaMillis >= 0) {
+			for (int i=0; i<tweens.size(); i++) {
+				Tween tween = tweens.get(i);
+				if (tween.isFinished()) {
+					tweens.remove(i);
+					i -= 1;
+				}
+				tween.update(deltaMillis);
 			}
-			tween.update(deltaMillis);
+
+		} else {
+			for (int i=tweens.size()-1; i>=0; i--) {
+				Tween tween = tweens.get(i);
+				if (tween.isFinished()) {
+					tweens.remove(i);
+				}
+				tween.update(deltaMillis);
+			}
 		}
+
+		return deltaMillis;
 	}
 
 	/**
-	 * Applies the given speed factor to every managed tweens. '1' is the
-	 * default. '2' would make the animation run at twice its speed, and so on.
-	 * Negative values are possible, they will make the animation go backwards.
+	 * Changes the speed of every tweens managed by this TweenManager. '1' is
+	 * the default. '2' would make the animation run at twice its speed, and so
+	 * on. Negative values are possible, they will make the animation go
+	 * backwards.
 	 * @param speedFactor A speed coefficient.
 	 */
 	public void setSpeed(float speedFactor) {
-		for (int i=0, n=tweens.size(); i<n; i++)
-			tweens.get(i).setSpeed(speedFactor);
+		this.speedFactor = speedFactor;
 	}
 
 	/**

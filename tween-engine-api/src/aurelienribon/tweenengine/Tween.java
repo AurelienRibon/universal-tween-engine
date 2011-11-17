@@ -397,7 +397,6 @@ public class Tween implements Groupable {
 	private boolean isReversed;
 	private boolean isPooled;
 	private boolean isRelative;
-	private float speedFactor;
 
 	// Values
 	private int combinedTweenCount;
@@ -453,7 +452,6 @@ public class Tween implements Groupable {
 
 		isReversed = false;
 		isRelative = false;
-		speedFactor = 1;
 
 		combinedTweenCount = 0;
 
@@ -942,16 +940,6 @@ public class Tween implements Groupable {
 		return userData;
 	}
 
-	/**
-	 * Changes the speed of the animation. '1' is the default. '2' would make
-	 * the animation run at twice its speed, and so on. Negative values are
-	 * possible, they will make the animation go backwards.
-	 * @param speedFactor A speed coefficient.
-	 */
-	public void setSpeed(float speedFactor) {
-		this.speedFactor = speedFactor;
-	}
-
 	// -------------------------------------------------------------------------
 	// Update engine
 	// -------------------------------------------------------------------------
@@ -968,7 +956,7 @@ public class Tween implements Groupable {
 	public final void update(int deltaMillis) {
 		if (checkValidity()) return;
 		lastCurrentMillis = currentMillis;
-		currentMillis += deltaMillis * speedFactor;
+		currentMillis += deltaMillis;
 		currentMillis = Math.max(currentMillis, -1);
 
 		// Wait for the end of the delay then either grab the start or end
