@@ -20,6 +20,7 @@ import java.util.List;
 public class TweenManager {
 	final ArrayList<Tween> tweens = new ArrayList<Tween>(20);
 	private long lastUpdateMillis = -1;
+	private boolean paused = false;
 
 	// -------------------------------------------------------------------------
 	// API
@@ -173,6 +174,7 @@ public class TweenManager {
 	 * manager.
 	 */
 	public final void update(int deltaMillis) {
+		if (paused) return;
 		for (int i=0; i<tweens.size(); i++) {
 			Tween tween = tweens.get(i);
 			if (tween.isFinished()) {
@@ -192,5 +194,20 @@ public class TweenManager {
 	public void setSpeed(float speedFactor) {
 		for (int i=0, n=tweens.size(); i<n; i++)
 			tweens.get(i).setSpeed(speedFactor);
+	}
+
+	/**
+	 * Pauses the engine. Next update() calls won't have any effect.
+	 */
+	public void pause() {
+		paused = true;
+	}
+
+	/**
+	 * Resumes the engine to its latest state.
+	 */
+	public void resume() {
+		paused = false;
+		lastUpdateMillis = System.currentTimeMillis();
 	}
 }
