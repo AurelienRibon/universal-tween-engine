@@ -24,12 +24,12 @@ import java.util.List;
  *         Tween.set(myObject, SCALE).target(0, 0),
  *     ),
  *     TweenGroup.parallel(
- *          Tween.to(myObject, OPACITY, 500, Quad.INOUT).target(1),
- *          Tween.to(myObject, SCALE, 500, Quad.INOUT).target(1, 1),
+ *          Tween.to(myObject, OPACITY, 500).target(1).ease(Quad.INOUT),
+ *          Tween.to(myObject, SCALE, 500).target(1, 1).ease(Quad.INOUT),
  *     ),
  *     TweenGroup.tempo(1000),
- *     Tween.to(myObject, POSITION_X, 500, Quad.INOUT).target(100)
- *     Tween.to(myObject, ROTATION, 500, Quad.INOUT).target(360)
+ *     Tween.to(myObject, POSITION_X, 500).target(100).ease(Quad.INOUT),
+ *     Tween.to(myObject, ROTATION, 500).target(360).ease(Quad.INOUT)
  * ).addToManager(myManager);
  * </pre>
  *
