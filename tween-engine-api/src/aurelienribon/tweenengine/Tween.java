@@ -111,7 +111,7 @@ public class Tween implements Groupable {
 	 * @param defaultAccessor The accessor that will be used to tween any object
 	 * of class "someClass".
 	 */
-	public static void registerDefaultAccessor(Class someClass, TweenAccessor defaultAccessor) {
+	public static void registerAccessor(Class someClass, TweenAccessor defaultAccessor) {
 		registeredAccessors.put(someClass, defaultAccessor);
 	}
 
@@ -119,7 +119,7 @@ public class Tween implements Groupable {
 	 * Gets the registered TweenAccessor associated with the given object class.
 	 * @param someClass An object class.
 	 */
-	public static TweenAccessor getDefaultAccessor(Class someClass) {
+	public static TweenAccessor getRegisteredAccessor(Class someClass) {
 		return registeredAccessors.get(someClass);
 	}
 

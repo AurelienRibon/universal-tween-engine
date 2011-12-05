@@ -83,7 +83,7 @@ public class App implements ApplicationListener {
 
 		// Tween engine setup
 		Tween.setPoolEnabled(true);
-		Tween.registerDefaultAccessor(Sprite.class, new SpriteTweenAccessor());
+		Tween.registerAccessor(Sprite.class, new SpriteTweenAccessor());
 
 		// Tween manager creation
 		tweenManager = new TweenManager();

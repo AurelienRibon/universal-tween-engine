@@ -3,8 +3,8 @@ package aurelienribon.tweenengine;
 /**
  * The TweenAccessor interface lets you interpolate any attribute from any
  * object. Just implement it as you want and let the engine do the interpolation
- * for you. To setup the Tween Engine, you need to call
- * Tween.registerDefaultAccessor() to register your accessors.
+ * for you. To setup the Tween Engine, you need to call Tween.registerAccessor()
+ * to register your accessors.
  *
  * <p>
  * The following code snippet presents an example of implementation for tweening
