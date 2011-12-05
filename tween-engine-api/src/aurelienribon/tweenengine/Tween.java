@@ -61,6 +61,13 @@ public class Tween implements Groupable {
 	public static final int MAX_COMBINED_TWEENS = 10;
 
 	/**
+	 * Gets the version number of the library.
+	 */
+	public static String getVersion() {
+		return "6.0.0";
+	}
+
+	/**
 	 * Enables or disables the automatic reuse of ended tweens. Pooling prevents
 	 * the allocation of a new tween object when using the static constructors,
 	 * thus removing the need for garbage collection. Can be quite helpful on
