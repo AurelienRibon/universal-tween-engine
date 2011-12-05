@@ -205,6 +205,13 @@ public class App implements ApplicationListener {
 			}
 		});
 
+		startMark.addBackwardsCompleteCallback(new TweenCallback() {
+			@Override public void tweenEventOccured(Types eventType, Tween tween) {
+				text += " (click to restart)";
+				canBeRestarted = true;
+			}
+		});
+
 		endMark.addCompleteCallback(new TweenCallback() {
 			@Override public void tweenEventOccured(Types eventType, Tween tween) {
 				text += " (click to restart)";
