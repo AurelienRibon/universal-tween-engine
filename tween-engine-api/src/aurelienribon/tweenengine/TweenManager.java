@@ -68,7 +68,7 @@ public class TweenManager {
 	 * Returns true if the manager contains any valid tween associated to the
 	 * given target.
 	 */
-	public final boolean contains(Tweenable target) {
+	public final boolean contains(TweenAccessor target) {
 		for (int i=0, n=tweens.size(); i<n; i++) {
 			Tween tween = tweens.get(i);
 			if (tween.getTarget() == target && !tween.isFinished())
@@ -81,7 +81,7 @@ public class TweenManager {
 	 * Returns true if the manager contains any valid tween associated to the
 	 * given target and tween type.
 	 */
-	public final boolean contains(Tweenable target, int tweenType) {
+	public final boolean contains(TweenAccessor target, int tweenType) {
 		for (int i=0, n=tweens.size(); i<n; i++) {
 			Tween tween = tweens.get(i);
 			if (tween.getTarget() == target && tween.getTweenType() == tweenType && !tween.isFinished())
@@ -93,7 +93,7 @@ public class TweenManager {
 	/**
 	 * Kills every valid tween associated to the given target.
 	 */
-	public final void kill(Tweenable target) {
+	public final void kill(TweenAccessor target) {
 		for (int i=0, n=tweens.size(); i<n; i++) {
 			Tween tween = tweens.get(i);
 			if (tween.getTarget() == target && !tween.isFinished())
@@ -104,7 +104,7 @@ public class TweenManager {
 	/**
 	 * Kills every valid tween associated to the given target and tween type.
 	 */
-	public final void kill(Tweenable target, int tweenType) {
+	public final void kill(TweenAccessor target, int tweenType) {
 		for (int i=0, n=tweens.size(); i<n; i++) {
 			Tween tween = tweens.get(i);
 			if (tween.getTarget() == target && tween.getTweenType() == tweenType && !tween.isFinished())
@@ -131,7 +131,7 @@ public class TweenManager {
 	 * Gets an unmodifiable list containing every tween in the manager
 	 * dedicated to the given target.
 	 */
-	public List<Tween> getTweens(Tweenable target) {
+	public List<Tween> getTweens(TweenAccessor target) {
 		List<Tween> selectedTweens = new ArrayList<Tween>();
 		for (int i=0, n=tweens.size(); i<n; i++) {
 			Tween tween = tweens.get(i);
@@ -145,7 +145,7 @@ public class TweenManager {
 	 * Gets an unmodifiable list containing every tween in the manager
 	 * dedicated to the given target and tween type.
 	 */
-	public List<Tween> getTweens(Tweenable target, int tweenType) {
+	public List<Tween> getTweens(TweenAccessor target, int tweenType) {
 		List<Tween> selectedTweens = new ArrayList<Tween>();
 		for (int i=0, n=tweens.size(); i<n; i++) {
 			Tween tween = tweens.get(i);

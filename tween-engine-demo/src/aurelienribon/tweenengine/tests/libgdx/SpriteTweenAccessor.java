@@ -1,17 +1,17 @@
 package aurelienribon.tweenengine.tests.libgdx;
 
-import aurelienribon.tweenengine.Tweenable;
+import aurelienribon.tweenengine.TweenAccessor;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 
-public class TweenableSprite implements Tweenable<Sprite> {
+public class SpriteTweenAccessor implements TweenAccessor<Sprite> {
 	public static final int POSITION_XY = 1;
 	public static final int SCALE_XY = 2;
 	public static final int ROTATION = 3;
 	public static final int OPACITY = 4;
 
 	@Override
-	public int getTweenValues(Sprite target, int tweenType, float[] returnValues) {
+	public int getValues(Sprite target, int tweenType, float[] returnValues) {
 		switch (tweenType) {
 			case POSITION_XY:
 				returnValues[0] = target.getX() + target.getOriginX();
@@ -36,7 +36,7 @@ public class TweenableSprite implements Tweenable<Sprite> {
 	}
 
 	@Override
-	public void onTweenUpdated(Sprite target, int tweenType, float[] newValues) {
+	public void setValues(Sprite target, int tweenType, float[] newValues) {
 		switch (tweenType) {
 			case POSITION_XY:
 				target.setPosition(

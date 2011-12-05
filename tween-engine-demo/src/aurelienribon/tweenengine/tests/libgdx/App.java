@@ -83,7 +83,7 @@ public class App implements ApplicationListener {
 
 		// Tween engine setup
 		Tween.setPoolEnabled(true);
-		Tween.register(Sprite.class, new TweenableSprite());
+		Tween.registerDefaultAccessor(Sprite.class, new SpriteTweenAccessor());
 
 		// Tween manager creation
 		tweenManager = new TweenManager();
@@ -137,24 +137,24 @@ public class App implements ApplicationListener {
 
 	private TweenGroup buildAnimation(Sprite target, int delay1, int delay2) {
 		return TweenGroup.sequence(
-			Tween.set(target, TweenableSprite.POSITION_XY).target(0, 0),
-			Tween.set(target, TweenableSprite.SCALE_XY).target(10, 10),
-			Tween.set(target, TweenableSprite.ROTATION).target(0),
+			Tween.set(target, SpriteTweenAccessor.POSITION_XY).target(0, 0),
+			Tween.set(target, SpriteTweenAccessor.SCALE_XY).target(10, 10),
+			Tween.set(target, SpriteTweenAccessor.ROTATION).target(0),
 
 			TweenGroup.tempo(delay1),
 			TweenGroup.parallel(
-				Tween.to(target, TweenableSprite.OPACITY, 1000).target(1).ease(Quart.INOUT),
-				Tween.to(target, TweenableSprite.SCALE_XY, 1000).target(1, 1).ease(Quart.INOUT)
+				Tween.to(target, SpriteTweenAccessor.OPACITY, 1000).target(1).ease(Quart.INOUT),
+				Tween.to(target, SpriteTweenAccessor.SCALE_XY, 1000).target(1, 1).ease(Quart.INOUT)
 			),
 
 			TweenGroup.tempo(-500),
-			Tween.to(target, TweenableSprite.POSITION_XY, 1000).targetCurrent().ease(Back.OUT),
-			Tween.to(target, TweenableSprite.ROTATION, 800).target(360).ease(Cubic.INOUT),
+			Tween.to(target, SpriteTweenAccessor.POSITION_XY, 1000).targetCurrent().ease(Back.OUT),
+			Tween.to(target, SpriteTweenAccessor.ROTATION, 800).target(360).ease(Cubic.INOUT),
 
 			TweenGroup.tempo(delay2),
 			TweenGroup.parallel(
-				Tween.to(target, TweenableSprite.SCALE_XY, 300).target(3, 3).ease(Quad.IN),
-				Tween.to(target, TweenableSprite.OPACITY, 300).target(0).ease(Quad.IN)
+				Tween.to(target, SpriteTweenAccessor.SCALE_XY, 300).target(3, 3).ease(Quad.IN),
+				Tween.to(target, SpriteTweenAccessor.OPACITY, 300).target(0).ease(Quad.IN)
 			)
 		);
 	}

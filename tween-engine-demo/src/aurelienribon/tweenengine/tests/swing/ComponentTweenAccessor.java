@@ -1,13 +1,13 @@
 package aurelienribon.tweenengine.tests.swing;
 
-import aurelienribon.tweenengine.Tweenable;
+import aurelienribon.tweenengine.TweenAccessor;
 import java.awt.Component;
 
-public class TweenableComponent implements Tweenable<Component> {
+public class ComponentTweenAccessor implements TweenAccessor<Component> {
 	public static final int POSITION = 0;
 
 	@Override
-	public int getTweenValues(Component target, int tweenType, float[] returnValues) {
+	public int getValues(Component target, int tweenType, float[] returnValues) {
 		switch (tweenType) {
 			case POSITION:
 				returnValues[0] = target.getX();
@@ -18,7 +18,7 @@ public class TweenableComponent implements Tweenable<Component> {
 	}
 
 	@Override
-	public void onTweenUpdated(Component target, int tweenType, float[] newValues) {
+	public void setValues(Component target, int tweenType, float[] newValues) {
 		switch (tweenType) {
 			case POSITION:
 				target.setLocation((int) newValues[0], (int) newValues[1]);

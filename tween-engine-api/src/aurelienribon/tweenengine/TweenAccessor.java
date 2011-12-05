@@ -1,10 +1,10 @@
 package aurelienribon.tweenengine;
 
 /**
- * The Tweenable interface lets you interpolate any attribute from any object.
- * Just implement it as you want and let the engine do the interpolation for
- * you. To setup the Tween Engine, you need to call the Tween.register() with
- * your implementations of this interface.
+ * The TweenAccessor interface lets you interpolate any attribute from any
+ * object. Just implement it as you want and let the engine do the interpolation
+ * for you. To setup the Tween Engine, you need to call
+ * Tween.registerDefaultAccessor() to register your accessors.
  *
  * <p>
  * The following code snippet presents an example of implementation for tweening
@@ -13,14 +13,14 @@ package aurelienribon.tweenengine;
  * </p>
  *
  * <pre>
- * public class TweenableParticle implements Tweenable<Particle> {
- *     // The following lines define the different possible tween types.
+ * public class ParticleTweenAccessor implements TweenAccessor<Particle> {
+ *     // The 3 following lines define the different possible tween types.
  *     // It's up to you to define what you need :-)
  *     public static final int X = 1;
  *     public static final int Y = 2;
  *     public static final int XY = 3;
  *
- *     public int getTweenValues(Particle target, int tweenType, float[] returnValues) {
+ *     public int getValues(Particle target, int tweenType, float[] returnValues) {
  *         switch (tweenType) {
  *             case X: returnValues[0] = target.getX(); return 1;
  *             case Y: returnValues[0] = target.getY(); return 1;
@@ -32,7 +32,7 @@ package aurelienribon.tweenengine;
  *         }
  *     }
  *     
- *     public void onTweenUpdated(Particle target, int tweenType, float[] newValues) {
+ *     public void setValues(Particle target, int tweenType, float[] newValues) {
  *         switch (tweenType) {
  *             case X: target.setX(newValues[0]); break;
  *             case Y: target.setY(newValues[1]); break;
@@ -48,24 +48,24 @@ package aurelienribon.tweenengine;
  * 
  * @author Aurelien Ribon | http://www.aurelienribon.com/
  */
-public interface Tweenable<T> {
+public interface TweenAccessor<T> {
 	/**
-	 * Gets one or many values from the tweenable object associated to the
-	 * given tween type. It is used by the tweening engine to determine starting
+	 * Gets one or many values from the target object associated to the
+	 * given tween type. It is used by the Tween Engine to determine starting
 	 * values.
 	 * @param target The target object of the tween.
 	 * @param tweenType An integer representing the tween type.
 	 * @param returnValues A table which should be modified by this method.
 	 * @return The count of tweened parameters.
 	 */
-	public int getTweenValues(T target, int tweenType, float[] returnValues);
+	public int getValues(T target, int tweenType, float[] returnValues);
 
 	/**
-	 * This method is called by the tweening engine each time a running tween
-	 * associated with the current Tweenable object has been updated.
+	 * This method is called by the Tween Engine each time a running tween
+	 * associated with the current target object has been updated.
 	 * @param target The target object of the tween.
 	 * @param tweenType An integer representing the tween type.
-	 * @param newValues The new values determined by the tweening engine.
+	 * @param newValues The new values determined by the Tween Engine.
 	 */
-	public void onTweenUpdated(T target, int tweenType, float[] newValues);
+	public void setValues(T target, int tweenType, float[] newValues);
 }

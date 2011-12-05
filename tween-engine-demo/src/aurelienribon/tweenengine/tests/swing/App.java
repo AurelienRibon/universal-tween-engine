@@ -32,7 +32,7 @@ public class App {
 		window.getContentPane().add(button);
 		window.setVisible(true);
 
-		Tween.register(Component.class, new TweenableComponent());
+		Tween.registerDefaultAccessor(Component.class, new ComponentTweenAccessor());
 		tweenManager = new TweenManager();
 
 		SwingTweenThread.start(window.getContentPane(), tweenManager);
@@ -46,7 +46,7 @@ public class App {
 			int ty = rand.nextInt(window.getContentPane().getHeight() - button.getHeight());
 
 			tweenManager.clear();
-			Tween.to(button, TweenableComponent.POSITION, 500)
+			Tween.to(button, ComponentTweenAccessor.POSITION, 500)
 				.target(tx, ty)
 				.ease(Back.OUT)
 				.addToManager(tweenManager);
