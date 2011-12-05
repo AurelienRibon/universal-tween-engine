@@ -32,7 +32,7 @@ public class App {
 		window.getContentPane().add(button);
 		window.setVisible(true);
 
-		Tween.registerDefaultAccessor(Component.class, new ComponentTweenAccessor());
+		Tween.registerDefaultAccessor(JButton.class, new ComponentTweenAccessor());
 		tweenManager = new TweenManager();
 
 		SwingTweenThread.start(window.getContentPane(), tweenManager);
