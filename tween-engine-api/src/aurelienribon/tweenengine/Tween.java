@@ -40,7 +40,7 @@ import java.util.Map;
  * values. Add it to a TweenManager, it will take care of the tween life-cycle
  * for you!
  *
- * @see Tweenable
+ * @see TweenAccessor
  * @see TweenManager
  * @see TweenGroup
  * @see TweenEquation
@@ -757,14 +757,14 @@ public class Tween implements Groupable {
 	/**
 	 * Gets the tween target.
 	 */
-	public TweenAccessor getTarget() {
-		return accessor;
+	public Object getTarget() {
+		return target;
 	}
 
 	/**
 	 * Gets the tween type.
 	 */
-	public int getTweenType() {
+	public int getType() {
 		return type;
 	}
 
@@ -872,7 +872,7 @@ public class Tween implements Groupable {
 	}
 
 	private void initialize() {
-		if (accessor == null) return;
+		if (target == null) return;
 
 		if (!isInitialized && justTriggeredForwards(delayMillis)) {
 			isInitialized = true;
@@ -888,7 +888,7 @@ public class Tween implements Groupable {
 		// -----Forwards
 
 		if (justTriggeredForwards(endMillis)) {
-			if (accessor != null) accessor.setValues(target, type, isReversed ? startValues : targetValues);
+			if (target != null) accessor.setValues(target, type, isReversed ? startValues : targetValues);
 
 			callCallbacks(TweenCallback.Types.ITERATION_COMPLETE);
 			if (repeatCnt >= 0 && iteration == repeatCnt)
@@ -907,7 +907,7 @@ public class Tween implements Groupable {
 		// -----Backwards
 
 		if (justTriggeredBackwards(0)) {
-			if (accessor != null) accessor.setValues(target, type, isReversed ? targetValues : startValues);
+			if (target != null) accessor.setValues(target, type, isReversed ? targetValues : startValues);
 
 			callCallbacks(TweenCallback.Types.BACK_ITERATION_COMPLETE);
 			if (iteration > 0) {
@@ -922,7 +922,7 @@ public class Tween implements Groupable {
 	}
 
 	private void updateTarget() {
-		if (accessor == null || equation == null || !isInitialized) return;
+		if (target == null || equation == null || !isInitialized) return;
 		if (currentMillis < delayMillis || currentMillis > endMillis) return;
 
 		for (int i=0; i<combinedTweenCount; i++) {

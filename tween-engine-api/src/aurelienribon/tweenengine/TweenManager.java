@@ -68,7 +68,7 @@ public class TweenManager {
 	 * Returns true if the manager contains any valid tween associated to the
 	 * given target.
 	 */
-	public final boolean contains(TweenAccessor target) {
+	public final boolean contains(Object target) {
 		for (int i=0, n=tweens.size(); i<n; i++) {
 			Tween tween = tweens.get(i);
 			if (tween.getTarget() == target && !tween.isFinished())
@@ -81,10 +81,10 @@ public class TweenManager {
 	 * Returns true if the manager contains any valid tween associated to the
 	 * given target and tween type.
 	 */
-	public final boolean contains(TweenAccessor target, int tweenType) {
+	public final boolean contains(Object target, int tweenType) {
 		for (int i=0, n=tweens.size(); i<n; i++) {
 			Tween tween = tweens.get(i);
-			if (tween.getTarget() == target && tween.getTweenType() == tweenType && !tween.isFinished())
+			if (tween.getTarget() == target && tween.getType() == tweenType && !tween.isFinished())
 				return true;
 		}
 		return false;
@@ -93,7 +93,7 @@ public class TweenManager {
 	/**
 	 * Kills every valid tween associated to the given target.
 	 */
-	public final void kill(TweenAccessor target) {
+	public final void kill(Object target) {
 		for (int i=0, n=tweens.size(); i<n; i++) {
 			Tween tween = tweens.get(i);
 			if (tween.getTarget() == target && !tween.isFinished())
@@ -104,10 +104,10 @@ public class TweenManager {
 	/**
 	 * Kills every valid tween associated to the given target and tween type.
 	 */
-	public final void kill(TweenAccessor target, int tweenType) {
+	public final void kill(Object target, int tweenType) {
 		for (int i=0, n=tweens.size(); i<n; i++) {
 			Tween tween = tweens.get(i);
-			if (tween.getTarget() == target && tween.getTweenType() == tweenType && !tween.isFinished())
+			if (tween.getTarget() == target && tween.getType() == tweenType && !tween.isFinished())
 				tween.kill();
 		}
 	}
@@ -149,7 +149,7 @@ public class TweenManager {
 		List<Tween> selectedTweens = new ArrayList<Tween>();
 		for (int i=0, n=tweens.size(); i<n; i++) {
 			Tween tween = tweens.get(i);
-			if (tween.getTarget() == target && tween.getTweenType() == tweenType && !tween.isFinished())
+			if (tween.getTarget() == target && tween.getType() == tweenType && !tween.isFinished())
 				selectedTweens.add(tween);
 		}
 		return Collections.unmodifiableList(selectedTweens);
