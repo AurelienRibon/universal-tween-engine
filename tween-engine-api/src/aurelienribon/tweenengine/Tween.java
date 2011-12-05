@@ -383,12 +383,13 @@ public class Tween implements Groupable {
 		this.durationMillis = durationMillis;
 
 		if (target != null) {
-			if (!registeredAccessors.containsKey(target.getClass()))
-				throw new RuntimeException("Target class is not registered");
+			if (!registeredAccessors.containsKey(target.getClass()) && !(target instanceof TweenAccessor))
+				throw new RuntimeException("No TweenAccessor was found for the target class");
 
 			accessor = registeredAccessors.get(target.getClass());
-			combinedTweenCount = accessor.getValues(target, tweenType, buffer);
+			if (accessor == null) accessor = (TweenAccessor) target;
 
+			combinedTweenCount = accessor.getValues(target, tweenType, buffer);
 			if (combinedTweenCount < 1 || combinedTweenCount > MAX_COMBINED_TWEENS)
 				throw new RuntimeException("Min combined tweens = 1, max = " + MAX_COMBINED_TWEENS);
 		}
