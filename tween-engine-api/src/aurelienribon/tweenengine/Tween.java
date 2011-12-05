@@ -112,12 +112,20 @@ public class Tween implements Groupable {
 	 * of class "someClass".
 	 */
 	public static void registerDefaultAccessor(Class someClass, TweenAccessor defaultAccessor) {
-		registeredTweenables.put(someClass, defaultAccessor);
+		registeredAccessors.put(someClass, defaultAccessor);
+	}
+
+	/**
+	 * Gets the registered TweenAccessor associated with the given object class.
+	 * @param someClass An object class.
+	 */
+	public static TweenAccessor getDefaultAccessor(Class someClass) {
+		return registeredAccessors.get(someClass);
 	}
 
 	// -------------------------------------------------------------------------
 
-	private static final Map<Class, TweenAccessor> registeredTweenables = new HashMap<Class, TweenAccessor>();
+	private static final Map<Class, TweenAccessor> registeredAccessors = new HashMap<Class, TweenAccessor>();
 	private static final float[] buffer = new float[MAX_COMBINED_TWEENS];
 
 	private static final Pool.Callback<Tween> poolCallback = new Pool.Callback<Tween>() {
@@ -375,10 +383,10 @@ public class Tween implements Groupable {
 		this.durationMillis = durationMillis;
 
 		if (target != null) {
-			if (!registeredTweenables.containsKey(target.getClass()))
+			if (!registeredAccessors.containsKey(target.getClass()))
 				throw new RuntimeException("Target class is not registered");
 
-			accessor = registeredTweenables.get(target.getClass());
+			accessor = registeredAccessors.get(target.getClass());
 			combinedTweenCount = accessor.getValues(target, tweenType, buffer);
 
 			if (combinedTweenCount < 1 || combinedTweenCount > MAX_COMBINED_TWEENS)
