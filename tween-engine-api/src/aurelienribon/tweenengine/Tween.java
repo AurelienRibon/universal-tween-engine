@@ -1,7 +1,9 @@
 package aurelienribon.tweenengine;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Core class of the Tween Engine. It contains many static factory methods to
@@ -21,13 +23,17 @@ import java.util.List;
  * The following example will move the target horizontal position from its
  * current value to x=200 and y=300, during 500ms, but only after a delay of
  * 1000ms. The transition will also be repeated 2 times (the starting position
- * is registered at the end of the delay, so the animation will automatically 
+ * is registered at the end of the delay, so the animation will automatically
  * restart from this registered position).
  *
  * <br/><br/>
  * <pre>
- * Tween.to(myObject, POSITION_XY, 500, Quad.INOUT)
- *      .target(200, 300).delay(1000).repeat(2).addToManager(myManager);
+ * Tween.to(myObject, POSITION_XY, 500)
+ *      .target(200, 300)
+ *      .ease(Quad.INOUT)
+ *      .delay(1000)
+ *      .repeat(2)
+ *      .addToManager(myManager);
  * </pre>
  *
  * You need to periodicaly update the tween engine, in order to compute the new
@@ -37,8 +43,9 @@ import java.util.List;
  * @see Tweenable
  * @see TweenManager
  * @see TweenGroup
- * 
- * @author Aurelien Ribon (aurelien.ribon@gmail.com)
+ * @see TweenEquation
+ *
+ * @author Aurelien Ribon | http://www.aurelienribon.com/
  */
 public class Tween implements Groupable {
 
@@ -97,7 +104,13 @@ public class Tween implements Groupable {
 		pool.clear();
 	}
 
+	public static void register(Class objectClass, Tweenable tweenableImpl) {
+		registeredTweenables.put(objectClass, tweenableImpl);
+	}
+
 	// -------------------------------------------------------------------------
+
+	private static final Map<Class, Tweenable> registeredTweenables = new HashMap<Class, Tweenable>();
 
 	private static final Pool.Callback<Tween> poolCallback = new Pool.Callback<Tween>() {
 		@Override public void onPool(Tween obj) {obj.reset();}
@@ -106,7 +119,7 @@ public class Tween implements Groupable {
 
 	private static final Pool<Tween> pool = new Pool<Tween>(20, poolCallback) {
 		@Override protected Tween create() {
-			Tween tween = new Tween(null, -1, 0, null);
+			Tween tween = new Tween(null, -1, 0);
 			tween.reset();
 			return tween;
 		}
@@ -137,53 +150,16 @@ public class Tween implements Groupable {
 	 * This method hides some of the internal optimizations such as object
 	 * reuse for convenience. However, you can control the creation of the
 	 * tween by using the classic constructor.
-	 * 
+	 *
 	 * @param target The target of the interpolation.
 	 * @param tweenType The desired type of interpolation.
 	 * @param durationMillis The duration of the interpolation, in milliseconds.
-	 * @param equation The easing equation used during the interpolation.
 	 * @return The generated Tween.
 	 * @see Tweenable
-	 * @see TweenEquation
 	 */
-	public static Tween to(Tweenable target, int tweenType, int durationMillis, TweenEquation equation) {
+	public static Tween to(Object target, int tweenType, int durationMillis) {
 		Tween tween = pool.get();
-		tween.build(target, tweenType, durationMillis, equation);
-		return tween;
-	}
-
-	/**
-	 * Convenience method to create a new interpolation.
-	 *
-	 * <br/><br/>
-	 * You need to set the target values of the interpolation by using one
-	 * of the ".target()" methods. The interpolation will run from the current
-	 * values (retrieved after the delay, if any) to these target values.
-	 *
-	 * <br/><br/>
-	 * The following lines are equivalent (if pooling has been disabled):
-	 *
-	 * <br/><br/>
-	 * <pre>
-	 * Tween.to(myObject, Types.POSITION, 1000, Quad.INOUT).target(50, 70);
-	 * new Tween(myObject, Types.POSITION, 1000, Quad.INOUT).target(50, 70);
-	 * </pre>
-	 *
-	 * Several options such as delays and callbacks can be added to the tween.
-	 * This method hides some of the internal optimizations such as object
-	 * reuse for convenience. However, you can control the creation of the
-	 * tween by using the classic constructor.
-	 *
-	 * @param target The target of the interpolation.
-	 * @param durationMillis The duration of the interpolation, in milliseconds.
-	 * @param equation The easing equation used during the interpolation.
-	 * @return The generated Tween.
-	 * @see SimpleTweenable
-	 * @see TweenEquation
-	 */
-	public static Tween to(SimpleTweenable target, int durationMillis, TweenEquation equation) {
-		Tween tween = pool.get();
-		tween.build(target, 0, durationMillis, equation);
+		tween.build(target, tweenType, durationMillis);
 		return tween;
 	}
 
@@ -212,50 +188,12 @@ public class Tween implements Groupable {
 	 * @param target The target of the interpolation.
 	 * @param tweenType The desired type of interpolation.
 	 * @param durationMillis The duration of the interpolation, in milliseconds.
-	 * @param equation The easing equation used during the interpolation.
 	 * @return The generated Tween.
 	 * @see Tweenable
-	 * @see TweenEquation
 	 */
-	public static Tween from(Tweenable target, int tweenType, int durationMillis, TweenEquation equation) {
+	public static Tween from(Object target, int tweenType, int durationMillis) {
 		Tween tween = pool.get();
-		tween.build(target, tweenType, durationMillis, equation);
-		tween.isReversed = true;
-		return tween;
-	}
-
-	/**
-	 * Convenience method to create a new reversed interpolation.
-	 *
-	 * <br/><br/>
-	 * You need to set the target values of the interpolation by using one
-	 * of the ".target()" methods. The interpolation will run from these target
-	 * values to the current values (retrieved after the delay, if any).
-	 *
-	 * <br/><br/>
-	 * The following lines are equivalent (if pooling has been disabled):
-	 *
-	 * <br/><br/>
-	 * <pre>
-	 * Tween.from(myObject, Types.POSITION, 1000, Quad.INOUT).target(50, 70);
-	 * new Tween(myObject, Types.POSITION, 1000, Quad.INOUT).target(50, 70).reverse();
-	 * </pre>
-	 *
-	 * Several options such as delays and callbacks can be added to the tween.
-	 * This method hides some of the internal optimizations such as object
-	 * reuse for convenience. However, you can control the creation of the
-	 * tween by using the classic constructor.
-	 *
-	 * @param target The target of the interpolation.
-	 * @param durationMillis The duration of the interpolation, in milliseconds.
-	 * @param equation The easing equation used during the interpolation.
-	 * @return The generated Tween.
-	 * @see SimpleTweenable
-	 * @see TweenEquation
-	 */
-	public static Tween from(SimpleTweenable target, int durationMillis, TweenEquation equation) {
-		Tween tween = pool.get();
-		tween.build(target, 0, durationMillis, equation);
+		tween.build(target, tweenType, durationMillis);
 		tween.isReversed = true;
 		return tween;
 	}
@@ -288,42 +226,9 @@ public class Tween implements Groupable {
 	 * @return The generated Tween.
 	 * @see Tweenable
 	 */
-	public static Tween set(Tweenable target, int tweenType) {
+	public static Tween set(Object target, int tweenType) {
 		Tween tween = pool.get();
-		tween.build(target, tweenType, 0, null);
-		return tween;
-	}
-
-	/**
-	 * Convenience method to create a new instantaneous interpolation (as a
-	 * result, this is not really an "interpolation").
-	 *
-	 * <br/><br/>
-	 * You need to set the target values of the interpolation by using one
-	 * of the ".target()" methods. The interpolation will directly apply these
-	 * target values. Of course, a delay can be specified, like in every tween.
-	 *
-	 * <br/><br/>
-	 * The following lines are equivalent (if pooling has been disabled):
-	 *
-	 * <br/><br/>
-	 * <pre>
-	 * Tween.set(myObject, Types.POSITION).target(50, 70);
-	 * new Tween(myObject, Types.POSITION, 0, null).target(50, 70);
-	 * </pre>
-	 *
-	 * Several options such as delays and callbacks can be added to the tween.
-	 * This method hides some of the internal optimizations such as object
-	 * reuse for convenience. However, you can control the creation of the
-	 * tween by using the classic constructor.
-	 *
-	 * @param target The target of the interpolation.
-	 * @return The generated Tween.
-	 * @see SimpleTweenable
-	 */
-	public static Tween set(SimpleTweenable target) {
-		Tween tween = pool.get();
-		tween.build(target, 0, 0, null);
+		tween.build(target, tweenType, 0);
 		return tween;
 	}
 
@@ -352,7 +257,7 @@ public class Tween implements Groupable {
 	 */
 	public static Tween call(TweenCallback callback) {
 		Tween tween = pool.get();
-		tween.build(null, -1, 0, null);
+		tween.build(null, -1, 0);
 		tween.addIterationCompleteCallback(callback);
 		return tween;
 	}
@@ -380,7 +285,7 @@ public class Tween implements Groupable {
 	 */
 	public static Tween mark() {
 		Tween tween = pool.get();
-		tween.build(null, -1, 0, null);
+		tween.build(null, -1, 0);
 		return tween;
 	}
 
@@ -389,7 +294,8 @@ public class Tween implements Groupable {
 	// -------------------------------------------------------------------------
 
 	// Main
-	private Tweenable target;
+	private Object target;
+	private Tweenable tweenable;
 	private int tweenType;
 	private TweenEquation equation;
 
@@ -427,7 +333,7 @@ public class Tween implements Groupable {
 	private Object userData;
 
 	// Misc
-	private final float[] localTmp = new float[MAX_COMBINED_TWEENS];
+	private final float[] buffer = new float[MAX_COMBINED_TWEENS];
 
 	// -------------------------------------------------------------------------
 	// Ctor
@@ -438,15 +344,15 @@ public class Tween implements Groupable {
 	 * @param target The target of the interpolation.
 	 * @param tweenType The desired type of interpolation.
 	 * @param durationMillis The duration of the interpolation, in milliseconds.
-	 * @param equation The easing equation used during the interpolation.
 	 */
-	public Tween(Tweenable target, int tweenType, int durationMillis, TweenEquation equation) {
+	public Tween(Tweenable target, int tweenType, int durationMillis) {
 		reset();
-		build(target, tweenType, durationMillis, equation);
+		build(target, tweenType, durationMillis);
 	}
 
 	private void reset() {
 		target = null;
+		tweenable = null;
 		tweenType = -1;
 		equation = null;
 
@@ -469,19 +375,30 @@ public class Tween implements Groupable {
 		userData = null;
 	}
 
-	private void build(Tweenable target, int tweenType, int durationMillis, TweenEquation equation) {
-		reset();
-
+	private void build(Object target, int tweenType, int durationMillis) {
 		this.target = target;
 		this.tweenType = tweenType;
 		this.durationMillis = durationMillis;
-		this.equation = equation;
 
 		if (target != null) {
-			combinedTweenCount = target.getTweenValues(tweenType, localTmp);
+			Class registeredClass = getRegisteredClass(target.getClass());
+
+			if (!registeredTweenables.containsKey(registeredClass))
+				throw new RuntimeException("Target class is not registered");
+
+			tweenable = registeredTweenables.get(registeredClass);
+			combinedTweenCount = tweenable.getTweenValues(target, tweenType, buffer);
+
 			if (combinedTweenCount < 1 || combinedTweenCount > MAX_COMBINED_TWEENS)
 				throw new RuntimeException("Min combined tweens = 1, max = " + MAX_COMBINED_TWEENS);
 		}
+	}
+
+	private Class getRegisteredClass(Class targetClass) {
+		Class clazz = targetClass;
+		while (clazz != null && !registeredTweenables.containsKey(clazz))
+			clazz = clazz.getSuperclass();
+		return clazz;
 	}
 
 	// -------------------------------------------------------------------------
@@ -655,7 +572,7 @@ public class Tween implements Groupable {
 	 * @return The current tween for chaining instructions.
 	 */
 	public Tween targetCurrent() {
-		target.getTweenValues(tweenType, targetValues);
+		tweenable.getTweenValues(target, tweenType, targetValues);
 		return this;
 	}
 
@@ -670,7 +587,7 @@ public class Tween implements Groupable {
 	 * @return The current tween for chaining instructions.
 	 */
 	public Tween targetCurrentRelative(float targetValue) {
-		target.getTweenValues(tweenType, targetValues);
+		tweenable.getTweenValues(target, tweenType, targetValues);
 		targetValues[0] += targetValue;
 		return this;
 	}
@@ -687,7 +604,7 @@ public class Tween implements Groupable {
 	 * @return The current tween for chaining instructions.
 	 */
 	public Tween targetCurrentRelative(float targetValue1, float targetValue2) {
-		target.getTweenValues(tweenType, targetValues);
+		tweenable.getTweenValues(target, tweenType, targetValues);
 		targetValues[0] += targetValue1;
 		targetValues[1] += targetValue2;
 		return this;
@@ -706,7 +623,7 @@ public class Tween implements Groupable {
 	 * @return The current tween for chaining instructions.
 	 */
 	public Tween targetCurrentRelative(float targetValue1, float targetValue2, float targetValue3) {
-		target.getTweenValues(tweenType, targetValues);
+		tweenable.getTweenValues(target, tweenType, targetValues);
 		targetValues[0] += targetValue1;
 		targetValues[1] += targetValue2;
 		targetValues[2] += targetValue3;
@@ -726,9 +643,21 @@ public class Tween implements Groupable {
 	public Tween targetCurrentRelative(float... targetValues) {
 		if (targetValues.length > MAX_COMBINED_TWEENS)
 			throw new RuntimeException("You cannot set more than " + MAX_COMBINED_TWEENS + " targets.");
-		target.getTweenValues(tweenType, targetValues);
+		tweenable.getTweenValues(target, tweenType, targetValues);
 		for (int i=0, n=targetValues.length; i<n; i++)
 			this.targetValues[i] += targetValues[i];
+		return this;
+	}
+
+	/**
+	 * Sets the easing equation of the tween. Existing equations are located in
+	 * aurelienribon.tweenengine.equations, but you can of course implement
+	 * your own, see TweenEquation.
+	 * @return The current tween for chaining instructions.
+	 * @see TweenEquation
+	 */
+	public Tween ease(TweenEquation easeEquation) {
+		this.equation = easeEquation;
 		return this;
 	}
 
@@ -799,7 +728,7 @@ public class Tween implements Groupable {
 	}
 
 	/**
-	 * Repeats the tween for a given number of times. 
+	 * Repeats the tween for a given number of times.
 	 * @param count The number of desired repetition. For infinite repetition,
 	 * use Tween.INFINITY, or a negative number.
 	 * @param millis A delay before each repetition.
@@ -824,7 +753,7 @@ public class Tween implements Groupable {
 	}
 
 	/**
-	 * Convenience method to add a single tween to a manager. The tween is 
+	 * Convenience method to add a single tween to a manager. The tween is
 	 * automatically started. Both following usages are equivalent:<br/>
 	 * <pre>
 	 * myManager.add(Tween.to(...));
@@ -843,7 +772,7 @@ public class Tween implements Groupable {
 	 * Gets the tween target.
 	 */
 	public Tweenable getTarget() {
-		return target;
+		return tweenable;
 	}
 
 	/**
@@ -955,13 +884,13 @@ public class Tween implements Groupable {
 		checkIteration();
 		updateTarget();
 	}
-	
+
 	private void initialize() {
-		if (target == null) return;
+		if (tweenable == null) return;
 
 		if (!isInitialized && justTriggeredForwards(delayMillis)) {
 			isInitialized = true;
-			target.getTweenValues(tweenType, startValues);
+			tweenable.getTweenValues(target, tweenType, startValues);
 			for (int i=0; i<combinedTweenCount; i++) {
 				targetValues[i] += isRelative ? startValues[i] : 0;
 				targetMinusStartValues[i] = targetValues[i] - startValues[i];
@@ -973,7 +902,7 @@ public class Tween implements Groupable {
 		// -----Forwards
 
 		if (justTriggeredForwards(endMillis)) {
-			if (target != null) target.onTweenUpdated(tweenType, isReversed ? startValues : targetValues);
+			if (tweenable != null) tweenable.onTweenUpdated(target, tweenType, isReversed ? startValues : targetValues);
 
 			callCallbacks(TweenCallback.Types.ITERATION_COMPLETE);
 			if (repeatCnt >= 0 && iteration == repeatCnt)
@@ -992,7 +921,7 @@ public class Tween implements Groupable {
 		// -----Backwards
 
 		if (justTriggeredBackwards(0)) {
-			if (target != null) target.onTweenUpdated(tweenType, isReversed ? targetValues : startValues);
+			if (tweenable != null) tweenable.onTweenUpdated(target, tweenType, isReversed ? targetValues : startValues);
 
 			callCallbacks(TweenCallback.Types.BACK_ITERATION_COMPLETE);
 			if (iteration > 0) {
@@ -1007,18 +936,18 @@ public class Tween implements Groupable {
 	}
 
 	private void updateTarget() {
-		if (target == null || equation == null || !isInitialized) return;
+		if (tweenable == null || equation == null || !isInitialized) return;
 		if (currentMillis < delayMillis || currentMillis > endMillis) return;
 
 		for (int i=0; i<combinedTweenCount; i++) {
-			localTmp[i] = equation.compute(
+			buffer[i] = equation.compute(
 				currentMillis - delayMillis,
 				isReversed ? targetValues[i] : startValues[i],
 				isReversed ? -targetMinusStartValues[i] : +targetMinusStartValues[i],
 				durationMillis);
 		}
 
-		target.onTweenUpdated(tweenType, localTmp);
+		tweenable.onTweenUpdated(target, tweenType, buffer);
 	}
 
 	// -------------------------------------------------------------------------

@@ -3,6 +3,7 @@ package aurelienribon.tweenengine.tests.swing;
 import aurelienribon.tweenengine.Tween;
 import aurelienribon.tweenengine.TweenManager;
 import aurelienribon.tweenengine.equations.Back;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -16,7 +17,6 @@ public class App {
 	private final JFrame window;
 	private final JButton button;
 	private final TweenManager tweenManager;
-	private final TweenComponent tweenableButton;
 
 	public App() {
 		button = new JButton("Push me!");
@@ -32,8 +32,8 @@ public class App {
 		window.getContentPane().add(button);
 		window.setVisible(true);
 
+		Tween.register(Component.class, new TweenableComponent());
 		tweenManager = new TweenManager();
-		tweenableButton = new TweenComponent(button);
 
 		SwingTweenThread.start(window.getContentPane(), tweenManager);
 	}
@@ -45,9 +45,10 @@ public class App {
 			int tx = rand.nextInt(window.getContentPane().getWidth() - button.getWidth());
 			int ty = rand.nextInt(window.getContentPane().getHeight() - button.getHeight());
 
-			tweenManager.kill(tweenableButton);
-			Tween.to(tweenableButton, TweenComponent.POSITION, 500, Back.OUT)
+			tweenManager.clear();
+			Tween.to(button, TweenableComponent.POSITION, 500)
 				.target(tx, ty)
+				.ease(Back.OUT)
 				.addToManager(tweenManager);
 		}
 	};

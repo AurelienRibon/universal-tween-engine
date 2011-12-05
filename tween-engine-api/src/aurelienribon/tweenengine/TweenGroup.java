@@ -44,7 +44,7 @@ import java.util.List;
  *
  * @see Tween
  * @see TweenManager
- * @author Aurelien Ribon (aurelien.ribon@gmail.com)
+ * @author Aurelien Ribon | http://www.aurelienribon.com/
  */
 public class TweenGroup implements Groupable {
 	private static final Pool.Callback<TweenGroup> poolCallback = new Pool.Callback<TweenGroup>() {

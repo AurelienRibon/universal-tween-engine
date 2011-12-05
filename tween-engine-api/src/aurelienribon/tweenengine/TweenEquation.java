@@ -5,7 +5,7 @@ package aurelienribon.tweenengine;
  * and directly use them in the Tween static methods by deriving from this
  * class.
  * 
- * @author Aurelien Ribon (aurelien.ribon@gmail.com)
+ * @author Aurelien Ribon | http://www.aurelienribon.com/
  */
 public abstract class TweenEquation {
 	/**

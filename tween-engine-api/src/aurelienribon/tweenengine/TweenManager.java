@@ -15,7 +15,7 @@ import java.util.List;
  *
  * @see Tween
  * @see TweenGroup
- * @author Aurelien Ribon (aurelien.ribon@gmail.com)
+ * @author Aurelien Ribon | http://www.aurelienribon.com/
  */
 public class TweenManager {
 	final ArrayList<Tween> tweens = new ArrayList<Tween>(20);

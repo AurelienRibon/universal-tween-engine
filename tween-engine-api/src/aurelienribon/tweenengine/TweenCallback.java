@@ -2,7 +2,7 @@ package aurelienribon.tweenengine;
 
 /**
  * 
- * @author Aurelien Ribon (aurelien.ribon@gmail.com)
+ * @author Aurelien Ribon | http://www.aurelienribon.com/
  */
 public interface TweenCallback {
 	public enum Types {ITERATION_COMPLETE, BACK_ITERATION_COMPLETE, COMPLETE, BACK_COMPLETE}

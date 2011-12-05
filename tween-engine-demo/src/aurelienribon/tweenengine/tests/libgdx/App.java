@@ -4,7 +4,6 @@ import aurelienribon.tweenengine.Tween;
 import aurelienribon.tweenengine.TweenCallback;
 import aurelienribon.tweenengine.TweenGroup;
 import aurelienribon.tweenengine.TweenManager;
-import aurelienribon.tweenengine.Tweenable;
 import aurelienribon.tweenengine.equations.Back;
 import aurelienribon.tweenengine.equations.Cubic;
 import aurelienribon.tweenengine.equations.Quad;
@@ -29,15 +28,11 @@ public class App implements ApplicationListener {
 
 	private BitmapFont font;
 	private String text;
-	
+
 	private Sprite sprite1;
 	private Sprite sprite2;
 	private Sprite sprite3;
 	private Sprite sprite4;
-	private TweenSprite tweenSprite1;
-	private TweenSprite tweenSprite2;
-	private TweenSprite tweenSprite3;
-	private TweenSprite tweenSprite4;
 
 	private boolean canBeRestarted = false;
 	private boolean canControlSpeed = false;
@@ -86,21 +81,12 @@ public class App implements ApplicationListener {
 		sprite3.setColor(1, 1, 1, 0);
 		sprite4.setColor(1, 1, 1, 0);
 
-		// Creation of a TweenManager
+		// Tween engine setup
 		Tween.setPoolEnabled(true);
-		tweenManager = new TweenManager();
+		Tween.register(Sprite.class, new TweenableSprite());
 
-		// Creation of the Tweenables associated with the previous sprites.
-		// I use a composition pattern instead of deriving from Sprite. This
-		// allows an easier management of Tweenables and I can still use every
-		// constructor of the Sprite class to define the sprites. Moreover,
-		// some methods in libgdx (as TextureAtlas) are sprite factories, so
-		// they create the sprites for you. Thus, you can only tween them with
-		// such composition pattern.
-		tweenSprite1 = new TweenSprite(sprite1);
-		tweenSprite2 = new TweenSprite(sprite2);
-		tweenSprite3 = new TweenSprite(sprite3);
-		tweenSprite4 = new TweenSprite(sprite4);
+		// Tween manager creation
+		tweenManager = new TweenManager();
 
 		// Demo of the Tween.call possibility. It's just a timer :)
 		text = "Idle (auto-start in 2 seconds)";
@@ -149,26 +135,26 @@ public class App implements ApplicationListener {
 	// ANIMATION
 	// -------------------------------------------------------------------------
 
-	private TweenGroup buildAnimation(Tweenable target, int delay1, int delay2) {
+	private TweenGroup buildAnimation(Sprite target, int delay1, int delay2) {
 		return TweenGroup.sequence(
-			Tween.set(target, TweenSprite.POSITION_XY).target(0, 0),
-			Tween.set(target, TweenSprite.SCALE_XY).target(10, 10),
-			Tween.set(target, TweenSprite.ROTATION).target(0),
-			
+			Tween.set(target, TweenableSprite.POSITION_XY).target(0, 0),
+			Tween.set(target, TweenableSprite.SCALE_XY).target(10, 10),
+			Tween.set(target, TweenableSprite.ROTATION).target(0),
+
 			TweenGroup.tempo(delay1),
 			TweenGroup.parallel(
-				Tween.to(target, TweenSprite.OPACITY, 1000, Quart.INOUT).target(1),
-				Tween.to(target, TweenSprite.SCALE_XY, 1000, Quart.INOUT).target(1, 1)
+				Tween.to(target, TweenableSprite.OPACITY, 1000).target(1).ease(Quart.INOUT),
+				Tween.to(target, TweenableSprite.SCALE_XY, 1000).target(1, 1).ease(Quart.INOUT)
 			),
 
 			TweenGroup.tempo(-500),
-			Tween.to(target, TweenSprite.POSITION_XY, 1000, Back.OUT).targetCurrent(),
-			Tween.to(target, TweenSprite.ROTATION, 800, Cubic.INOUT).target(360),
+			Tween.to(target, TweenableSprite.POSITION_XY, 1000).targetCurrent().ease(Back.OUT),
+			Tween.to(target, TweenableSprite.ROTATION, 800).target(360).ease(Cubic.INOUT),
 
 			TweenGroup.tempo(delay2),
 			TweenGroup.parallel(
-				Tween.to(target, TweenSprite.SCALE_XY, 300, Quad.IN).target(3, 3),
-				Tween.to(target, TweenSprite.OPACITY, 300, Quad.IN).target(0)
+				Tween.to(target, TweenableSprite.SCALE_XY, 300).target(3, 3).ease(Quad.IN),
+				Tween.to(target, TweenableSprite.OPACITY, 300).target(0).ease(Quad.IN)
 			)
 		);
 	}
@@ -183,10 +169,10 @@ public class App implements ApplicationListener {
 		TweenGroup.sequence(
 			startMark = Tween.mark(),
 			TweenGroup.parallel(
-				buildAnimation(tweenSprite1, 0, 1400),
-				buildAnimation(tweenSprite2, 200, 1000),
-				buildAnimation(tweenSprite3, 400, 600),
-				buildAnimation(tweenSprite4, 600, 200)
+				buildAnimation(sprite1, 0, 1400),
+				buildAnimation(sprite2, 200, 1000),
+				buildAnimation(sprite3, 400, 600),
+				buildAnimation(sprite4, 600, 200)
 			),
 			endMark = Tween.mark()
 		).repeat(repeatCnt, 0).addToManager(tweenManager);
@@ -232,10 +218,7 @@ public class App implements ApplicationListener {
 				iterationCnt = 0;
 				// If the user touches the screen, we kill every running tween
 				// and restart the animation.
-				tweenManager.kill(tweenSprite1);
-				tweenManager.kill(tweenSprite2);
-				tweenManager.kill(tweenSprite3);
-				tweenManager.kill(tweenSprite4);
+				tweenManager.clear();
 				start();
 			}
 			return true;

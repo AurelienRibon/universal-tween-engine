@@ -1,5 +1,9 @@
 package aurelienribon.tweenengine;
 
+/**
+ * 
+ * @author Aurelien Ribon | http://www.aurelienribon.com/
+ */
 public interface Groupable {
 	public int getDuration();
 	public int getDelay();

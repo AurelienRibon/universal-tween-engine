@@ -15,7 +15,7 @@ import javax.swing.SwingUtilities;
  * Call "SwingTweenThread.start(yourObjectContainer, yourTweenManager)" to start
  * the engine.
  *
- * @author Aurelien Ribon (aurelien.ribon@gmail.com)
+ * @author Aurelien Ribon | http://www.aurelienribon.com/
  */
 public class SwingTweenThread extends Thread {
 	public static SwingTweenThread start(Component container, TweenManager manager) {
