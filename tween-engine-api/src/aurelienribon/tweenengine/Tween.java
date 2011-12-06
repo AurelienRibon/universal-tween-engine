@@ -1,5 +1,6 @@
 package aurelienribon.tweenengine;
 
+import aurelienribon.tweenengine.equations.Linear;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -184,6 +185,7 @@ public class Tween implements Groupable {
 	public static Tween to(Object target, int tweenType, int durationMillis) {
 		Tween tween = pool.get();
 		tween.setup(target, tweenType, durationMillis);
+		tween.ease(Linear.INOUT);
 		return tween;
 	}
 
@@ -219,6 +221,7 @@ public class Tween implements Groupable {
 	public static Tween from(Object target, int tweenType, int durationMillis) {
 		Tween tween = pool.get();
 		tween.setup(target, tweenType, durationMillis);
+		tween.ease(Linear.INOUT);
 		tween.isReversed = true;
 		return tween;
 	}
@@ -420,7 +423,7 @@ public class Tween implements Groupable {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Starts the interpolation. Using this method can lead to some
+	 * Starts or restars the interpolation. Using this method can lead to some
 	 * side-effects if you call it multiple times. <b>The recommanded behavior
 	 * is to add the tween to a Tween Manager instead.</b>
 	 * @return The current tween for chaining instructions.
@@ -445,6 +448,7 @@ public class Tween implements Groupable {
 	 * @return The current tween for chaining instructions.
 	 */
 	public Tween target(float targetValue) {
+		if (isStarted) throw new RuntimeException("Cannot change the targets of a running tween");
 		targetValues[0] = targetValue;
 		return this;
 	}
@@ -462,6 +466,7 @@ public class Tween implements Groupable {
 	 * @return The current tween for chaining instructions.
 	 */
 	public Tween target(float targetValue1, float targetValue2) {
+		if (isStarted) throw new RuntimeException("Cannot change the targets of a running tween");
 		targetValues[0] = targetValue1;
 		targetValues[1] = targetValue2;
 		return this;
@@ -481,6 +486,7 @@ public class Tween implements Groupable {
 	 * @return The current tween for chaining instructions.
 	 */
 	public Tween target(float targetValue1, float targetValue2, float targetValue3) {
+		if (isStarted) throw new RuntimeException("Cannot change the targets of a running tween");
 		targetValues[0] = targetValue1;
 		targetValues[1] = targetValue2;
 		targetValues[2] = targetValue3;
@@ -499,6 +505,7 @@ public class Tween implements Groupable {
 	 * @return The current tween for chaining instructions.
 	 */
 	public Tween target(float... targetValues) {
+		if (isStarted) throw new RuntimeException("Cannot change the targets of a running tween");
 		if (targetValues.length > MAX_COMBINED_TWEENS)
 			throw new RuntimeException("You cannot set more than " + MAX_COMBINED_TWEENS + " targets.");
 		System.arraycopy(targetValues, 0, this.targetValues, 0, targetValues.length);
@@ -516,6 +523,7 @@ public class Tween implements Groupable {
 	 * @return The current tween for chaining instructions.
 	 */
 	public Tween targetRelative(float targetValue) {
+		if (isStarted) throw new RuntimeException("Cannot change the targets of a running tween");
 		isRelative = true;
 		targetValues[0] = targetValue;
 		return this;
@@ -533,6 +541,7 @@ public class Tween implements Groupable {
 	 * @return The current tween for chaining instructions.
 	 */
 	public Tween targetRelative(float targetValue1, float targetValue2) {
+		if (isStarted) throw new RuntimeException("Cannot change the targets of a running tween");
 		isRelative = true;
 		targetValues[0] = targetValue1;
 		targetValues[1] = targetValue2;
@@ -552,6 +561,7 @@ public class Tween implements Groupable {
 	 * @return The current tween for chaining instructions.
 	 */
 	public Tween targetRelative(float targetValue1, float targetValue2, float targetValue3) {
+		if (isStarted) throw new RuntimeException("Cannot change the targets of a running tween");
 		isRelative = true;
 		targetValues[0] = targetValue1;
 		targetValues[1] = targetValue2;
@@ -570,6 +580,7 @@ public class Tween implements Groupable {
 	 * @return The current tween for chaining instructions.
 	 */
 	public Tween targetRelative(float... targetValues) {
+		if (isStarted) throw new RuntimeException("Cannot change the targets of a running tween");
 		if (targetValues.length > MAX_COMBINED_TWEENS)
 			throw new RuntimeException("You cannot set more than " + MAX_COMBINED_TWEENS + " targets.");
 		System.arraycopy(targetValues, 0, this.targetValues, 0, targetValues.length);
@@ -587,6 +598,7 @@ public class Tween implements Groupable {
 	 * @return The current tween for chaining instructions.
 	 */
 	public Tween targetCurrent() {
+		if (isStarted) throw new RuntimeException("Cannot change the targets of a running tween");
 		accessor.getValues(target, type, targetValues);
 		return this;
 	}
@@ -602,6 +614,7 @@ public class Tween implements Groupable {
 	 * @return The current tween for chaining instructions.
 	 */
 	public Tween targetCurrentRelative(float targetValue) {
+		if (isStarted) throw new RuntimeException("Cannot change the targets of a running tween");
 		accessor.getValues(target, type, targetValues);
 		targetValues[0] += targetValue;
 		return this;
@@ -619,6 +632,7 @@ public class Tween implements Groupable {
 	 * @return The current tween for chaining instructions.
 	 */
 	public Tween targetCurrentRelative(float targetValue1, float targetValue2) {
+		if (isStarted) throw new RuntimeException("Cannot change the targets of a running tween");
 		accessor.getValues(target, type, targetValues);
 		targetValues[0] += targetValue1;
 		targetValues[1] += targetValue2;
@@ -638,6 +652,7 @@ public class Tween implements Groupable {
 	 * @return The current tween for chaining instructions.
 	 */
 	public Tween targetCurrentRelative(float targetValue1, float targetValue2, float targetValue3) {
+		if (isStarted) throw new RuntimeException("Cannot change the targets of a running tween");
 		accessor.getValues(target, type, targetValues);
 		targetValues[0] += targetValue1;
 		targetValues[1] += targetValue2;
@@ -656,6 +671,7 @@ public class Tween implements Groupable {
 	 * @return The current tween for chaining instructions.
 	 */
 	public Tween targetCurrentRelative(float... targetValues) {
+		if (isStarted) throw new RuntimeException("Cannot change the targets of a running tween");
 		if (targetValues.length > MAX_COMBINED_TWEENS)
 			throw new RuntimeException("You cannot set more than " + MAX_COMBINED_TWEENS + " targets.");
 		accessor.getValues(target, type, targetValues);
@@ -672,6 +688,7 @@ public class Tween implements Groupable {
 	 * @see TweenEquation
 	 */
 	public Tween ease(TweenEquation easeEquation) {
+		if (isStarted) throw new RuntimeException("Cannot change the easing of a running tween");
 		this.equation = easeEquation;
 		return this;
 	}
@@ -692,6 +709,7 @@ public class Tween implements Groupable {
 	 */
 	@Override
 	public Tween delay(int millis) {
+		if (isStarted) throw new RuntimeException("Cannot change the delay of a running tween");
 		delayMillis += millis;
 		return this;
 	}
@@ -778,7 +796,7 @@ public class Tween implements Groupable {
 	 * @return The current tween for chaining instructions.
 	 */
 	public Tween addToManager(TweenManager manager) {
-		manager.tweens.add(this);
+		if (!manager.tweens.contains(this)) manager.tweens.add(this);
 		start();
 		return this;
 	}
