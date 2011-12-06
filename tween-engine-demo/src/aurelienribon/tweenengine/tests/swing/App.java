@@ -3,6 +3,7 @@ package aurelienribon.tweenengine.tests.swing;
 import aurelienribon.tweenengine.Tween;
 import aurelienribon.tweenengine.TweenManager;
 import aurelienribon.tweenengine.equations.Back;
+import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -31,7 +32,7 @@ public class App {
 		window.getContentPane().add(button);
 		window.setVisible(true);
 
-		Tween.registerAccessor(JButton.class, new ComponentTweenAccessor());
+		Tween.registerAccessor(Component.class, new ComponentTweenAccessor());
 		tweenManager = new TweenManager();
 
 		SwingTweenThread.start(window.getContentPane(), tweenManager);

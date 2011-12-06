@@ -390,8 +390,14 @@ public class Tween implements Groupable {
 		this.durationMillis = durationMillis;
 
 		if (target != null) {
-			if (!registeredAccessors.containsKey(target.getClass()) && !(target instanceof TweenAccessor))
-				throw new RuntimeException("No TweenAccessor was found for the target class");
+			if (!registeredAccessors.containsKey(target.getClass()) && !(target instanceof TweenAccessor)) {
+				TweenAccessor parentAccessor = getParentAccessor(target.getClass());
+				if (parentAccessor != null) {
+					registerAccessor(target.getClass(), parentAccessor);
+				} else {
+					throw new RuntimeException("No TweenAccessor was found for the target class");
+				}
+			}
 
 			accessor = registeredAccessors.get(target.getClass());
 			if (accessor == null) accessor = (TweenAccessor) target;
@@ -400,6 +406,13 @@ public class Tween implements Groupable {
 			if (combinedTweenCount < 1 || combinedTweenCount > MAX_COMBINED_TWEENS)
 				throw new RuntimeException("Min combined tweens = 1, max = " + MAX_COMBINED_TWEENS);
 		}
+	}
+
+	private TweenAccessor getParentAccessor(Class clazz) {
+		Class parentClass = clazz.getSuperclass();
+		while (parentClass != null && !registeredAccessors.containsKey(parentClass))
+			parentClass = parentClass.getSuperclass();
+		return parentClass != null ? registeredAccessors.get(parentClass) : null;
 	}
 
 	// -------------------------------------------------------------------------
