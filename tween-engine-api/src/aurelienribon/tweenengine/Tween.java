@@ -287,7 +287,7 @@ public class Tween implements Groupable {
 	public static Tween call(TweenCallback callback) {
 		Tween tween = pool.get();
 		tween.setup(null, -1, 0);
-		tween.addIterationCompleteCallback(callback);
+		tween.addStartCallback(callback);
 		return tween;
 	}
 
@@ -337,7 +337,14 @@ public class Tween implements Groupable {
 	private boolean isFinished; // true when all repetitions are done or the tween has been killed
 
 	// Callbacks
-	private final List<CallbackTuple> callbacks = new ArrayList<CallbackTuple>();
+	private List<TweenCallback> beginCallbacks;
+	private List<TweenCallback> startCallbacks;
+	private List<TweenCallback> endCallbacks;
+	private List<TweenCallback> completeCallbacks;
+	private List<TweenCallback> backBeginCallbacks;
+	private List<TweenCallback> backStartCallbacks;
+	private List<TweenCallback> backEndCallbacks;
+	private List<TweenCallback> backCompleteCallbacks;
 
 	// Repeat
 	private int repeatCnt;
@@ -378,7 +385,14 @@ public class Tween implements Groupable {
 		isInitialized = false;
 		isFinished = false;
 
-		callbacks.clear();
+		if (beginCallbacks != null) beginCallbacks.clear();
+		if (startCallbacks != null) startCallbacks.clear();
+		if (endCallbacks != null) endCallbacks.clear();
+		if (completeCallbacks != null) completeCallbacks.clear();
+		if (backBeginCallbacks != null) backBeginCallbacks.clear();
+		if (backStartCallbacks != null) backStartCallbacks.clear();
+		if (backEndCallbacks != null) backEndCallbacks.clear();
+		if (backCompleteCallbacks != null) backCompleteCallbacks.clear();
 
 		repeatCnt = 0;
 		iteration = 0;
@@ -715,48 +729,106 @@ public class Tween implements Groupable {
 	}
 
 	/**
-	 * Adds a callback to the tween.
-	 * The callback is triggered on each iteration ending.
+	 * Adds a callback to the tween. The callback is triggered at the beginning
+	 * of each iteration (before the delay), if the tween is running forwards
+	 * (with a positive speed).
 	 * @param callback A tween callback.
 	 * @return The current tween for chaining instructions.
 	 */
-	public Tween addIterationCompleteCallback(TweenCallback callback) {
-		callbacks.add(new CallbackTuple(callback, TweenCallback.Types.ITERATION_COMPLETE));
+	public Tween addBeginCallback(TweenCallback callback) {
+		if (beginCallbacks == null) beginCallbacks = new ArrayList<TweenCallback>(1);
+		beginCallbacks.add(callback);
 		return this;
 	}
 
 	/**
-	 * Adds a callback to the tween.
-	 * The callback is triggered at the end of the tween.
+	 * Adds a callback to the tween. The callback is triggered at the start
+	 * of each iteration (after the delay), if the tween is running forwards
+	 * (with a positive speed).
+	 * @param callback A tween callback.
+	 * @return The current tween for chaining instructions.
+	 */
+	public Tween addStartCallback(TweenCallback callback) {
+		if (startCallbacks == null) startCallbacks = new ArrayList<TweenCallback>(1);
+		startCallbacks.add(callback);
+		return this;
+	}
+
+	/**
+	 * Adds a callback to the tween. The callback is triggered at the end
+	 * of each iteration (after delay + duration), if the tween is running
+	 * forwards (with a positive speed).
+	 * @param callback A tween callback.
+	 * @return The current tween for chaining instructions.
+	 */
+	public Tween addEndCallback(TweenCallback callback) {
+		if (endCallbacks == null) endCallbacks = new ArrayList<TweenCallback>(1);
+		endCallbacks.add(callback);
+		return this;
+	}
+
+	/**
+	 * Adds a callback to the tween. The callback is triggered at the completion
+	 * of each iteration (after delay + duration + repeatDelay), if the tween is
+	 * running forwards (with a positive speed).
 	 * @param callback A tween callback.
 	 * @return The current tween for chaining instructions.
 	 */
 	public Tween addCompleteCallback(TweenCallback callback) {
-		callbacks.add(new CallbackTuple(callback, TweenCallback.Types.COMPLETE));
+		if (completeCallbacks == null) completeCallbacks = new ArrayList<TweenCallback>(1);
+		completeCallbacks.add(callback);
 		return this;
 	}
 
 	/**
-	 * Adds a callback to the tween.
-	 * The callback is triggered on each iteration ending, if the animation is
-	 * running backwards (ie. with a negative speed factor).
+	 * Adds a callback to the tween. The callback is triggered at the beginning
+	 * of each iteration (before the delay), if the tween is running backwards
+	 * (with a negative speed).
 	 * @param callback A tween callback.
 	 * @return The current tween for chaining instructions.
 	 */
-	public Tween addBackwardsIterationCompleteCallback(TweenCallback callback) {
-		callbacks.add(new CallbackTuple(callback, TweenCallback.Types.BACK_ITERATION_COMPLETE));
+	public Tween addBackwardsBeginCallback(TweenCallback callback) {
+		if (backBeginCallbacks == null) backBeginCallbacks = new ArrayList<TweenCallback>(1);
+		backBeginCallbacks.add(callback);
 		return this;
 	}
 
 	/**
-	 * Adds a callback to the tween.
-	 * The callback is triggered at the end of the tween, if the animation is
-	 * running backwards (ie. with a negative speed factor).
+	 * Adds a callback to the tween. The callback is triggered at the start
+	 * of each iteration (after the delay), if the tween is running backwards
+	 * (with a negative speed).
+	 * @param callback A tween callback.
+	 * @return The current tween for chaining instructions.
+	 */
+	public Tween addBackwardsStartCallback(TweenCallback callback) {
+		if (backStartCallbacks == null) backStartCallbacks = new ArrayList<TweenCallback>(1);
+		backStartCallbacks.add(callback);
+		return this;
+	}
+
+	/**
+	 * Adds a callback to the tween. The callback is triggered at the end
+	 * of each iteration (after delay + duration), if the tween is running
+	 * backwards (with a negative speed).
+	 * @param callback A tween callback.
+	 * @return The current tween for chaining instructions.
+	 */
+	public Tween addBackwardsEndCallback(TweenCallback callback) {
+		if (backEndCallbacks == null) backEndCallbacks = new ArrayList<TweenCallback>(1);
+		backEndCallbacks.add(callback);
+		return this;
+	}
+
+	/**
+	 * Adds a callback to the tween. The callback is triggered at the completion
+	 * of each iteration (after delay + duration + repeatDelay), if the tween is
+	 * running backwards (with a negative speed).
 	 * @param callback A tween callback.
 	 * @return The current tween for chaining instructions.
 	 */
 	public Tween addBackwardsCompleteCallback(TweenCallback callback) {
-		callbacks.add(new CallbackTuple(callback, TweenCallback.Types.BACK_COMPLETE));
+		if (backCompleteCallbacks == null) backCompleteCallbacks = new ArrayList<TweenCallback>(1);
+		backCompleteCallbacks.add(callback);
 		return this;
 	}
 
@@ -914,6 +986,8 @@ public class Tween implements Groupable {
 		currentMillis = Math.max(currentMillis, -1);
 
 		initialize();
+		checkLimits();
+		checkTriggers();
 		checkIteration();
 		updateTarget();
 	}
@@ -931,17 +1005,27 @@ public class Tween implements Groupable {
 		}
 	}
 
+	private void checkLimits() {
+		if (target != null && justTriggeredForwards(endMillis))
+			accessor.setValues(target, type, isReversed ? startValues : targetValues);
+
+		if (target != null && justTriggeredBackwards(delayMillis))
+			accessor.setValues(target, type, isReversed ? targetValues : startValues);
+	}
+
+	private void checkTriggers() {
+		if (beginCallbacks != null && justTriggeredForwards(0)) callCallbacks(TweenCallback.Types.BEGIN);
+		if (startCallbacks != null && justTriggeredForwards(delayMillis)) callCallbacks(TweenCallback.Types.START);
+		if (endCallbacks != null && justTriggeredForwards(endMillis)) callCallbacks(TweenCallback.Types.END);
+		if (completeCallbacks != null && justTriggeredForwards(completeMillis)) callCallbacks(TweenCallback.Types.COMPLETE);
+
+		if (backBeginCallbacks != null && justTriggeredBackwards(0)) callCallbacks(TweenCallback.Types.BACK_BEGIN);
+		if (backStartCallbacks != null && justTriggeredBackwards(delayMillis)) callCallbacks(TweenCallback.Types.BACK_START);
+		if (backEndCallbacks != null && justTriggeredBackwards(endMillis)) callCallbacks(TweenCallback.Types.BACK_END);
+		if (backCompleteCallbacks != null && justTriggeredBackwards(completeMillis)) callCallbacks(TweenCallback.Types.BACK_COMPLETE);
+	}
+
 	private void checkIteration() {
-		// -----Forwards
-
-		if (justTriggeredForwards(endMillis)) {
-			if (target != null) accessor.setValues(target, type, isReversed ? startValues : targetValues);
-
-			callCallbacks(TweenCallback.Types.ITERATION_COMPLETE);
-			if (repeatCnt >= 0 && iteration == repeatCnt)
-				callCallbacks(TweenCallback.Types.COMPLETE);
-		}
-
 		if (justTriggeredForwards(completeMillis)) {
 			if (iteration < repeatCnt || repeatCnt < 0) {
 				iteration += 1;
@@ -951,19 +1035,13 @@ public class Tween implements Groupable {
 			}
 		}
 
-		// -----Backwards
-
 		if (justTriggeredBackwards(0)) {
-			if (target != null) accessor.setValues(target, type, isReversed ? targetValues : startValues);
-
-			callCallbacks(TweenCallback.Types.BACK_ITERATION_COMPLETE);
 			if (iteration > 0) {
 				iteration -= 1;
 				start();
 				currentMillis = completeMillis;
 			} else {
 				isFinished = true;
-				callCallbacks(TweenCallback.Types.BACK_COMPLETE);
 			}
 		}
 	}
@@ -996,18 +1074,21 @@ public class Tween implements Groupable {
 	}
 
 	private void callCallbacks(TweenCallback.Types type) {
-		for (int i=callbacks.size()-1; i>=0; i--)
-			if (callbacks.get(i).type == type)
-				callbacks.get(i).callback.tweenEventOccured(type, this);
-	}
+		List<TweenCallback> callbacks = null;
 
-	private class CallbackTuple {
-		public final TweenCallback callback;
-		public final TweenCallback.Types type;
-
-		public CallbackTuple(TweenCallback callback, TweenCallback.Types type) {
-			this.callback = callback;
-			this.type = type;
+		switch (type) {
+			case BEGIN: callbacks = beginCallbacks; break;
+			case START: callbacks = startCallbacks; break;
+			case END: callbacks = endCallbacks; break;
+			case COMPLETE: callbacks = completeCallbacks; break;
+			case BACK_BEGIN: callbacks = backBeginCallbacks; break;
+			case BACK_START: callbacks = backStartCallbacks; break;
+			case BACK_END: callbacks = backEndCallbacks; break;
+			case BACK_COMPLETE: callbacks = backCompleteCallbacks; break;
 		}
+
+		if (callbacks != null)
+			for (int i=0, n=callbacks.size(); i<n; i++)
+				callbacks.get(i).tweenEventOccured(type, this);
 	}
 }

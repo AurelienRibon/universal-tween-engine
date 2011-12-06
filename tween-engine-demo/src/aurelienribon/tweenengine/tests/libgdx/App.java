@@ -37,7 +37,7 @@ public class App implements ApplicationListener {
 	private boolean canBeRestarted = false;
 	private boolean canControlSpeed = false;
 	private float speed = 1;
-	private int iterationCnt = 0;
+	private int iterationCnt;
 
 	@Override
 	public void create() {
@@ -163,6 +163,7 @@ public class App implements ApplicationListener {
 		final int repeatCnt = 2;
 		Tween startMark = null;
 		Tween endMark = null;
+		iterationCnt = 0;
 
 		// The animation itself
 
@@ -177,31 +178,35 @@ public class App implements ApplicationListener {
 			endMark = Tween.mark()
 		).repeat(repeatCnt, 0).addToManager(tweenManager);
 
-		// The event listeners (to change the text at the right moments)
+		// The mark callbacks (to change the text at the right moments)
 
-		startMark.addIterationCompleteCallback(new TweenCallback() {
+		startMark.addStartCallback(new TweenCallback() {
 			@Override public void tweenEventOccured(Types eventType, Tween tween) {
 				text = "Iteration: " + (++iterationCnt) + " / " + (repeatCnt+1);
 			}
 		});
 
-		startMark.addBackwardsIterationCompleteCallback(new TweenCallback() {
+		endMark.addBackwardsStartCallback(new TweenCallback() {
 			@Override public void tweenEventOccured(Types eventType, Tween tween) {
 				text = "Iteration: " + (--iterationCnt) + " / " + (repeatCnt+1);
 			}
 		});
 
-		startMark.addBackwardsCompleteCallback(new TweenCallback() {
+		endMark.addStartCallback(new TweenCallback() {
 			@Override public void tweenEventOccured(Types eventType, Tween tween) {
-				text += " (click to restart)";
-				canBeRestarted = true;
+				if (iterationCnt >= 3) {
+					text = "Forwards play complete (click to restart)";
+					canBeRestarted = true;
+				}
 			}
 		});
 
-		endMark.addCompleteCallback(new TweenCallback() {
+		startMark.addBackwardsStartCallback(new TweenCallback() {
 			@Override public void tweenEventOccured(Types eventType, Tween tween) {
-				text += " (click to restart)";
-				canBeRestarted = true;
+				if (iterationCnt <= 1) {
+					text = "Backwards play complete (click to restart)";
+					canBeRestarted = true;
+				}
 			}
 		});
 	}
@@ -215,7 +220,6 @@ public class App implements ApplicationListener {
 		public boolean touchDown(int x, int y, int pointer, int button) {
 			if (canBeRestarted) {
 				canBeRestarted = false;
-				iterationCnt = 0;
 				// If the user touches the screen, we kill every running tween
 				// and restart the animation.
 				tweenManager.clear();

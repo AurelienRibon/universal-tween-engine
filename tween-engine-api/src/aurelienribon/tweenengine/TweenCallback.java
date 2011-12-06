@@ -5,6 +5,10 @@ package aurelienribon.tweenengine;
  * @author Aurelien Ribon | http://www.aurelienribon.com/
  */
 public interface TweenCallback {
-	public enum Types {ITERATION_COMPLETE, BACK_ITERATION_COMPLETE, COMPLETE, BACK_COMPLETE}
+	public enum Types {
+		BEGIN,      START,      END,      COMPLETE,
+		BACK_BEGIN, BACK_START, BACK_END, BACK_COMPLETE
+	}
+
 	public void tweenEventOccured(Types eventType, Tween tween);
 }
