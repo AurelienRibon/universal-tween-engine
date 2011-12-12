@@ -33,7 +33,7 @@ public class TweenManager {
 	 * @return The manager, for instruction chaining.
 	 */
 	public final TweenManager add(Tween tween) {
-		tween.addToManager(this);
+		tween.start(this);
 		return this;
 	}
 

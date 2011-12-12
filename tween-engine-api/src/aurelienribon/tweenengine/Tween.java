@@ -423,12 +423,24 @@ public class Tween implements Groupable {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Starts or restars the interpolation. Using this method can lead to some
-	 * side-effects if you call it multiple times. <b>The recommanded behavior
-	 * is to add the tween to a Tween Manager instead.</b>
+	 * Starts or restarts the interpolation. You will need to update the tween
+	 * yourself. <b>Recommanded behavior is to use <i>start(TweenManager)</i>
+	 * </b>.
 	 * @return The current tween for chaining instructions.
 	 */
 	public Tween start() {
+		currentMillis = 0;
+		isStarted = true;
+		return this;
+	}
+
+	/**
+	 * Starts or restarts the interpolation using a manager.
+	 * @param manager A TweenManager.
+	 * @return The current tween for chaining instructions.
+	 */
+	public Tween start(TweenManager manager) {
+		if (!manager.tweens.contains(this)) manager.tweens.add(this);
 		currentMillis = 0;
 		isStarted = true;
 		return this;
@@ -776,22 +788,6 @@ public class Tween implements Groupable {
 	 */
 	public Tween setUserData(Object data) {
 		userData = data;
-		return this;
-	}
-
-	/**
-	 * Convenience method to add a single tween to a manager. The tween is
-	 * automatically started. Both following usages are equivalent:<br/>
-	 * <pre>
-	 * myManager.add(Tween.to(...));
-	 * Tween.to(...).addToManager(myManager);
-	 * </pre>
-	 * @param manager A TweenManager.
-	 * @return The current tween for chaining instructions.
-	 */
-	public Tween addToManager(TweenManager manager) {
-		if (!manager.tweens.contains(this)) manager.tweens.add(this);
-		start();
 		return this;
 	}
 
