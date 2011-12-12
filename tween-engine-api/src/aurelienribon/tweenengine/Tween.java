@@ -319,6 +319,7 @@ public class Tween implements Groupable {
 	private boolean isPooled;
 	private boolean isReversed;
 	private boolean isRelative;
+	private boolean isYoyo;
 	private int iteration;
 	private int repeatCnt;
 	private int combinedTweenCnt;
@@ -369,7 +370,7 @@ public class Tween implements Groupable {
 		type = -1;
 		equation = null;
 
-		isReversed = isRelative = false;
+		isReversed = isRelative = isYoyo = false;
 		iteration = repeatCnt = combinedTweenCnt = 0;
 
 		currentMillis = delayMillis = durationMillis = repeatDelayMillis = 0;
@@ -776,6 +777,23 @@ public class Tween implements Groupable {
 	public Tween repeat(int count, int delayMillis) {
 		repeatCnt = count;
 		repeatDelayMillis = delayMillis >= 0 ? delayMillis : 0;
+		isYoyo = false;
+		return this;
+	}
+
+	/**
+	 * Repeats the tween for a given number of times. Every two iterations, the
+	 * tween will be played backwards.
+	 * @param count The number of desired repetition. For infinite repetition,
+	 * use Tween.INFINITY, or a negative number.
+	 * @param millis A delay before each repetition.
+	 * @return The current tween for chaining instructions.
+	 */
+	@Override
+	public Tween repeatYoyo(int count, int delayMillis) {
+		repeatCnt = count;
+		repeatDelayMillis = delayMillis >= 0 ? delayMillis : 0;
+		isYoyo = true;
 		return this;
 	}
 
@@ -789,7 +807,7 @@ public class Tween implements Groupable {
 		userData = data;
 		return this;
 	}
-
+	
 	/**
 	 * Gets the tween target.
 	 */
@@ -889,7 +907,7 @@ public class Tween implements Groupable {
 	 */
 	public final void update(int deltaMillis) {
 		if (isFinished && isPooled) pool.free(this);
-		if (isFinished || !isStarted) return;
+		if (!isStarted || (isFinished)) return;
 
 		currentMillis += deltaMillis;
 
@@ -947,12 +965,12 @@ public class Tween implements Groupable {
 
 	private void testIteration(int iteration) {
 		if (iteration > repeatCnt && repeatCnt >= 0) {
-			forceEndValues();
+			forceEndValues(repeatCnt);
 			callCallbacks(TweenCallback.Types.COMPLETE);
 			kill();
 
 		} else if (iteration < 0 && repeatCnt >= 0) {
-			forceStartValues();
+			forceStartValues(0);
 			callCallbacks(TweenCallback.Types.BACK_COMPLETE);
 			kill();
 		}
@@ -965,13 +983,13 @@ public class Tween implements Groupable {
 		if (target == null || equation == null || !isInitialized || isFinished) return;
 
 		if (millis >= durationMillis) {
-			forceEndValues();
+			forceEndValues(iteration);
 			return;
 		}
 
 		for (int i=0; i<combinedTweenCnt; i++) {
-			float startValue = !isReversed ? startValues[i] : targetValues[i];
-			float deltaValue = (targetValues[i] - startValues[i]) * (!isReversed ? +1 : -1);
+			float startValue = !isReversed(iteration) ? startValues[i] : targetValues[i];
+			float deltaValue = (targetValues[i] - startValues[i]) * (!isReversed(iteration) ? +1 : -1);
 			buffer[i] = equation.compute(millis, startValue, deltaValue, durationMillis);
 		}
 
@@ -982,18 +1000,22 @@ public class Tween implements Groupable {
 	// Helpers
 	// -------------------------------------------------------------------------
 
-	private void forceStartValues() {
+	private void forceStartValues(int iteration) {
 		if (!isInitialized || target == null) return;
-		accessor.setValues(target, type, isReversed ? targetValues : startValues);
+		accessor.setValues(target, type, !isReversed(iteration) ? startValues : targetValues);
 	}
 
-	private void forceEndValues() {
+	private void forceEndValues(int iteration) {
 		if (!isInitialized || target == null) return;
-		accessor.setValues(target, type, isReversed ? startValues : targetValues);
+		accessor.setValues(target, type, !isReversed(iteration) ? targetValues : startValues);
 	}
 
 	private boolean isValid(int iteration) {
 		return (iteration >= 0 && iteration <= repeatCnt) || repeatCnt < 0;
+	}
+
+	private boolean isReversed(int iteration) {
+		return isYoyo && Math.abs(iteration%2) == 1 ? !isReversed : isReversed;
 	}
 
 	private void callCallbacks(TweenCallback.Types type) {
@@ -1009,7 +1031,7 @@ public class Tween implements Groupable {
 			case BACK_COMPLETE: callbacks = backEndCallbacks; break;
 		}
 
-		if (callbacks != null)
+		if (callbacks != null && !callbacks.isEmpty())
 			for (int i=0, n=callbacks.size(); i<n; i++)
 				callbacks.get(i).tweenEventOccured(type, this);
 	}

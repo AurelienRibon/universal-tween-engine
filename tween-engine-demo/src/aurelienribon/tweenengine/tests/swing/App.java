@@ -3,7 +3,7 @@ package aurelienribon.tweenengine.tests.swing;
 import aurelienribon.tweenengine.Tween;
 import aurelienribon.tweenengine.TweenManager;
 import aurelienribon.tweenengine.equations.Back;
-import aurelienribon.tweenengine.equations.Quad;
+import aurelienribon.tweenengine.equations.Cubic;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -45,8 +45,8 @@ public class App {
 
 		Tween.to(label, ComponentTweenAccessor.POSITION, 1000)
 			.target(window.getContentPane().getWidth() - label.getWidth() - 10, 10)
-			.ease(Quad.INOUT)
-			.repeat(2, 500)
+			.ease(Cubic.INOUT)
+			.repeatYoyo(-1, 200)
 			.start(tweenManager);
 
 		SwingTweenThread.start(window.getContentPane(), tweenManager);
