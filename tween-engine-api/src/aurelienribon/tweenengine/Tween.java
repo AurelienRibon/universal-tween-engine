@@ -1,5 +1,6 @@
 package aurelienribon.tweenengine;
 
+import aurelienribon.tweenengine.TweenCallback.Types;
 import aurelienribon.tweenengine.equations.Linear;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -318,20 +319,20 @@ public class Tween implements Groupable {
 	private boolean isPooled;
 	private boolean isReversed;
 	private boolean isRelative;
+	private int iteration;
+	private int repeatCnt;
+	private int combinedTweenCnt;
 
 	// Values
-	private int combinedTweenCount;
 	private final float[] startValues = new float[MAX_COMBINED_TWEENS];
 	private final float[] targetValues = new float[MAX_COMBINED_TWEENS];
 	private final float[] targetMinusStartValues = new float[MAX_COMBINED_TWEENS];
 
 	// Timings
-	private int durationMillis;
 	private int delayMillis;
-	private int endMillis;
-	private int completeMillis;
+	private int durationMillis;
+	private int repeatDelayMillis;
 	private int currentMillis;
-	private int lastCurrentMillis;
 	private boolean isStarted; // true when the tween is started
 	private boolean isInitialized; // true when starting values have been retrieved (after first delay)
 	private boolean isFinished; // true when all repetitions are done or the tween has been killed
@@ -341,15 +342,9 @@ public class Tween implements Groupable {
 	private List<TweenCallback> startCallbacks;
 	private List<TweenCallback> endCallbacks;
 	private List<TweenCallback> completeCallbacks;
-	private List<TweenCallback> backBeginCallbacks;
 	private List<TweenCallback> backStartCallbacks;
 	private List<TweenCallback> backEndCallbacks;
 	private List<TweenCallback> backCompleteCallbacks;
-
-	// Repeat
-	private int repeatCnt;
-	private int iteration;
-	private int repeatDelayMillis;
 
 	// UserData
 	private Object userData;
@@ -375,28 +370,19 @@ public class Tween implements Groupable {
 		type = -1;
 		equation = null;
 
-		isReversed = false;
-		isRelative = false;
+		isReversed = isRelative = false;
+		iteration = repeatCnt = combinedTweenCnt = 0;
 
-		combinedTweenCount = 0;
-
-		delayMillis = 0;
-		isStarted = false;
-		isInitialized = false;
-		isFinished = false;
+		currentMillis = delayMillis = durationMillis = repeatDelayMillis = 0;
+		isStarted = isInitialized = isFinished = false;
 
 		if (beginCallbacks != null) beginCallbacks.clear();
 		if (startCallbacks != null) startCallbacks.clear();
 		if (endCallbacks != null) endCallbacks.clear();
 		if (completeCallbacks != null) completeCallbacks.clear();
-		if (backBeginCallbacks != null) backBeginCallbacks.clear();
 		if (backStartCallbacks != null) backStartCallbacks.clear();
 		if (backEndCallbacks != null) backEndCallbacks.clear();
 		if (backCompleteCallbacks != null) backCompleteCallbacks.clear();
-
-		repeatCnt = 0;
-		iteration = 0;
-		repeatDelayMillis = 0;
 
 		userData = null;
 	}
@@ -419,8 +405,8 @@ public class Tween implements Groupable {
 			accessor = registeredAccessors.get(target.getClass());
 			if (accessor == null) accessor = (TweenAccessor) target;
 
-			combinedTweenCount = accessor.getValues(target, tweenType, buffer);
-			if (combinedTweenCount < 1 || combinedTweenCount > MAX_COMBINED_TWEENS)
+			combinedTweenCnt = accessor.getValues(target, tweenType, buffer);
+			if (combinedTweenCnt < 1 || combinedTweenCnt > MAX_COMBINED_TWEENS)
 				throw new RuntimeException("Min combined tweens = 1, max = " + MAX_COMBINED_TWEENS);
 		}
 	}
@@ -444,8 +430,6 @@ public class Tween implements Groupable {
 	 */
 	public Tween start() {
 		currentMillis = 0;
-		endMillis = delayMillis + durationMillis;
-		completeMillis = endMillis + repeatDelayMillis;
 		isStarted = true;
 		return this;
 	}
@@ -781,19 +765,6 @@ public class Tween implements Groupable {
 	}
 
 	/**
-	 * Adds a callback to the tween. The callback is triggered at the beginning
-	 * of each iteration (before the delay), if the tween is running backwards
-	 * (with a negative speed).
-	 * @param callback A tween callback.
-	 * @return The current tween for chaining instructions.
-	 */
-	public Tween addBackwardsBeginCallback(TweenCallback callback) {
-		if (backBeginCallbacks == null) backBeginCallbacks = new ArrayList<TweenCallback>(1);
-		backBeginCallbacks.add(callback);
-		return this;
-	}
-
-	/**
 	 * Adds a callback to the tween. The callback is triggered at the start
 	 * of each iteration (after the delay), if the tween is running backwards
 	 * (with a negative speed).
@@ -921,7 +892,7 @@ public class Tween implements Groupable {
 	 * Gets the number of combined tweens.
 	 */
 	public int getCombinedTweenCount() {
-		return combinedTweenCount;
+		return combinedTweenCnt;
 	}
 
 	/**
@@ -938,13 +909,6 @@ public class Tween implements Groupable {
 	@Override
 	public int getRepeatDelay() {
 		return repeatDelayMillis;
-	}
-
-	/**
-	 * Gets the number of remaining iterations.
-	 */
-	public int getRemainingIterationsCount() {
-		return repeatCnt - iteration;
 	}
 
 	/**
@@ -981,78 +945,86 @@ public class Tween implements Groupable {
 		if (isFinished && isPooled) pool.free(this);
 		if (isFinished || !isStarted) return;
 
-		lastCurrentMillis = currentMillis;
 		currentMillis += deltaMillis;
-		currentMillis = Math.max(currentMillis, -1);
 
 		initialize();
-		checkLimits();
-		checkTriggers();
-		checkIteration();
-		updateTarget();
+		if (!isInitialized) return;
+
+		int lastMillis = currentMillis - deltaMillis;
+		int lastIteration = iteration;
+
+		while (currentMillis > durationMillis + repeatDelayMillis) {
+			currentMillis -= durationMillis + repeatDelayMillis;
+			iteration += 1;
+		}
+		
+		while (currentMillis < 0) {
+			currentMillis += durationMillis + repeatDelayMillis;
+			iteration -= 1;
+		}
+
+		testCallbacks(iteration, lastIteration, currentMillis, lastMillis);
+		testIteration(iteration);
+		updateTarget(currentMillis);
 	}
 
 	private void initialize() {
-		if (target == null) return;
-
-		if (!isInitialized && justTriggeredForwards(delayMillis)) {
+		if (!isInitialized && currentMillis >= delayMillis) {
 			isInitialized = true;
-			accessor.getValues(target, type, startValues);
-			for (int i=0; i<combinedTweenCount; i++) {
-				targetValues[i] += isRelative ? startValues[i] : 0;
-				targetMinusStartValues[i] = targetValues[i] - startValues[i];
+			currentMillis -= delayMillis;
+
+			if (target != null) {
+				accessor.getValues(target, type, startValues);
+				for (int i=0; i<combinedTweenCnt; i++) {
+					targetValues[i] += isRelative ? startValues[i] : 0;
+					targetMinusStartValues[i] = targetValues[i] - startValues[i];
+				}
 			}
 		}
 	}
 
-	private void checkLimits() {
-		if (target != null && justTriggeredForwards(endMillis))
-			accessor.setValues(target, type, isReversed ? startValues : targetValues);
+	private void testCallbacks(int iteration, int lastIteration, int millis, int lastMillis) {
+		if (iteration > lastIteration) {
+			if (isValid(lastIteration) && lastMillis <= durationMillis) callCallbacks(Types.END);
+			if (isValid(iteration)) callCallbacks(Types.START);
 
-		if (target != null && justTriggeredBackwards(delayMillis))
-			accessor.setValues(target, type, isReversed ? targetValues : startValues);
-	}
+		} else if (iteration < lastIteration) {
+			if (isValid(lastIteration)) callCallbacks(Types.BACK_END);
+			if (isValid(iteration) && millis < durationMillis) callCallbacks(Types.BACK_START);
 
-	private void checkTriggers() {
-		if (beginCallbacks != null && justTriggeredForwards(0)) callCallbacks(TweenCallback.Types.BEGIN);
-		if (startCallbacks != null && justTriggeredForwards(delayMillis)) callCallbacks(TweenCallback.Types.START);
-		if (endCallbacks != null && justTriggeredForwards(endMillis)) callCallbacks(TweenCallback.Types.END);
-		if (completeCallbacks != null && justTriggeredForwards(completeMillis)) callCallbacks(TweenCallback.Types.COMPLETE);
-
-		if (backBeginCallbacks != null && justTriggeredBackwards(0)) callCallbacks(TweenCallback.Types.BACK_BEGIN);
-		if (backStartCallbacks != null && justTriggeredBackwards(delayMillis)) callCallbacks(TweenCallback.Types.BACK_START);
-		if (backEndCallbacks != null && justTriggeredBackwards(endMillis)) callCallbacks(TweenCallback.Types.BACK_END);
-		if (backCompleteCallbacks != null && justTriggeredBackwards(completeMillis)) callCallbacks(TweenCallback.Types.BACK_COMPLETE);
-	}
-
-	private void checkIteration() {
-		if (justTriggeredForwards(completeMillis)) {
-			if (iteration < repeatCnt || repeatCnt < 0) {
-				iteration += 1;
-				start();
-			} else {
-				isFinished = true;
-			}
-		}
-
-		if (justTriggeredBackwards(0)) {
-			if (iteration > 0) {
-				iteration -= 1;
-				start();
-				currentMillis = completeMillis;
-			} else {
-				isFinished = true;
-			}
+		} else {
+			if (isValid(iteration) && millis > durationMillis && lastMillis <= durationMillis) callCallbacks(Types.END);
+			if (isValid(iteration) && millis < durationMillis && lastMillis >= durationMillis) callCallbacks(Types.BACK_START);
 		}
 	}
 
-	private void updateTarget() {
-		if (target == null || equation == null || !isInitialized) return;
-		if (currentMillis < delayMillis || currentMillis > endMillis) return;
+	private void testIteration(int iteration) {
+		if (iteration > repeatCnt && repeatCnt >= 0) {
+			forceEndValues();
+			callCallbacks(TweenCallback.Types.COMPLETE);
+			kill();
 
-		for (int i=0; i<combinedTweenCount; i++) {
+		} else if (iteration < 0 && repeatCnt >= 0) {
+			forceStartValues();
+			callCallbacks(TweenCallback.Types.BACK_COMPLETE);
+			kill();
+		}
+	}
+
+	private void updateTarget(int itMillis) {
+		assert itMillis >= 0;
+		assert itMillis <= durationMillis + repeatDelayMillis;
+
+		if (target == null || equation == null || !isInitialized || isFinished) return;
+
+		if (itMillis >= durationMillis) {
+			forceEndValues();
+			return;
+		}
+
+		for (int i=0; i<combinedTweenCnt; i++) {
 			buffer[i] = equation.compute(
-				currentMillis - delayMillis,
+				itMillis,
 				isReversed ? targetValues[i] : startValues[i],
 				isReversed ? -targetMinusStartValues[i] : +targetMinusStartValues[i],
 				durationMillis);
@@ -1065,26 +1037,31 @@ public class Tween implements Groupable {
 	// Helpers
 	// -------------------------------------------------------------------------
 
-	private boolean justTriggeredForwards(int time) {
-		return lastCurrentMillis <= time && currentMillis > time;
+	private void forceStartValues() {
+		if (!isInitialized || target == null) return;
+		accessor.setValues(target, type, isReversed ? targetValues : startValues);
 	}
 
-	private boolean justTriggeredBackwards(int time) {
-		return lastCurrentMillis >= time && currentMillis < time;
+	private void forceEndValues() {
+		if (!isInitialized || target == null) return;
+		accessor.setValues(target, type, isReversed ? startValues : targetValues);
+	}
+
+	private boolean isValid(int iteration) {
+		return (iteration >= 0 && iteration <= repeatCnt) || repeatCnt < 0;
 	}
 
 	private void callCallbacks(TweenCallback.Types type) {
 		List<TweenCallback> callbacks = null;
 
 		switch (type) {
-			case BEGIN: callbacks = beginCallbacks; break;
+			case BEGIN: callbacks = startCallbacks; break;
 			case START: callbacks = startCallbacks; break;
 			case END: callbacks = endCallbacks; break;
-			case COMPLETE: callbacks = completeCallbacks; break;
-			case BACK_BEGIN: callbacks = backBeginCallbacks; break;
+			case COMPLETE: callbacks = endCallbacks; break;
 			case BACK_START: callbacks = backStartCallbacks; break;
 			case BACK_END: callbacks = backEndCallbacks; break;
-			case BACK_COMPLETE: callbacks = backCompleteCallbacks; break;
+			case BACK_COMPLETE: callbacks = backEndCallbacks; break;
 		}
 
 		if (callbacks != null)
