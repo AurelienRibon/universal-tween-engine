@@ -326,7 +326,6 @@ public class Tween implements Groupable {
 	// Values
 	private final float[] startValues = new float[MAX_COMBINED_TWEENS];
 	private final float[] targetValues = new float[MAX_COMBINED_TWEENS];
-	private final float[] targetMinusStartValues = new float[MAX_COMBINED_TWEENS];
 
 	// Timings
 	private int delayMillis;
@@ -895,24 +894,27 @@ public class Tween implements Groupable {
 		currentMillis += deltaMillis;
 
 		initialize();
-		if (!isInitialized) return;
 
-		int lastMillis = currentMillis - deltaMillis;
-		int lastIteration = iteration;
+		if (isInitialized) {
+			int lastMillis = currentMillis - deltaMillis;
+			int lastIteration = iteration;
 
-		while (currentMillis > durationMillis + repeatDelayMillis) {
-			currentMillis -= durationMillis + repeatDelayMillis;
-			iteration += 1;
+			while (currentMillis > durationMillis + repeatDelayMillis) {
+				currentMillis -= durationMillis + repeatDelayMillis;
+				iteration += 1;
+			}
+
+			while (currentMillis < 0) {
+				currentMillis += durationMillis + repeatDelayMillis;
+				iteration -= 1;
+			}
+
+			if (!isFinished) {
+				testCallbacks(iteration, lastIteration, currentMillis, lastMillis);
+				testIteration(iteration);
+				updateTarget(currentMillis);
+			}
 		}
-		
-		while (currentMillis < 0) {
-			currentMillis += durationMillis + repeatDelayMillis;
-			iteration -= 1;
-		}
-
-		testCallbacks(iteration, lastIteration, currentMillis, lastMillis);
-		testIteration(iteration);
-		updateTarget(currentMillis);
 	}
 
 	private void initialize() {
@@ -922,10 +924,8 @@ public class Tween implements Groupable {
 
 			if (target != null) {
 				accessor.getValues(target, type, startValues);
-				for (int i=0; i<combinedTweenCnt; i++) {
+				for (int i=0; i<combinedTweenCnt; i++)
 					targetValues[i] += isRelative ? startValues[i] : 0;
-					targetMinusStartValues[i] = targetValues[i] - startValues[i];
-				}
 			}
 		}
 	}
@@ -958,23 +958,21 @@ public class Tween implements Groupable {
 		}
 	}
 
-	private void updateTarget(int itMillis) {
-		assert itMillis >= 0;
-		assert itMillis <= durationMillis + repeatDelayMillis;
+	private void updateTarget(int millis) {
+		assert millis >= 0;
+		assert millis <= durationMillis + repeatDelayMillis;
 
 		if (target == null || equation == null || !isInitialized || isFinished) return;
 
-		if (itMillis >= durationMillis) {
+		if (millis >= durationMillis) {
 			forceEndValues();
 			return;
 		}
 
 		for (int i=0; i<combinedTweenCnt; i++) {
-			buffer[i] = equation.compute(
-				itMillis,
-				isReversed ? targetValues[i] : startValues[i],
-				isReversed ? -targetMinusStartValues[i] : +targetMinusStartValues[i],
-				durationMillis);
+			float startValue = !isReversed ? startValues[i] : targetValues[i];
+			float deltaValue = (targetValues[i] - startValues[i]) * (!isReversed ? +1 : -1);
+			buffer[i] = equation.compute(millis, startValue, deltaValue, durationMillis);
 		}
 
 		accessor.setValues(target, type, buffer);

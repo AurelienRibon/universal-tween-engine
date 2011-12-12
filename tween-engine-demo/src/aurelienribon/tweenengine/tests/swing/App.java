@@ -47,7 +47,7 @@ public class App {
 			.target(window.getContentPane().getWidth() - label.getWidth() - 10, 10)
 			.ease(Quad.INOUT)
 			.repeat(2, 500)
-			.addToManager(tweenManager);
+			.start(tweenManager);
 
 		SwingTweenThread.start(window.getContentPane(), tweenManager);
 	}
@@ -59,11 +59,11 @@ public class App {
 			int tx = rand.nextInt(window.getContentPane().getWidth() - button.getWidth());
 			int ty = rand.nextInt(window.getContentPane().getHeight() - 30 - button.getHeight()) + 30;
 
-			tweenManager.clear();
+			tweenManager.kill(button);
 			Tween.to(button, ComponentTweenAccessor.POSITION, 500)
 				.target(tx, ty)
 				.ease(Back.OUT)
-				.addToManager(tweenManager);
+				.start(tweenManager);
 		}
 	};
 
