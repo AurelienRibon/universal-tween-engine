@@ -223,7 +223,7 @@ public class Tween implements Groupable {
 		Tween tween = pool.get();
 		tween.setup(target, tweenType, durationMillis);
 		tween.ease(Linear.INOUT);
-		tween.isReversed = true;
+		tween.isFrom = true;
 		return tween;
 	}
 
@@ -317,9 +317,10 @@ public class Tween implements Groupable {
 
 	// General
 	private boolean isPooled;
-	private boolean isReversed;
+	private boolean isFrom;
 	private boolean isRelative;
 	private boolean isYoyo;
+	private boolean isBetweenIterations;
 	private int iteration;
 	private int repeatCnt;
 	private int combinedTweenCnt;
@@ -373,7 +374,7 @@ public class Tween implements Groupable {
 		type = -1;
 		equation = null;
 
-		isReversed = isRelative = isYoyo = false;
+		isFrom = isRelative = isYoyo = isBetweenIterations = false;
 		iteration = repeatCnt = combinedTweenCnt = 0;
 
 		currentMillis = delayMillis = durationMillis = repeatDelayMillis = endDelayMillis = 0;
@@ -919,23 +920,42 @@ public class Tween implements Groupable {
 		initialize();
 
 		if (isInitialized) {
+			testCompletion();
+			if (isFinished) return;
+
+			testRelaunch();
+
 			int lastMillis = currentMillis - deltaMillis;
 			int lastIteration = iteration;
 
-			while (isValid(iteration) && currentMillis > durationMillis + repeatDelayMillis) {
-				currentMillis -= durationMillis + repeatDelayMillis;
-				iteration += 1;
+			while (isValid(iteration)) {
+				if (isBetweenIterations && currentMillis <= 0) {
+					isBetweenIterations = false;
+					currentMillis += durationMillis;
+					iteration -= 1;
+
+				} else if (isBetweenIterations && currentMillis >= repeatDelayMillis) {
+					isBetweenIterations = false;
+					currentMillis -= repeatDelayMillis;
+					iteration += 1;
+
+				} else if (!isBetweenIterations && currentMillis < 0) {
+					isBetweenIterations = true;
+					currentMillis += isValid(iteration-1) ? repeatDelayMillis : 0;
+					iteration -= 1;
+
+				} else if (!isBetweenIterations && currentMillis > durationMillis) {
+					isBetweenIterations = true;
+					currentMillis -= durationMillis;
+					iteration += 1;
+
+				} else break;
 			}
 
-			while (isValid(iteration) && currentMillis < 0) {
-				currentMillis += durationMillis + repeatDelayMillis;
-				iteration -= 1;
-			}
+			triggerInnerCallbacks(lastIteration, lastMillis);
+			triggerLimitCallbacks(lastIteration);
 
-			triggerInnerCallbacks(iteration, lastIteration, currentMillis, lastMillis);
-			triggerLimitCallbacks(iteration, lastIteration);
-			testCompletion(iteration, currentMillis);
-			if (isValid(iteration)) updateTarget(currentMillis);
+			if (isValid(iteration) && !isBetweenIterations) updateTarget();
 		}
 	}
 
@@ -952,51 +972,66 @@ public class Tween implements Groupable {
 		}
 	}
 
-	private void triggerInnerCallbacks(int iteration, int lastIteration, int millis, int lastMillis) {
+	private void testCompletion() {
+		isFinished = (repeatCnt >= 0 && iteration > repeatCnt*2 && currentMillis > endDelayMillis)
+			|| (repeatCnt >= 0 && iteration < 0 && currentMillis < -delayMillis);
+	}
+
+	private void testRelaunch() {
+		if (repeatCnt >= 0 && iteration > repeatCnt*2 && currentMillis <= 0) {
+			isBetweenIterations = false;
+			currentMillis -= durationMillis;
+			iteration -= 1;
+
+		} else if (repeatCnt >= 0 && iteration < 0 && currentMillis >= 0) {
+			isBetweenIterations = false;
+			iteration += 1;
+		}
+	}
+
+	private void triggerInnerCallbacks(int lastIteration, int lastMillis) {
 		if (iteration > lastIteration) {
 			if (isValid(lastIteration) && lastMillis <= durationMillis) callCallbacks(Types.END);
 			if (isValid(iteration)) callCallbacks(Types.START);
 
 		} else if (iteration < lastIteration) {
 			if (isValid(lastIteration)) callCallbacks(Types.BACK_END);
-			if (isValid(iteration) && millis < durationMillis) callCallbacks(Types.BACK_START);
+			if (isValid(iteration) && currentMillis < durationMillis) callCallbacks(Types.BACK_START);
 
 		} else {
-			if (isValid(iteration) && millis > durationMillis && lastMillis <= durationMillis) callCallbacks(Types.END);
-			if (isValid(iteration) && millis < durationMillis && lastMillis >= durationMillis) callCallbacks(Types.BACK_START);
+			if (isValid(iteration) && currentMillis > durationMillis && lastMillis <= durationMillis) callCallbacks(Types.END);
+			if (isValid(iteration) && currentMillis < durationMillis && lastMillis >= durationMillis) callCallbacks(Types.BACK_START);
 		}
 	}
 
-	private void triggerLimitCallbacks(int iteration, int lastIteration) {
-		if (isValid(lastIteration) && iteration > repeatCnt && repeatCnt >= 0) {
-			forceEndValues(repeatCnt);
+	private void triggerLimitCallbacks(int lastIteration) {
+		if (repeatCnt >= 0 && iteration > repeatCnt*2 && isValid(lastIteration)) {
+			if (isIterationYoyo(iteration-1)) forceStartValues(); else forceEndValues();
 			callCallbacks(TweenCallback.Types.COMPLETE);
 
-		} else if (isValid(lastIteration) && iteration < 0 && repeatCnt >= 0) {
-			forceStartValues(0);
+		} else if (repeatCnt >= 0 && iteration < 0 && isValid(lastIteration)) {
+			if (isIterationYoyo(iteration+1)) forceEndValues(); else forceStartValues();
 			callCallbacks(TweenCallback.Types.BACK_COMPLETE);
 		}
 	}
 
-	private void testCompletion(int iteration, int millis) {
-		isFinished = (iteration > repeatCnt && repeatCnt >= 0 && millis > endDelayMillis)
-			|| (iteration < 0 && repeatCnt >= 0 && millis < -delayMillis);
-	}
-
-	private void updateTarget(int millis) {
-		assert millis >= 0;
-		assert millis <= durationMillis + repeatDelayMillis;
+	private void updateTarget() {
+		assert currentMillis >= 0;
+		assert currentMillis <= durationMillis;
+		assert !isBetweenIterations;
+		assert isValid(iteration);
 
 		if (target == null || equation == null || !isInitialized || isFinished) return;
 
-		if (millis >= durationMillis) {
-			forceEndValues(iteration);
+		if (currentMillis >= durationMillis) {
+			forceEndValues();
 			return;
 		}
 
 		for (int i=0; i<combinedTweenCnt; i++) {
-			float startValue = !isReversed(iteration) ? startValues[i] : targetValues[i];
-			float deltaValue = (targetValues[i] - startValues[i]) * (!isReversed(iteration) ? +1 : -1);
+			float startValue = !isFrom ? startValues[i] : targetValues[i];
+			float deltaValue = (targetValues[i] - startValues[i]) * (!isFrom ? +1 : -1);
+			int millis = isIterationYoyo(iteration) ? durationMillis - currentMillis : currentMillis;
 			buffer[i] = equation.compute(millis, startValue, deltaValue, durationMillis);
 		}
 
@@ -1007,22 +1042,22 @@ public class Tween implements Groupable {
 	// Helpers
 	// -------------------------------------------------------------------------
 
-	private void forceStartValues(int iteration) {
+	private void forceStartValues() {
 		if (!isInitialized || target == null) return;
-		accessor.setValues(target, type, !isReversed(iteration) ? startValues : targetValues);
+		accessor.setValues(target, type, !isFrom ? startValues : targetValues);
 	}
 
-	private void forceEndValues(int iteration) {
+	private void forceEndValues() {
 		if (!isInitialized || target == null) return;
-		accessor.setValues(target, type, !isReversed(iteration) ? targetValues : startValues);
+		accessor.setValues(target, type, !isFrom ? targetValues : startValues);
 	}
 
 	private boolean isValid(int iteration) {
-		return (iteration >= 0 && iteration <= repeatCnt) || repeatCnt < 0;
+		return (iteration >= 0 && iteration <= repeatCnt*2) || repeatCnt < 0;
 	}
 
-	private boolean isReversed(int iteration) {
-		return isYoyo && Math.abs(iteration%2) == 1 ? !isReversed : isReversed;
+	private boolean isIterationYoyo(int iteration) {
+		return isYoyo && Math.abs(iteration%4) == 2;
 	}
 
 	private void callCallbacks(TweenCallback.Types type) {
