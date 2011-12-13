@@ -346,8 +346,11 @@ public class Tween implements Groupable {
 	private List<TweenCallback> backEndCallbacks;
 	private List<TweenCallback> backCompleteCallbacks;
 
-	// UserData
+	// Misc
 	private Object userData;
+
+	// Advanced (package access)
+	int endDelayMillis;
 
 	// -------------------------------------------------------------------------
 	// Ctor
@@ -373,7 +376,7 @@ public class Tween implements Groupable {
 		isReversed = isRelative = isYoyo = false;
 		iteration = repeatCnt = combinedTweenCnt = 0;
 
-		currentMillis = delayMillis = durationMillis = repeatDelayMillis = 0;
+		currentMillis = delayMillis = durationMillis = repeatDelayMillis = endDelayMillis = 0;
 		isStarted = isInitialized = isFinished = false;
 
 		if (beginCallbacks != null) beginCallbacks.clear();
@@ -738,9 +741,11 @@ public class Tween implements Groupable {
 	 * BACK_COMPLETE: at last BACK_END
 	 *
 	 * <pre>
-	 * |-------------[XXXXXXXXXX]------[XXXXXXXXXX]------[XXXXXXXXXX]
-	 *               START    END      START    END      START    END
-	 *               BEGIN                                   COMPLETE
+	 * forwards :         BEGIN                                   COMPLETE
+	 * forwards :         START    END      START    END      START    END
+	 * |------------------[XXXXXXXXXX]------[XXXXXXXXXX]------[XXXXXXXXXX]
+	 * backwards:         bEND  bSTART      bEND  bSTART      bEND  bSTART
+	 * backwards:         bCOMPLETE
 	 * </pre>
 	 *          
 	 *
@@ -907,7 +912,7 @@ public class Tween implements Groupable {
 	 */
 	public final void update(int deltaMillis) {
 		if (isFinished && isPooled) pool.free(this);
-		if (!isStarted || (isFinished)) return;
+		if (!isStarted || isFinished) return;
 
 		currentMillis += deltaMillis;
 
@@ -917,21 +922,20 @@ public class Tween implements Groupable {
 			int lastMillis = currentMillis - deltaMillis;
 			int lastIteration = iteration;
 
-			while (currentMillis > durationMillis + repeatDelayMillis) {
+			while (isValid(iteration) && currentMillis > durationMillis + repeatDelayMillis) {
 				currentMillis -= durationMillis + repeatDelayMillis;
 				iteration += 1;
 			}
 
-			while (currentMillis < 0) {
+			while (isValid(iteration) && currentMillis < 0) {
 				currentMillis += durationMillis + repeatDelayMillis;
 				iteration -= 1;
 			}
 
-			if (!isFinished) {
-				testCallbacks(iteration, lastIteration, currentMillis, lastMillis);
-				testIteration(iteration);
-				updateTarget(currentMillis);
-			}
+			triggerInnerCallbacks(iteration, lastIteration, currentMillis, lastMillis);
+			triggerLimitCallbacks(iteration, lastIteration);
+			testCompletion(iteration, currentMillis);
+			if (isValid(iteration)) updateTarget(currentMillis);
 		}
 	}
 
@@ -948,7 +952,7 @@ public class Tween implements Groupable {
 		}
 	}
 
-	private void testCallbacks(int iteration, int lastIteration, int millis, int lastMillis) {
+	private void triggerInnerCallbacks(int iteration, int lastIteration, int millis, int lastMillis) {
 		if (iteration > lastIteration) {
 			if (isValid(lastIteration) && lastMillis <= durationMillis) callCallbacks(Types.END);
 			if (isValid(iteration)) callCallbacks(Types.START);
@@ -963,17 +967,20 @@ public class Tween implements Groupable {
 		}
 	}
 
-	private void testIteration(int iteration) {
-		if (iteration > repeatCnt && repeatCnt >= 0) {
+	private void triggerLimitCallbacks(int iteration, int lastIteration) {
+		if (isValid(lastIteration) && iteration > repeatCnt && repeatCnt >= 0) {
 			forceEndValues(repeatCnt);
 			callCallbacks(TweenCallback.Types.COMPLETE);
-			kill();
 
-		} else if (iteration < 0 && repeatCnt >= 0) {
+		} else if (isValid(lastIteration) && iteration < 0 && repeatCnt >= 0) {
 			forceStartValues(0);
 			callCallbacks(TweenCallback.Types.BACK_COMPLETE);
-			kill();
 		}
+	}
+
+	private void testCompletion(int iteration, int millis) {
+		isFinished = (iteration > repeatCnt && repeatCnt >= 0 && millis > endDelayMillis)
+			|| (iteration < 0 && repeatCnt >= 0 && millis < -delayMillis);
 	}
 
 	private void updateTarget(int millis) {
