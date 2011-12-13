@@ -62,9 +62,14 @@ public class SwingTweenThread extends Thread {
 	}
 
 	private Runnable updateRunnable = new Runnable() {
+		private long lastMillis = 0;
+
 		@Override
 		public void run() {
-			manager.update();
+			long millis = System.currentTimeMillis();
+			int delta = (int) (millis - lastMillis);
+			lastMillis = millis;
+			manager.update(delta);
 			container.repaint();
 		}
 	};

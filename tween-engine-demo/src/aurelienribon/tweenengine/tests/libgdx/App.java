@@ -2,7 +2,7 @@ package aurelienribon.tweenengine.tests.libgdx;
 
 import aurelienribon.tweenengine.Tween;
 import aurelienribon.tweenengine.TweenCallback;
-import aurelienribon.tweenengine.TweenGroup;
+import aurelienribon.tweenengine.Timeline;
 import aurelienribon.tweenengine.TweenManager;
 import aurelienribon.tweenengine.equations.Back;
 import aurelienribon.tweenengine.equations.Cubic;
@@ -95,13 +95,14 @@ public class App implements ApplicationListener {
 				start();
 				canControlSpeed = true;
 			}
-		}).delay(2000).addToManager(tweenManager);
+		}).delay(2000).start(tweenManager);
 	}
 
 	@Override
 	public void render() {
 		// Remember to update the tween manager periodically!
-		tweenManager.update();
+		int delta = (int) (Gdx.graphics.getDeltaTime() * 1000 * speed);
+		tweenManager.update(delta);
 
 		GL10 gl = Gdx.gl10;
 		gl.glClearColor(1, 1, 1, 1);
@@ -122,7 +123,7 @@ public class App implements ApplicationListener {
 		font.draw(sb, String.format(Locale.US, "Current speed: %.2f", speed), 5, Gdx.graphics.getHeight() - 20);
 		font.draw(sb, text, 5, 45);
 		font.draw(sb, "Tweens in pool: " + Tween.getPoolSize(), 150, 25);
-		font.draw(sb, "Running tweens: " + tweenManager.getTweenCount(), 5, 25);
+		font.draw(sb, "Running tweens: " + tweenManager.size(), 5, 25);
 		sb.end();
 	}
 
@@ -135,52 +136,50 @@ public class App implements ApplicationListener {
 	// ANIMATION
 	// -------------------------------------------------------------------------
 
-	private TweenGroup buildAnimation(Sprite target, int delay1, int delay2) {
-		return TweenGroup.sequence(
-			Tween.set(target, SpriteTweenAccessor.POSITION_XY).target(0, 0),
-			Tween.set(target, SpriteTweenAccessor.SCALE_XY).target(10, 10),
-			Tween.set(target, SpriteTweenAccessor.ROTATION).target(0),
-
-			TweenGroup.tempo(delay1),
-			TweenGroup.parallel(
-				Tween.to(target, SpriteTweenAccessor.OPACITY, 1000).target(1).ease(Quart.INOUT),
-				Tween.to(target, SpriteTweenAccessor.SCALE_XY, 1000).target(1, 1).ease(Quart.INOUT)
-			),
-
-			TweenGroup.tempo(-500),
-			Tween.to(target, SpriteTweenAccessor.POSITION_XY, 1000).targetCurrent().ease(Back.OUT),
-			Tween.to(target, SpriteTweenAccessor.ROTATION, 800).target(360).ease(Cubic.INOUT),
-
-			TweenGroup.tempo(delay2),
-			TweenGroup.parallel(
-				Tween.to(target, SpriteTweenAccessor.SCALE_XY, 300).target(3, 3).ease(Quad.IN),
-				Tween.to(target, SpriteTweenAccessor.OPACITY, 300).target(0).ease(Quad.IN)
-			)
-		);
+	private Timeline buildAnimation(Sprite target, int delay1, int delay2) {
+		return Timeline.createSequence()
+			.push(Tween.set(target, SpriteTweenAccessor.POSITION_XY).target(0, 0))
+			.push(Tween.set(target, SpriteTweenAccessor.SCALE_XY).target(10, 10))
+			.push(Tween.set(target, SpriteTweenAccessor.ROTATION).target(0))
+			.pushPause(delay1)
+			.beginParallel()
+				.push(Tween.to(target, SpriteTweenAccessor.OPACITY, 1000).target(1).ease(Quart.INOUT))
+				.push(Tween.to(target, SpriteTweenAccessor.SCALE_XY, 1000).target(1, 1).ease(Quart.INOUT))
+			.end()
+			.pushPause(-500)
+			.push(Tween.to(target, SpriteTweenAccessor.POSITION_XY, 1000).targetCurrent().ease(Back.OUT))
+			.push(Tween.to(target, SpriteTweenAccessor.ROTATION, 800).target(360).ease(Cubic.INOUT))
+			.pushPause(delay2)
+			.beginParallel()
+				.push(Tween.to(target, SpriteTweenAccessor.SCALE_XY, 300).target(3, 3).ease(Quad.IN))
+				.push(Tween.to(target, SpriteTweenAccessor.OPACITY, 300).target(0).ease(Quad.IN))
+			.end()
+			.start(tweenManager);
 	}
 
 	private void start() {
 		final int repeatCnt = 2;
-		Tween startMark = null;
-		Tween endMark = null;
+		Tween startMark = Tween.mark();
+		Tween endMark = Tween.mark();
 		iterationCnt = 0;
 
 		// The animation itself
 
-		TweenGroup.sequence(
-			startMark = Tween.mark(),
-			TweenGroup.parallel(
-				buildAnimation(sprite1, 0, 1400),
-				buildAnimation(sprite2, 200, 1000),
-				buildAnimation(sprite3, 400, 600),
-				buildAnimation(sprite4, 600, 200)
-			),
-			endMark = Tween.mark()
-		).repeat(repeatCnt, 0).addToManager(tweenManager);
+		Timeline.createSequence()
+			.push(startMark)
+			.beginParallel()
+				.push(buildAnimation(sprite1, 0, 1400))
+				.push(buildAnimation(sprite2, 200, 1000))
+				.push(buildAnimation(sprite3, 400, 600))
+				.push(buildAnimation(sprite4, 600, 200))
+			.end()
+			.push(endMark)
+			.repeat(repeatCnt, 0)
+			.start(tweenManager);
 
 		// The mark callbacks (to change the text at the right moments)
 
-		startMark.addStartCallback(new TweenCallback() {
+		/*startMark.addCallback(TweenCallback.Types.START, new TweenCallback() {
 			@Override public void tweenEventOccured(Types eventType, Tween tween) {
 				text = "Iteration: " + (++iterationCnt) + " / " + (repeatCnt+1);
 			}
@@ -208,7 +207,7 @@ public class App implements ApplicationListener {
 					canBeRestarted = true;
 				}
 			}
-		});
+		});*/
 	}
 
 	// -------------------------------------------------------------------------
@@ -222,7 +221,7 @@ public class App implements ApplicationListener {
 				canBeRestarted = false;
 				// If the user touches the screen, we kill every running tween
 				// and restart the animation.
-				tweenManager.clear();
+				tweenManager.killAll();
 				start();
 			}
 			return true;
@@ -233,7 +232,6 @@ public class App implements ApplicationListener {
 			if (canControlSpeed) {
 				int w = Gdx.graphics.getWidth();
 				speed = 4f * (x-w/2)/w;
-				tweenManager.setSpeed(speed);
 			}
 			return true;
 		}

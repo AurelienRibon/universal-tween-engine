@@ -22,19 +22,22 @@ public class App {
 	private final TweenManager tweenManager;
 
 	public App() {
+		int w = 800;
+		int h = 600;
+
+		label = new JLabel("Universal Tween Engine");
+		label.setSize(label.getPreferredSize());
+		label.setLocation(10, 10);
+
 		button = new JButton("Push me!");
-		button.setLocation(10, 30);
 		button.setSize(button.getPreferredSize());
+		button.setLocation(w/2 - button.getWidth()/2, h/2 - button.getHeight()/2);
 		button.addMouseListener(buttonMouseListener);
 		button.addActionListener(buttonActionListener);
 
-		label = new JLabel("Universal Tween Engine");
-		label.setLocation(10, 10);
-		label.setSize(label.getPreferredSize());
-
 		window = new JFrame("TweenEngine Swing test");
 		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		window.setSize(800, 600);
+		window.setSize(w, h);
 		window.setLayout(null);
 		window.getContentPane().add(label);
 		window.getContentPane().add(button);

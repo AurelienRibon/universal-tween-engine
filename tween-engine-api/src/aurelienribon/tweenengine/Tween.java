@@ -9,7 +9,7 @@ import java.util.Map;
 
 /**
  * Core class of the Tween Engine. It contains many static factory methods to
- * create and instantiate new interpolations.
+ * create and instantiate new interpolations easily.
  *
  * <br/><br/>
  * The common way to create a Tween is by using one of the static constructor,
@@ -34,8 +34,8 @@ import java.util.Map;
  *      .target(200, 300)
  *      .ease(Quad.INOUT)
  *      .delay(1000)
- *      .repeat(2)
- *      .addToManager(myManager);
+ *      .repeat(2, 0)
+ *      .start(myManager);
  * </pre>
  *
  * You need to periodicaly update the tween engine, in order to compute the new
@@ -44,12 +44,12 @@ import java.util.Map;
  *
  * @see TweenAccessor
  * @see TweenManager
- * @see TweenGroup
  * @see TweenEquation
+ * @see Timeline
  *
  * @author Aurelien Ribon | http://www.aurelienribon.com/
  */
-public class Tween implements Groupable {
+public class Tween implements TimelineObject {
 
 	// -------------------------------------------------------------------------
 	// Static
@@ -70,10 +70,10 @@ public class Tween implements Groupable {
 	}
 
 	/**
-	 * Enables or disables the automatic reuse of ended tweens. Pooling prevents
-	 * the allocation of a new tween object when using the static constructors,
-	 * thus removing the need for garbage collection. Can be quite helpful on
-	 * slow or embedded devices.
+	 * Enables or disables the automatic reuse of finished tweens. Pooling
+	 * prevents the allocation of a new tween object when using the static
+	 * constructors, thus removing the need for garbage collection. Can be quite
+	 * helpful on slow or embedded devices.
 	 * <br/><br/>
 	 * Defaults to false.
 	 */
@@ -111,6 +111,7 @@ public class Tween implements Groupable {
 	public static void dispose() {
 		isPoolEnabled = false;
 		pool.clear();
+		Timeline.pool.clear();
 	}
 
 	/**
@@ -143,11 +144,7 @@ public class Tween implements Groupable {
 	};
 
 	private static final Pool<Tween> pool = new Pool<Tween>(20, poolCallback) {
-		@Override protected Tween create() {
-			Tween tween = new Tween(null, -1, 0);
-			tween.reset();
-			return tween;
-		}
+		@Override protected Tween create() {Tween t = new Tween(null, -1, 0); t.reset(); return t;}
 	};
 
 	// -------------------------------------------------------------------------
@@ -721,7 +718,6 @@ public class Tween implements Groupable {
 	 * @param millis The delay, in milliseconds.
 	 * @return The current tween for chaining instructions.
 	 */
-	@Override
 	public Tween delay(int millis) {
 		if (isStarted) throw new RuntimeException("Cannot change the delay of a running tween");
 		delayMillis += millis;
@@ -779,7 +775,6 @@ public class Tween implements Groupable {
 	 * @param millis A delay before each repetition.
 	 * @return The current tween for chaining instructions.
 	 */
-	@Override
 	public Tween repeat(int count, int delayMillis) {
 		repeatCnt = count;
 		repeatDelayMillis = delayMillis >= 0 ? delayMillis : 0;
@@ -795,7 +790,6 @@ public class Tween implements Groupable {
 	 * @param millis A delay before each repetition.
 	 * @return The current tween for chaining instructions.
 	 */
-	@Override
 	public Tween repeatYoyo(int count, int delayMillis) {
 		repeatCnt = count;
 		repeatDelayMillis = delayMillis >= 0 ? delayMillis : 0;
@@ -831,7 +825,7 @@ public class Tween implements Groupable {
 	/**
 	 * Gets the tween easing equation.
 	 */
-	public TweenEquation getEquation() {
+	public TweenEquation getEasing() {
 		return equation;
 	}
 
@@ -845,7 +839,6 @@ public class Tween implements Groupable {
 	/**
 	 * Gets the tween duration.
 	 */
-	@Override
 	public int getDuration() {
 		return durationMillis;
 	}
@@ -853,7 +846,6 @@ public class Tween implements Groupable {
 	/**
 	 * Gets the tween delay.
 	 */
-	@Override
 	public int getDelay() {
 		return delayMillis;
 	}
@@ -868,7 +860,6 @@ public class Tween implements Groupable {
 	/**
 	 * Gets the total number of repetitions.
 	 */
-	@Override
 	public int getRepeatCount() {
 		return repeatCnt;
 	}
@@ -876,7 +867,6 @@ public class Tween implements Groupable {
 	/**
 	 * Gets the delay before each repetition.
 	 */
-	@Override
 	public int getRepeatDelay() {
 		return repeatDelayMillis;
 	}
@@ -1006,11 +996,11 @@ public class Tween implements Groupable {
 
 	private void triggerLimitCallbacks(int lastIteration) {
 		if (repeatCnt >= 0 && iteration > repeatCnt*2 && isValid(lastIteration)) {
-			if (isIterationYoyo(iteration-1)) forceStartValues(); else forceEndValues();
+			if (isIterationYoyo(repeatCnt*2)) forceStartValues(); else forceEndValues();
 			callCallbacks(TweenCallback.Types.COMPLETE);
 
 		} else if (repeatCnt >= 0 && iteration < 0 && isValid(lastIteration)) {
-			if (isIterationYoyo(iteration+1)) forceEndValues(); else forceStartValues();
+			if (isIterationYoyo(0)) forceEndValues(); else forceStartValues();
 			callCallbacks(TweenCallback.Types.BACK_COMPLETE);
 		}
 	}
@@ -1022,11 +1012,6 @@ public class Tween implements Groupable {
 		assert isValid(iteration);
 
 		if (target == null || equation == null || !isInitialized || isFinished) return;
-
-		if (currentMillis >= durationMillis) {
-			forceEndValues();
-			return;
-		}
 
 		for (int i=0; i<combinedTweenCnt; i++) {
 			float startValue = !isFrom ? startValues[i] : targetValues[i];
