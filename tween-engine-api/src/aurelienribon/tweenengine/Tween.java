@@ -372,6 +372,7 @@ public class Tween extends TimelineObject {
 		type = -1;
 		equation = null;
 
+		isPooled = Tween.isPoolingEnabled();
 		isFrom = isRelative = isYoyo = isBetweenIterations = false;
 		iteration = repeatCnt = combinedTweenCnt = 0;
 
@@ -927,7 +928,6 @@ public class Tween extends TimelineObject {
 			testCompletion();
 			testRelaunch();
 
-			int lastMillis = currentMillis - deltaMillis;
 			int lastIteration = iteration;
 
 			while (isValid(iteration)) {
@@ -954,10 +954,10 @@ public class Tween extends TimelineObject {
 				} else break;
 			}
 
-			triggerInnerCallbacks(lastIteration, lastMillis);
-			triggerLimitCallbacks(lastIteration);
+			testInnerTransitions(lastIteration);
+			testLimitTransitions(lastIteration);
 
-			if (isValid(iteration) && !isBetweenIterations) updateTarget();
+			if (!isBetweenIterations) updateTarget();
 		}
 	}
 
@@ -990,29 +990,29 @@ public class Tween extends TimelineObject {
 		}
 	}
 
-	private void triggerInnerCallbacks(int lastIteration, int lastMillis) {
+	private void testInnerTransitions(int lastIteration) {
 		if (iteration > lastIteration) {
-			if (isValid(lastIteration) && lastMillis <= durationMillis) callCallbacks(Types.END);
-			if (isValid(iteration)) callCallbacks(Types.START);
+			if (isComputeIteration(lastIteration)) callCallbacks(Types.END);
+			if (isComputeIteration(iteration)) callCallbacks(Types.START);
+			if (isBetweenIterations) forceEndValues(iteration-1);
 
 		} else if (iteration < lastIteration) {
-			if (isValid(lastIteration)) callCallbacks(Types.BACK_END);
-			if (isValid(iteration) && currentMillis < durationMillis) callCallbacks(Types.BACK_START);
-
-		} else {
-			if (isValid(iteration) && currentMillis > durationMillis && lastMillis <= durationMillis) callCallbacks(Types.END);
-			if (isValid(iteration) && currentMillis < durationMillis && lastMillis >= durationMillis) callCallbacks(Types.BACK_START);
+			if (isComputeIteration(lastIteration)) callCallbacks(Types.BACK_END);
+			if (isComputeIteration(iteration)) callCallbacks(Types.BACK_START);
+			if (isBetweenIterations) forceStartValues(iteration+1);
 		}
 	}
 
-	private void triggerLimitCallbacks(int lastIteration) {
+	private void testLimitTransitions(int lastIteration) {
 		if (repeatCnt >= 0 && iteration > repeatCnt*2 && isValid(lastIteration)) {
-			if (isIterationYoyo(repeatCnt*2)) forceStartValues(); else forceEndValues();
-			callCallbacks(TweenCallback.Types.COMPLETE);
+			assert iteration == repeatCnt*2 + 1;
+			forceEndValues(repeatCnt*2);
+			callCallbacks(Types.COMPLETE);
 
 		} else if (repeatCnt >= 0 && iteration < 0 && isValid(lastIteration)) {
-			if (isIterationYoyo(0)) forceEndValues(); else forceStartValues();
-			callCallbacks(TweenCallback.Types.BACK_COMPLETE);
+			assert iteration == -1;
+			forceStartValues(0);
+			callCallbacks(Types.BACK_COMPLETE);
 		}
 	}
 
@@ -1021,6 +1021,7 @@ public class Tween extends TimelineObject {
 		assert currentMillis <= durationMillis;
 		assert !isBetweenIterations;
 		assert isValid(iteration);
+		assert isComputeIteration(iteration);
 
 		if (target == null || equation == null || !isInitialized || isFinished) return;
 
@@ -1038,25 +1039,33 @@ public class Tween extends TimelineObject {
 	// Helpers
 	// -------------------------------------------------------------------------
 
-	private void forceStartValues() {
-		if (!isInitialized || target == null) return;
-		accessor.setValues(target, type, !isFrom ? startValues : targetValues);
+	private void forceStartValues(int iteration) {
+		assert isComputeIteration(iteration);
+		if (target == null) return;
+		boolean swapStartAndTarget = isIterationYoyo(iteration) ? !isFrom : isFrom;
+		accessor.setValues(target, type, swapStartAndTarget ? targetValues : startValues);
 	}
 
-	private void forceEndValues() {
-		if (!isInitialized || target == null) return;
-		accessor.setValues(target, type, !isFrom ? targetValues : startValues);
+	private void forceEndValues(int iteration) {
+		assert isComputeIteration(iteration);
+		if (target == null) return;
+		boolean swapStartAndTarget = isIterationYoyo(iteration) ? !isFrom : isFrom;
+		accessor.setValues(target, type, swapStartAndTarget ? startValues : targetValues);
 	}
 
 	private boolean isValid(int iteration) {
 		return (iteration >= 0 && iteration <= repeatCnt*2) || repeatCnt < 0;
 	}
 
+	private boolean isComputeIteration(int iteration) {
+		return Math.abs(iteration%2) == 0;
+	}
+
 	private boolean isIterationYoyo(int iteration) {
 		return isYoyo && Math.abs(iteration%4) == 2;
 	}
 
-	private void callCallbacks(TweenCallback.Types type) {
+	private void callCallbacks(Types type) {
 		List<TweenCallback> callbacks = null;
 
 		switch (type) {
@@ -1077,6 +1086,11 @@ public class Tween extends TimelineObject {
 	// -------------------------------------------------------------------------
 	// TimelineObject impl.
 	// -------------------------------------------------------------------------
+
+	@Override
+	protected void setCurrentMillis(int millis) {
+		update(millis - currentMillis);
+	}
 
 	@Override
 	protected int getChildrenCount() {
