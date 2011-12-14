@@ -148,6 +148,12 @@ public class Tween implements TimelineObject {
 	};
 
 	// -------------------------------------------------------------------------
+
+	static void _free(Tween t) {
+		pool.free(t);
+	}
+
+	// -------------------------------------------------------------------------
 	// Factories
 	// -------------------------------------------------------------------------
 
@@ -330,6 +336,7 @@ public class Tween implements TimelineObject {
 	private int delayMillis;
 	private int durationMillis;
 	private int repeatDelayMillis;
+	private int endDelayMillis;
 	private int currentMillis;
 	private boolean isStarted; // true when the tween is started
 	private boolean isInitialized; // true when starting values have been retrieved (after first delay)
@@ -346,9 +353,6 @@ public class Tween implements TimelineObject {
 
 	// Misc
 	private Object userData;
-
-	// Advanced (package access)
-	int endDelayMillis;
 
 	// -------------------------------------------------------------------------
 	// Ctor
@@ -893,17 +897,14 @@ public class Tween implements TimelineObject {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * <b>Advanced use.</b><br/>
-	 * Updates the tween state. Using this method can be unsafe if tween
-	 * pooling was first enabled. <b>The recommanded behavior is to use a
-	 * TweenManager instead.</b> Of course, you can give any delta time you
-	 * want. Therefore, slow or fast motion can be easily achieved.
+	 * Updates the tween state. <b>You may want to use a TweenManager to update
+	 * tweens for you.</b> Slow motion, fast motion and backwards play can be
+	 * easily achieved by tweaking the deltaMillis given as parameter.
 	 * @param deltaMillis A delta time, in milliseconds, between now and the
 	 * last call.
 	 */
-	public final void update(int deltaMillis) {
-		if (isFinished && isPooled) pool.free(this);
-		if (!isStarted || isFinished) return;
+	public void update(int deltaMillis) {
+		if (!isStarted) return;
 
 		currentMillis += deltaMillis;
 
@@ -911,8 +912,6 @@ public class Tween implements TimelineObject {
 
 		if (isInitialized) {
 			testCompletion();
-			if (isFinished) return;
-
 			testRelaunch();
 
 			int lastMillis = currentMillis - deltaMillis;
@@ -1061,5 +1060,17 @@ public class Tween implements TimelineObject {
 		if (callbacks != null && !callbacks.isEmpty())
 			for (int i=0, n=callbacks.size(); i<n; i++)
 				callbacks.get(i).tweenEventOccured(type, this);
+	}
+
+	// -------------------------------------------------------------------------
+	// Package access
+	// -------------------------------------------------------------------------
+
+	boolean _isPooled() {
+		return isPooled;
+	}
+
+	void _setEndDelay(int millis) {
+		this.endDelayMillis = millis;
 	}
 }

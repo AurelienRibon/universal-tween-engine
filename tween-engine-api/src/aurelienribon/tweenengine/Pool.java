@@ -29,15 +29,13 @@ abstract class Pool<T> {
 
 	public T get() {
 		T obj = objects.isEmpty() ? create() : objects.remove(objects.size()-1);
-		if (callback != null)
-			callback.onUnpool(obj);
+		if (callback != null) callback.onUnpool(obj);
 		return obj;
 	}
 
 	public void free(T obj) {
 		if (!objects.contains(obj)) {
-			if (callback != null)
-				callback.onPool(obj);
+			if (callback != null) callback.onPool(obj);
 			objects.add(obj);
 		}
 	}

@@ -104,22 +104,32 @@ public class TweenManager {
 	}
 
 	/**
-	 * Updates every tween with a delta time. Handles the tween life-cycle
+	 * Updates every tweens with a delta time. Handles the tween life-cycles
 	 * automatically. If a tween is finished, it will be removed from the
-	 * manager.
+	 * manager. Slow motion, fast motion and backwards play can be easily
+	 * achieved by tweaking the deltaMillis given as parameter.
 	 */
 	public void update(int deltaMillis) {
 		if (deltaMillis >= 0) {
 			for (int i=0; i<tweens.size(); i++) {
 				Tween t = tweens.get(i);
-				if (t.isFinished()) {tweens.remove(i); i -= 1;}
-				t.update(deltaMillis);
+				if (t.isFinished()) {
+					tweens.remove(i);
+					i -= 1;
+					if (t._isPooled()) Tween._free(t);
+				} else {
+					t.update(deltaMillis);
+				}
 			}
 		} else {
 			for (int i=tweens.size()-1; i>=0; i--) {
 				Tween t = tweens.get(i);
-				if (t.isFinished()) {tweens.remove(i);}
-				t.update(deltaMillis);
+				if (t.isFinished()) {
+					tweens.remove(i);
+					if (t._isPooled()) Tween._free(t);
+				} else {
+					t.update(deltaMillis);
+				}
 			}
 		}
 	}
