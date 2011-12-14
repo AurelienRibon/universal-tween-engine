@@ -189,6 +189,8 @@ public class Timeline extends TimelineObject {
 	public Timeline start() {
 		if (parent != null) throw new RuntimeException("You forgot to call a few 'end()' statements...");
 		sequence(this);
+		currentMillis = 0;
+		isStarted = true;
 		return this;
 	}
 

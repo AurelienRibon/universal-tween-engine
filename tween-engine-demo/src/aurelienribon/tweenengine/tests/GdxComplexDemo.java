@@ -1,4 +1,4 @@
-package aurelienribon.tweenengine.tests.libgdx;
+package aurelienribon.tweenengine.tests;
 
 import aurelienribon.tweenengine.Tween;
 import aurelienribon.tweenengine.TweenCallback;
@@ -8,10 +8,12 @@ import aurelienribon.tweenengine.equations.Back;
 import aurelienribon.tweenengine.equations.Cubic;
 import aurelienribon.tweenengine.equations.Quad;
 import aurelienribon.tweenengine.equations.Quart;
+import aurelienribon.tweenaccessors.gdx.SpriteAccessor;
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.Texture;
@@ -21,7 +23,11 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import java.util.Locale;
 
-public class App implements ApplicationListener {
+public class GdxComplexDemo implements ApplicationListener {
+	public static void start() {
+		new LwjglApplication(new GdxComplexDemo(), "", 500, 200, false);
+	}
+
 	private OrthographicCamera camera;
 	private SpriteBatch sb;
 	private TweenManager tweenManager;
@@ -83,7 +89,7 @@ public class App implements ApplicationListener {
 
 		// Tween engine setup
 		Tween.enablePooling(true);
-		Tween.registerAccessor(Sprite.class, new SpriteTweenAccessor());
+		Tween.registerAccessor(Sprite.class, new SpriteAccessor());
 
 		// Tween manager creation
 		tweenManager = new TweenManager();
@@ -138,26 +144,26 @@ public class App implements ApplicationListener {
 
 	private Timeline buildAnimation(Sprite target, int delay1, int delay2) {
 		return Timeline.createSequence()
-			.push(Tween.set(target, SpriteTweenAccessor.POSITION_XY).target(0, 0))
-			.push(Tween.set(target, SpriteTweenAccessor.SCALE_XY).target(10, 10))
-			.push(Tween.set(target, SpriteTweenAccessor.ROTATION).target(0))
+			.push(Tween.set(target, SpriteAccessor.POSITION_XY).target(0, 0))
+			.push(Tween.set(target, SpriteAccessor.SCALE_XY).target(10, 10))
+			.push(Tween.set(target, SpriteAccessor.ROTATION).target(0))
 			.pushPause(delay1)
 			.beginParallel()
-				.push(Tween.to(target, SpriteTweenAccessor.OPACITY, 1000).target(1).ease(Quart.INOUT))
-				.push(Tween.to(target, SpriteTweenAccessor.SCALE_XY, 1000).target(1, 1).ease(Quart.INOUT))
+				.push(Tween.to(target, SpriteAccessor.OPACITY, 1000).target(1).ease(Quart.INOUT))
+				.push(Tween.to(target, SpriteAccessor.SCALE_XY, 1000).target(1, 1).ease(Quart.INOUT))
 			.end()
 			.pushPause(-500)
-			.push(Tween.to(target, SpriteTweenAccessor.POSITION_XY, 1000).targetCurrent().ease(Back.OUT))
-			.push(Tween.to(target, SpriteTweenAccessor.ROTATION, 800).target(360).ease(Cubic.INOUT))
+			.push(Tween.to(target, SpriteAccessor.POSITION_XY, 1000).targetCurrent().ease(Back.OUT))
+			.push(Tween.to(target, SpriteAccessor.ROTATION, 800).target(360).ease(Cubic.INOUT))
 			.pushPause(delay2)
 			.beginParallel()
-				.push(Tween.to(target, SpriteTweenAccessor.SCALE_XY, 300).target(3, 3).ease(Quad.IN))
-				.push(Tween.to(target, SpriteTweenAccessor.OPACITY, 300).target(0).ease(Quad.IN))
+				.push(Tween.to(target, SpriteAccessor.SCALE_XY, 300).target(3, 3).ease(Quad.IN))
+				.push(Tween.to(target, SpriteAccessor.OPACITY, 300).target(0).ease(Quad.IN))
 			.end()
 			.start(tweenManager);
 	}
 
-	private void start() {
+	private void launchAnimation() {
 		final int repeatCnt = 2;
 		Tween startMark = Tween.mark();
 		Tween endMark = Tween.mark();
@@ -222,7 +228,7 @@ public class App implements ApplicationListener {
 				// If the user touches the screen, we kill every running tween
 				// and restart the animation.
 				tweenManager.killAll();
-				start();
+				launchAnimation();
 			}
 			return true;
 		}

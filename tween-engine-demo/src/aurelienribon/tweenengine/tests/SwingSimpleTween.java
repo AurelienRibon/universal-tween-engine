@@ -1,5 +1,7 @@
-package aurelienribon.tweenengine.tests.swing;
+package aurelienribon.tweenengine.tests;
 
+import aurelienribon.tweenaccessors.swing.ComponentAccessor;
+import aurelienribon.utils.swing.DrawingCanvas;
 import aurelienribon.tweenengine.Tween;
 import aurelienribon.tweenengine.TweenManager;
 import aurelienribon.tweenengine.equations.Back;
@@ -9,19 +11,25 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.Random;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
-public class App {
+public class SwingSimpleTween {
+	public static void start() {
+		new SwingSimpleTween();
+	}
+
 	private final JFrame window;
 	private final JLabel label;
 	private final JButton button;
 	private final TweenManager tweenManager;
 
-	public App() {
+	public SwingSimpleTween() {
 		int w = 800;
 		int h = 600;
 
@@ -43,16 +51,25 @@ public class App {
 		window.getContentPane().add(button);
 		window.setVisible(true);
 
-		Tween.registerAccessor(Component.class, new ComponentTweenAccessor());
+		window.addWindowListener(new WindowAdapter() {
+			@Override public void windowOpened(WindowEvent e) {
+				new DrawingCanvas() {
+					@Override protected void update(int elapsedMillis) {
+						tweenManager.update(elapsedMillis);
+					}
+				}.start();
+			}
+		});
+
+		Tween.registerAccessor(Component.class, new ComponentAccessor());
 		tweenManager = new TweenManager();
 
-		Tween.to(label, ComponentTweenAccessor.POSITION, 1000)
+		Tween.to(label, ComponentAccessor.POSITION, 1000)
 			.target(window.getContentPane().getWidth() - label.getWidth() - 10, 10)
 			.ease(Cubic.INOUT)
 			.repeatYoyo(-1, 200)
+			.delay(500)
 			.start(tweenManager);
-
-		SwingTweenThread.start(window.getContentPane(), tweenManager);
 	}
 
 	private final MouseAdapter buttonMouseListener = new MouseAdapter() {
@@ -63,7 +80,7 @@ public class App {
 			int ty = rand.nextInt(window.getContentPane().getHeight() - 30 - button.getHeight()) + 30;
 
 			tweenManager.killTarget(button);
-			Tween.to(button, ComponentTweenAccessor.POSITION, 500)
+			Tween.to(button, ComponentAccessor.POSITION, 500)
 				.target(tx, ty)
 				.ease(Back.OUT)
 				.start(tweenManager);

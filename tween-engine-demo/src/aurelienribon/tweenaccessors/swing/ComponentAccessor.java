@@ -1,9 +1,9 @@
-package aurelienribon.tweenengine.tests.swing;
+package aurelienribon.tweenaccessors.swing;
 
 import aurelienribon.tweenengine.TweenAccessor;
 import java.awt.Component;
 
-public class ComponentTweenAccessor implements TweenAccessor<Component> {
+public class ComponentAccessor implements TweenAccessor<Component> {
 	public static final int POSITION = 0;
 
 	@Override
@@ -20,9 +20,7 @@ public class ComponentTweenAccessor implements TweenAccessor<Component> {
 	@Override
 	public void setValues(Component target, int tweenType, float[] newValues) {
 		switch (tweenType) {
-			case POSITION:
-				target.setLocation((int) newValues[0], (int) newValues[1]);
-				break;
+			case POSITION: target.setLocation((int) newValues[0], (int) newValues[1]); break;
 		}
 	}
 }
