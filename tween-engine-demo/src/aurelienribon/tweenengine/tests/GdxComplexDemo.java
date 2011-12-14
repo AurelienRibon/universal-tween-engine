@@ -159,8 +159,7 @@ public class GdxComplexDemo implements ApplicationListener {
 			.beginParallel()
 				.push(Tween.to(target, SpriteAccessor.SCALE_XY, 300).target(3, 3).ease(Quad.IN))
 				.push(Tween.to(target, SpriteAccessor.OPACITY, 300).target(0).ease(Quad.IN))
-			.end()
-			.start(tweenManager);
+			.end();
 	}
 
 	private void launchAnimation() {

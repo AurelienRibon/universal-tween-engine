@@ -284,7 +284,7 @@ public class Timeline extends TimelineObject {
 			testInnerTransition(lastIteration);
 			testLimitTransition(lastIteration);
 			testCompletion();
-			if (isComputeIteration) compute(deltaMillis);
+			if (isComputeIteration) compute(lastIteration, deltaMillis);
 		}
 	}
 
@@ -358,7 +358,7 @@ public class Timeline extends TimelineObject {
 		isFinished = (repeatCnt >= 0 && iteration > repeatCnt*2) || (repeatCnt >= 0 && iteration < 0);
 	}
 
-	private void compute(int deltaMillis) {
+	private void compute(int lastIteration, int deltaMillis) {
 		assert currentMillis >= 0;
 		assert currentMillis <= durationMillis;
 		assert isInitialized;
@@ -366,7 +366,18 @@ public class Timeline extends TimelineObject {
 		assert isComputeIteration;
 		assert isValid(iteration);
 
-		int millis = isIterationYoyo(iteration) ? -deltaMillis : deltaMillis;
+		int millis = 0;
+
+		if (iteration > lastIteration) {
+			millis = isIterationYoyo(iteration) ? -currentMillis : currentMillis;
+
+		} else if (iteration < lastIteration) {
+			millis = isIterationYoyo(iteration) ? currentMillis : -currentMillis;
+
+		} else {
+			millis = isIterationYoyo(iteration) ? -deltaMillis : deltaMillis;
+		}
+
 		for (int i=0; i<children.size(); i++) {
 			TimelineObject obj = children.get(i);
 			obj.update(millis);
@@ -454,7 +465,7 @@ public class Timeline extends TimelineObject {
 
 	@Override
 	protected void forceToEnd(int millis) {
-		currentMillis = millis;
+		currentMillis = millis - getFullDuration();
 		iteration = repeatCnt*2 + 1;
 		isComputeIteration = false;
 		forceEndValues(repeatCnt*2);

@@ -978,7 +978,7 @@ public class Tween extends TimelineObject {
 		if (repeatCnt >= 0 && iteration > repeatCnt*2 && currentMillis <= 0) {
 			assert iteration == repeatCnt*2 + 1;
 			isComputeIteration = true;
-			currentMillis -= durationMillis;
+			currentMillis += durationMillis;
 			iteration = repeatCnt*2;
 
 		} else if (repeatCnt >= 0 && iteration < 0 && currentMillis >= 0) {
@@ -1110,7 +1110,7 @@ public class Tween extends TimelineObject {
 
 	@Override
 	protected void forceToEnd(int millis) {
-		currentMillis = millis;
+		currentMillis = millis - getFullDuration();
 		iteration = repeatCnt*2 + 1;
 		isComputeIteration = false;
 		forceEndValues(repeatCnt*2);
