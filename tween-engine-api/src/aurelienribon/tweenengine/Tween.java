@@ -321,7 +321,7 @@ public class Tween extends TimelineObject {
 	private boolean isFrom;
 	private boolean isRelative;
 	private boolean isYoyo;
-	private boolean isBetweenIterations;
+	private boolean isComputeIteration;
 	private int iteration;
 	private int repeatCnt;
 	private int combinedTweenCnt;
@@ -373,7 +373,7 @@ public class Tween extends TimelineObject {
 		equation = null;
 
 		isPooled = Tween.isPoolingEnabled();
-		isFrom = isRelative = isYoyo = isBetweenIterations = false;
+		isFrom = isRelative = isYoyo = isComputeIteration = false;
 		iteration = repeatCnt = combinedTweenCnt = 0;
 
 		delayMillis = durationMillis = repeatDelayMillis = currentMillis = 0;
@@ -775,8 +775,19 @@ public class Tween extends TimelineObject {
 			case BACK_COMPLETE: callbacks = backEndCallbacks; break;
 		}
 
-		if (callbacks != null) callbacks = new ArrayList<TweenCallback>(1);
+		if (callbacks == null) callbacks = new ArrayList<TweenCallback>(1);
 		callbacks.add(callback);
+
+		switch (callbackType) {
+			case BEGIN: startCallbacks = callbacks; break;
+			case START: startCallbacks = callbacks; break;
+			case END: endCallbacks = callbacks; break;
+			case COMPLETE: endCallbacks = callbacks; break;
+			case BACK_START: backStartCallbacks = callbacks; break;
+			case BACK_END: backEndCallbacks = callbacks; break;
+			case BACK_COMPLETE: backEndCallbacks = callbacks; break;
+		}
+
 		return this;
 	}
 
@@ -905,6 +916,18 @@ public class Tween extends TimelineObject {
 		return isFinished;
 	}
 
+	/**
+	 * Returns the complete duration of a tween, including its delay and its
+	 * repetitions. The formula is as follows:
+	 * <br/><br/>
+	 *
+	 * fullDuration = delay + duration + (repeatDelay + duration) * repeatCnt
+	 */
+	@Override
+	public int getFullDuration() {
+		return delayMillis + durationMillis + (repeatDelayMillis + durationMillis) * repeatCnt;
+	}
+
 	// -------------------------------------------------------------------------
 	// Update engine
 	// -------------------------------------------------------------------------
@@ -920,110 +943,106 @@ public class Tween extends TimelineObject {
 	public void update(int deltaMillis) {
 		if (!isStarted) return;
 
+		int lastIteration = iteration;
 		currentMillis += deltaMillis;
 
 		initialize();
 
 		if (isInitialized) {
-			testCompletion();
 			testRelaunch();
-
-			int lastIteration = iteration;
-
-			while (isValid(iteration)) {
-				if (isBetweenIterations && currentMillis <= 0) {
-					isBetweenIterations = false;
-					currentMillis += durationMillis;
-					iteration -= 1;
-
-				} else if (isBetweenIterations && currentMillis >= repeatDelayMillis) {
-					isBetweenIterations = false;
-					currentMillis -= repeatDelayMillis;
-					iteration += 1;
-
-				} else if (!isBetweenIterations && currentMillis < 0) {
-					isBetweenIterations = true;
-					currentMillis += isValid(iteration-1) ? repeatDelayMillis : 0;
-					iteration -= 1;
-
-				} else if (!isBetweenIterations && currentMillis > durationMillis) {
-					isBetweenIterations = true;
-					currentMillis -= durationMillis;
-					iteration += 1;
-
-				} else break;
-			}
-
-			testInnerTransitions(lastIteration);
-			testLimitTransitions(lastIteration);
-
-			if (!isBetweenIterations) updateTarget();
+			updateIteration();
+			testInnerTransition(lastIteration);
+			testLimitTransition(lastIteration);
+			testCompletion();
+			if (isComputeIteration) compute();
 		}
 	}
 
 	private void initialize() {
 		if (!isInitialized && currentMillis >= delayMillis) {
-			isInitialized = true;
-			currentMillis -= delayMillis;
-
 			if (target != null) {
 				accessor.getValues(target, type, startValues);
 				for (int i=0; i<combinedTweenCnt; i++)
 					targetValues[i] += isRelative ? startValues[i] : 0;
 			}
+
+			isInitialized = true;
+			isComputeIteration = true;
+			currentMillis -= delayMillis;
+			callCallbacks(Types.BEGIN);
+			callCallbacks(Types.START);
 		}
+	}
+
+	private void testRelaunch() {
+		if (repeatCnt >= 0 && iteration > repeatCnt*2 && currentMillis <= 0) {
+			assert iteration == repeatCnt*2 + 1;
+			isComputeIteration = true;
+			currentMillis -= durationMillis;
+			iteration = repeatCnt*2;
+
+		} else if (repeatCnt >= 0 && iteration < 0 && currentMillis >= 0) {
+			assert iteration == -1;
+			isComputeIteration = true;
+			iteration = 0;
+		}
+	}
+
+	private void updateIteration() {
+		while (isValid(iteration)) {
+			if (!isComputeIteration && currentMillis <= 0) {
+				isComputeIteration = true;
+				currentMillis += durationMillis;
+				iteration -= 1;
+				callCallbacks(Types.BACK_START);
+
+			} else if (!isComputeIteration && currentMillis >= repeatDelayMillis) {
+				isComputeIteration = true;
+				currentMillis -= repeatDelayMillis;
+				iteration += 1;
+				callCallbacks(Types.START);
+
+			} else if (isComputeIteration && currentMillis < 0) {
+				isComputeIteration = false;
+				currentMillis += isValid(iteration-1) ? repeatDelayMillis : 0;
+				iteration -= 1;
+				callCallbacks(Types.BACK_END);
+
+			} else if (isComputeIteration && currentMillis > durationMillis) {
+				isComputeIteration = false;
+				currentMillis -= durationMillis;
+				iteration += 1;
+				callCallbacks(Types.END);
+
+			} else break;
+		}
+	}
+
+	private void testInnerTransition(int lastIteration) {
+		if (isComputeIteration) return;
+		if (iteration > lastIteration) forceEndValues(iteration-1);
+		else if (iteration < lastIteration) forceStartValues(iteration+1);
+	}
+
+	private void testLimitTransition(int lastIteration) {
+		if (repeatCnt < 0 || iteration == lastIteration) return;
+		if (iteration > repeatCnt*2) callCallbacks(Types.COMPLETE);
+		else if (iteration < 0) callCallbacks(Types.BACK_COMPLETE);
 	}
 
 	private void testCompletion() {
 		isFinished = (repeatCnt >= 0 && iteration > repeatCnt*2) || (repeatCnt >= 0 && iteration < 0);
 	}
 
-	private void testRelaunch() {
-		if (repeatCnt >= 0 && iteration > repeatCnt*2 && currentMillis <= 0) {
-			isBetweenIterations = false;
-			currentMillis -= durationMillis;
-			iteration -= 1;
-
-		} else if (repeatCnt >= 0 && iteration < 0 && currentMillis >= 0) {
-			isBetweenIterations = false;
-			iteration += 1;
-		}
-	}
-
-	private void testInnerTransitions(int lastIteration) {
-		if (iteration > lastIteration) {
-			if (isComputeIteration(lastIteration)) callCallbacks(Types.END);
-			if (isComputeIteration(iteration)) callCallbacks(Types.START);
-			if (isBetweenIterations) forceEndValues(iteration-1);
-
-		} else if (iteration < lastIteration) {
-			if (isComputeIteration(lastIteration)) callCallbacks(Types.BACK_END);
-			if (isComputeIteration(iteration)) callCallbacks(Types.BACK_START);
-			if (isBetweenIterations) forceStartValues(iteration+1);
-		}
-	}
-
-	private void testLimitTransitions(int lastIteration) {
-		if (repeatCnt >= 0 && iteration > repeatCnt*2 && isValid(lastIteration)) {
-			assert iteration == repeatCnt*2 + 1;
-			forceEndValues(repeatCnt*2);
-			callCallbacks(Types.COMPLETE);
-
-		} else if (repeatCnt >= 0 && iteration < 0 && isValid(lastIteration)) {
-			assert iteration == -1;
-			forceStartValues(0);
-			callCallbacks(Types.BACK_COMPLETE);
-		}
-	}
-
-	private void updateTarget() {
+	private void compute() {
 		assert currentMillis >= 0;
 		assert currentMillis <= durationMillis;
-		assert !isBetweenIterations;
+		assert isInitialized;
+		assert !isFinished;
+		assert isComputeIteration;
 		assert isValid(iteration);
-		assert isComputeIteration(iteration);
 
-		if (target == null || equation == null || !isInitialized || isFinished) return;
+		if (target == null || equation == null) return;
 
 		for (int i=0; i<combinedTweenCnt; i++) {
 			float startValue = !isFrom ? startValues[i] : targetValues[i];
