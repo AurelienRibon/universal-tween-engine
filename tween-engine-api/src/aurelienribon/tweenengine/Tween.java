@@ -117,16 +117,6 @@ public class Tween extends TimelineObject {
 	}
 
 	/**
-	 * If you want to manually manage your tweens (without using a
-	 * TweenManager), and you enabled object pooling, then you need to call
-	 * this method on your tweens once they are finished (see <i>isFinished()
-	 * </i> method).
-	 */
-	public static void free(Tween tween) {
-		pool.free(tween);
-	}
-
-	/**
 	 * Clears every static resources and resets the static instance.
 	 */
 	public static void dispose() {
@@ -457,6 +447,27 @@ public class Tween extends TimelineObject {
 	}
 
 	/**
+	 * Kills the interpolation. If pooling was enabled when this tween was
+	 * created, the tween will be freed, cleared, and returned to the pool. As
+	 * a result, you shouldn't use it anymore.
+	 */
+	@Override
+	public void kill() {
+		isFinished = true;
+	}
+
+	/**
+	 * If you want to manually manage your tweens (without using a
+	 * TweenManager), and you enabled object pooling, then you need to call
+	 * this method on your tweens once they are finished (see <i>isFinished()
+	 * </i> method).
+	 */
+	@Override
+	public void free() {
+		if (isPooled) pool.free(this);
+	}
+
+	/**
 	 * Sets the target value of the interpolation. The interpolation will run
 	 * from the <b>value at start time (after the delay, if any)</b> to this
 	 * target value.
@@ -714,16 +725,6 @@ public class Tween extends TimelineObject {
 	}
 
 	/**
-	 * Kills the interpolation. If pooling was enabled when this tween was
-	 * created, the tween will be freed, cleared, and returned to the pool. As
-	 * a result, you shouldn't use it anymore.
-	 */
-	@Override
-	public void kill() {
-		isFinished = true;
-	}
-
-	/**
 	 * Adds a delay to the tween.
 	 * @param millis The delay, in milliseconds.
 	 * @return The current tween for chaining instructions.
@@ -901,7 +902,7 @@ public class Tween extends TimelineObject {
 	@Override
 	public boolean isFinished() {
 		return isFinished;
-	}	
+	}
 
 	// -------------------------------------------------------------------------
 	// Update engine
@@ -1100,10 +1101,5 @@ public class Tween extends TimelineObject {
 	@Override
 	protected boolean containsTarget(Object target, int tweenType) {
 		return this.target == target && this.type == tweenType;
-	}
-
-	@Override
-	protected void free() {
-		if (isPooled) Tween.free(this);
 	}
 }
