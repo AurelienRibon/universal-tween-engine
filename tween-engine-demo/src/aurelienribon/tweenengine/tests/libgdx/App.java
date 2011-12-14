@@ -82,7 +82,7 @@ public class App implements ApplicationListener {
 		sprite4.setColor(1, 1, 1, 0);
 
 		// Tween engine setup
-		Tween.setPoolEnabled(true);
+		Tween.enablePooling(true);
 		Tween.registerAccessor(Sprite.class, new SpriteTweenAccessor());
 
 		// Tween manager creation

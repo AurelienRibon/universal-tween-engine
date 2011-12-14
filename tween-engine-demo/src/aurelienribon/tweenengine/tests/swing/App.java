@@ -62,7 +62,7 @@ public class App {
 			int tx = rand.nextInt(window.getContentPane().getWidth() - button.getWidth());
 			int ty = rand.nextInt(window.getContentPane().getHeight() - 30 - button.getHeight()) + 30;
 
-			tweenManager.kill(button);
+			tweenManager.killTarget(button);
 			Tween.to(button, ComponentTweenAccessor.POSITION, 500)
 				.target(tx, ty)
 				.ease(Back.OUT)

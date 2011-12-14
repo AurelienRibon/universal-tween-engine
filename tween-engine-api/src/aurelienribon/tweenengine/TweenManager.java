@@ -5,7 +5,7 @@ import java.util.ArrayList;
 /**
  * A TweenManager lets you pack many tweens together, and update them at once.
  * Its main interest is that it handles the pooling complexity for you if you
- * decided to enable object pooling using "Tween.setPoolEnabled()".
+ * decided to enable object pooling using "Tween.enablePooling()".
  * <br/><br/>
  *
  * Just give it a bunch of tweens or timelines to it and call update()
@@ -16,14 +16,15 @@ import java.util.ArrayList;
  * @author Aurelien Ribon | http://www.aurelienribon.com/
  */
 public class TweenManager {
-	final ArrayList<Tween> tweens = new ArrayList<Tween>(20);
+	final ArrayList<TimelineObject> objects = new ArrayList<TimelineObject>(20);
 
 	/**
 	 * Adds a tween to the manager and starts or restarts it.
 	 * @return The manager, for instruction chaining.
 	 */
 	public TweenManager add(Tween tween) {
-		tween.start(this);
+		if (!objects.contains(tween)) objects.add(tween);
+		tween.start();
 		return this;
 	}
 
@@ -32,7 +33,8 @@ public class TweenManager {
 	 * @return The manager, for instruction chaining.
 	 */
 	public TweenManager add(Timeline timeline) {
-		timeline.start(this);
+		if (!objects.contains(timeline)) objects.add(timeline);
+		timeline.start();
 		return this;
 	}
 
@@ -40,11 +42,10 @@ public class TweenManager {
 	 * Returns true if the manager contains any valid tween associated to the
 	 * given target.
 	 */
-	public boolean contains(Object target) {
-		for (int i=0, n=tweens.size(); i<n; i++) {
-			Tween tween = tweens.get(i);
-			if (tween.getTarget() == target && !tween.isFinished())
-				return true;
+	public boolean containsTarget(Object target) {
+		for (int i=0, n=objects.size(); i<n; i++) {
+			TimelineObject obj = objects.get(i);
+			if (obj.containsTarget(target)) return true;
 		}
 		return false;
 	}
@@ -53,11 +54,10 @@ public class TweenManager {
 	 * Returns true if the manager contains any valid tween associated to the
 	 * given target and tween type.
 	 */
-	public boolean contains(Object target, int tweenType) {
-		for (int i=0, n=tweens.size(); i<n; i++) {
-			Tween tween = tweens.get(i);
-			if (tween.getTarget() == target && tween.getType() == tweenType && !tween.isFinished())
-				return true;
+	public boolean containsTarget(Object target, int tweenType) {
+		for (int i=0, n=objects.size(); i<n; i++) {
+			TimelineObject obj = objects.get(i);
+			if (obj.containsTarget(target, tweenType)) return true;
 		}
 		return false;
 	}
@@ -66,26 +66,29 @@ public class TweenManager {
 	 * Clears the manager from every tween.
 	 */
 	public void killAll() {
-		tweens.clear();
+		for (int i=0, n=objects.size(); i<n; i++) {
+			TimelineObject obj = objects.get(i);
+			obj.kill();
+		}
 	}
 
 	/**
 	 * Kills every tween associated to the given target.
 	 */
-	public void kill(Object target) {
-		for (int i=0, n=tweens.size(); i<n; i++) {
-			Tween t = tweens.get(i);
-			if (t.getTarget() == target) t.kill();
+	public void killTarget(Object target) {
+		for (int i=0, n=objects.size(); i<n; i++) {
+			TimelineObject obj = objects.get(i);
+			obj.killTarget(target);
 		}
 	}
 
 	/**
 	 * Kills every tween associated to the given target and tween type.
 	 */
-	public void kill(Object target, int tweenType) {
-		for (int i=0, n=tweens.size(); i<n; i++) {
-			Tween t = tweens.get(i);
-			if (t.getTarget() == target && t.getType() == tweenType) t.kill();
+	public void killTarget(Object target, int tweenType) {
+		for (int i=0, n=objects.size(); i<n; i++) {
+			TimelineObject obj = objects.get(i);
+			obj.killTarget(target, tweenType);
 		}
 	}
 
@@ -93,14 +96,19 @@ public class TweenManager {
 	 * Gets the number of tweens managed by this manager.
 	 */
 	public int size() {
-		return tweens.size();
+		int cnt = 0;
+		for (int i=0, n=objects.size(); i<n; i++) {
+			TimelineObject obj = objects.get(i);
+			cnt += 1 + obj.getChildrenCount();
+		}
+		return cnt;
 	}
 
 	/**
 	 * Increases the minimum capacity of the manager. Defaults to 20.
 	 */
 	public void ensureCapacity(int minCapacity) {
-		tweens.ensureCapacity(minCapacity);
+		objects.ensureCapacity(minCapacity);
 	}
 
 	/**
@@ -111,24 +119,24 @@ public class TweenManager {
 	 */
 	public void update(int deltaMillis) {
 		if (deltaMillis >= 0) {
-			for (int i=0; i<tweens.size(); i++) {
-				Tween t = tweens.get(i);
-				if (t.isFinished()) {
-					tweens.remove(i);
+			for (int i=0; i<objects.size(); i++) {
+				TimelineObject obj = objects.get(i);
+				if (obj.isFinished()) {
+					objects.remove(i);
 					i -= 1;
-					if (t._isPooled()) Tween._free(t);
+					obj.free();
 				} else {
-					t.update(deltaMillis);
+					obj.update(deltaMillis);
 				}
 			}
 		} else {
-			for (int i=tweens.size()-1; i>=0; i--) {
-				Tween t = tweens.get(i);
-				if (t.isFinished()) {
-					tweens.remove(i);
-					if (t._isPooled()) Tween._free(t);
+			for (int i=objects.size()-1; i>=0; i--) {
+				TimelineObject obj = objects.get(i);
+				if (obj.isFinished()) {
+					objects.remove(i);
+					obj.free();
 				} else {
-					t.update(deltaMillis);
+					obj.update(deltaMillis);
 				}
 			}
 		}

@@ -49,16 +49,14 @@ import java.util.Map;
  *
  * @author Aurelien Ribon | http://www.aurelienribon.com/
  */
-public class Tween implements TimelineObject {
-
+public class Tween extends TimelineObject {
 	// -------------------------------------------------------------------------
-	// Static
+	// Static -- misc
 	// -------------------------------------------------------------------------
-
-	private static boolean isPoolEnabled = false;
 
 	/** If you need to repeat your tween for infinity, use this. */
 	public static final int INFINITY = -1;
+
 	/** The maximum number of attributes that can be tweened in a single tween. */
 	public static final int MAX_COMBINED_TWEENS = 10;
 
@@ -69,22 +67,35 @@ public class Tween implements TimelineObject {
 		return "6.0.0";
 	}
 
+	// -------------------------------------------------------------------------
+	// Static -- pool
+	// -------------------------------------------------------------------------
+
+	private static boolean isPoolEnabled = false;
+
+	private static final Pool.Callback<Tween> poolCallback = new Pool.Callback<Tween>() {
+		@Override public void onPool(Tween obj) {obj.reset();}
+		@Override public void onUnpool(Tween obj) {obj.isPooled = Tween.isPoolingEnabled();}
+	};
+
+	private static final Pool<Tween> pool = new Pool<Tween>(20, poolCallback) {
+		@Override protected Tween create() {Tween t = new Tween(null, -1, 0); t.reset(); return t;}
+	};
+
 	/**
 	 * Enables or disables the automatic reuse of finished tweens. Pooling
 	 * prevents the allocation of a new tween object when using the static
 	 * constructors, thus removing the need for garbage collection. Can be quite
-	 * helpful on slow or embedded devices.
-	 * <br/><br/>
-	 * Defaults to false.
+	 * helpful on slow or embedded devices. <b>Defaults to true</b>.
 	 */
-	public static void setPoolEnabled(boolean value) {
+	public static void enablePooling(boolean value) {
 		isPoolEnabled = value;
 	}
 
 	/**
 	 * Returns true if object pooling is enabled.
 	 */
-	public static boolean isPoolEnabled() {
+	public static boolean isPoolingEnabled() {
 		return isPoolEnabled;
 	}
 
@@ -106,6 +117,16 @@ public class Tween implements TimelineObject {
 	}
 
 	/**
+	 * If you want to manually manage your tweens (without using a
+	 * TweenManager), and you enabled object pooling, then you need to call
+	 * this method on your tweens once they are finished (see <i>isFinished()
+	 * </i> method).
+	 */
+	public static void free(Tween tween) {
+		pool.free(tween);
+	}
+
+	/**
 	 * Clears every static resources and resets the static instance.
 	 */
 	public static void dispose() {
@@ -113,6 +134,13 @@ public class Tween implements TimelineObject {
 		pool.clear();
 		Timeline.pool.clear();
 	}
+
+	// -------------------------------------------------------------------------
+	// Static -- tween accessors
+	// -------------------------------------------------------------------------
+
+	private static final Map<Class, TweenAccessor> registeredAccessors = new HashMap<Class, TweenAccessor>();
+	private static final float[] buffer = new float[MAX_COMBINED_TWEENS];
 
 	/**
 	 * Registers an engine with the class of an object. This engine will be used
@@ -134,27 +162,7 @@ public class Tween implements TimelineObject {
 	}
 
 	// -------------------------------------------------------------------------
-
-	private static final Map<Class, TweenAccessor> registeredAccessors = new HashMap<Class, TweenAccessor>();
-	private static final float[] buffer = new float[MAX_COMBINED_TWEENS];
-
-	private static final Pool.Callback<Tween> poolCallback = new Pool.Callback<Tween>() {
-		@Override public void onPool(Tween obj) {obj.reset();}
-		@Override public void onUnpool(Tween obj) {obj.isPooled = Tween.isPoolEnabled();}
-	};
-
-	private static final Pool<Tween> pool = new Pool<Tween>(20, poolCallback) {
-		@Override protected Tween create() {Tween t = new Tween(null, -1, 0); t.reset(); return t;}
-	};
-
-	// -------------------------------------------------------------------------
-
-	static void _free(Tween t) {
-		pool.free(t);
-	}
-
-	// -------------------------------------------------------------------------
-	// Factories
+	// Static -- factories
 	// -------------------------------------------------------------------------
 
 	/**
@@ -336,7 +344,6 @@ public class Tween implements TimelineObject {
 	private int delayMillis;
 	private int durationMillis;
 	private int repeatDelayMillis;
-	private int endDelayMillis;
 	private int currentMillis;
 	private boolean isStarted; // true when the tween is started
 	private boolean isInitialized; // true when starting values have been retrieved (after first delay)
@@ -378,7 +385,7 @@ public class Tween implements TimelineObject {
 		isFrom = isRelative = isYoyo = isBetweenIterations = false;
 		iteration = repeatCnt = combinedTweenCnt = 0;
 
-		currentMillis = delayMillis = durationMillis = repeatDelayMillis = endDelayMillis = 0;
+		delayMillis = durationMillis = repeatDelayMillis = currentMillis = 0;
 		isStarted = isInitialized = isFinished = false;
 
 		if (beginCallbacks != null) beginCallbacks.clear();
@@ -445,9 +452,7 @@ public class Tween implements TimelineObject {
 	 * @return The current tween for chaining instructions.
 	 */
 	public Tween start(TweenManager manager) {
-		if (!manager.tweens.contains(this)) manager.tweens.add(this);
-		currentMillis = 0;
-		isStarted = true;
+		manager.add(this);
 		return this;
 	}
 
@@ -713,6 +718,7 @@ public class Tween implements TimelineObject {
 	 * created, the tween will be freed, cleared, and returned to the pool. As
 	 * a result, you shouldn't use it anymore.
 	 */
+	@Override
 	public void kill() {
 		isFinished = true;
 	}
@@ -811,6 +817,10 @@ public class Tween implements TimelineObject {
 		userData = data;
 		return this;
 	}
+
+	// -------------------------------------------------------------------------
+	// Getters
+	// -------------------------------------------------------------------------
 	
 	/**
 	 * Gets the tween target.
@@ -876,21 +886,22 @@ public class Tween implements TimelineObject {
 	}
 
 	/**
-	 * Returns true if the tween is finished (i.e. if the tween has reached
-	 * its end or has been killed). If this is the case and tween pooling is
-	 * enabled, the tween should no longer been used, since it will be reset
-	 * and returned to the pool.
-	 */
-	public boolean isFinished() {
-		return isFinished;
-	}
-
-	/**
 	 * Gets the attached user data, or null if none.
 	 */
 	public Object getUserData() {
 		return userData;
 	}
+
+	/**
+	 * Returns true if the tween is finished (i.e. if the tween has reached
+	 * its end or has been killed). If you don't use a TweenManager, and enabled
+	 * object pooling, then don't forget to call <i>Tween.free()</i> on your
+	 * tweens once <i>isFinished()</i> returns true.
+	 */
+	@Override
+	public boolean isFinished() {
+		return isFinished;
+	}	
 
 	// -------------------------------------------------------------------------
 	// Update engine
@@ -903,6 +914,7 @@ public class Tween implements TimelineObject {
 	 * @param deltaMillis A delta time, in milliseconds, between now and the
 	 * last call.
 	 */
+	@Override
 	public void update(int deltaMillis) {
 		if (!isStarted) return;
 
@@ -962,8 +974,7 @@ public class Tween implements TimelineObject {
 	}
 
 	private void testCompletion() {
-		isFinished = (repeatCnt >= 0 && iteration > repeatCnt*2 && currentMillis > endDelayMillis)
-			|| (repeatCnt >= 0 && iteration < 0 && currentMillis < -delayMillis);
+		isFinished = (repeatCnt >= 0 && iteration > repeatCnt*2) || (repeatCnt >= 0 && iteration < 0);
 	}
 
 	private void testRelaunch() {
@@ -1063,14 +1074,36 @@ public class Tween implements TimelineObject {
 	}
 
 	// -------------------------------------------------------------------------
-	// Package access
+	// TimelineObject impl.
 	// -------------------------------------------------------------------------
 
-	boolean _isPooled() {
-		return isPooled;
+	@Override
+	protected int getChildrenCount() {
+		return 0;
 	}
 
-	void _setEndDelay(int millis) {
-		this.endDelayMillis = millis;
+	@Override
+	protected void killTarget(Object target) {
+		if (this.target == target) kill();
+	}
+
+	@Override
+	protected void killTarget(Object target, int tweenType) {
+		if (this.target == target && this.type == tweenType) kill();
+	}
+
+	@Override
+	protected boolean containsTarget(Object target) {
+		return this.target == target;
+	}
+
+	@Override
+	protected boolean containsTarget(Object target, int tweenType) {
+		return this.target == target && this.type == tweenType;
+	}
+
+	@Override
+	protected void free() {
+		if (isPooled) Tween.free(this);
 	}
 }
