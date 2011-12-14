@@ -42,7 +42,7 @@ public class GdxSimpleTimeline implements ApplicationListener {
 		sprite1.getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
 		sprite1.setSize(2, 2);
 		sprite1.setOrigin(1, 1);
-		sprite1.setPosition(-2, 0);
+		sprite1.setPosition(-4, -1);
 
 		// Tween engine setup
 
@@ -56,7 +56,9 @@ public class GdxSimpleTimeline implements ApplicationListener {
 		// Let's make our sprite move !
 
 		Timeline.createSequence()
-			.push(Tween.to(sprite1, SpriteAccessor.POSITION_XY, 700).target(2, 0).ease(Quad.OUT))
+			.push(Tween.to(sprite1, SpriteAccessor.POSITION_XY, 700).target(2, -1).ease(Quad.IN).repeatYoyo(1, 200))
+			.push(Tween.to(sprite1, SpriteAccessor.POSITION_XY, 700).target(-1, -1).ease(Quad.IN))
+			.push(Tween.to(sprite1, SpriteAccessor.ROTATION, 500).target(360).ease(Quad.INOUT).repeatYoyo(1, 200))
 			.start(tweenManager);
 	}
 

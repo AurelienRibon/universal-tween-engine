@@ -9,7 +9,8 @@ public abstract class TimelineObject {
 	public abstract boolean isFinished();
 	public abstract void free();
 	public abstract int getFullDuration();
-	protected abstract void setCurrentMillis(int millis);
+	protected abstract void forceToStart();
+	protected abstract void forceToEnd(int millis);
 	protected abstract int getChildrenCount();
 	protected abstract void killTarget(Object target);
 	protected abstract void killTarget(Object target, int tweenType);

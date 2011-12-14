@@ -141,6 +141,7 @@ public class Timeline extends TimelineObject {
 		Timeline child = pool.get();
 		child.parent = this;
 		child.type = Modes.SEQUENCE;
+		children.add(child);
 		return child;
 	}
 
@@ -148,6 +149,7 @@ public class Timeline extends TimelineObject {
 		Timeline child = pool.get();
 		child.parent = this;
 		child.type = Modes.PARALLEL;
+		children.add(child);
 		return child;
 	}
 
@@ -189,8 +191,6 @@ public class Timeline extends TimelineObject {
 	public Timeline start() {
 		if (parent != null) throw new RuntimeException("You forgot to call a few 'end()' statements...");
 		sequence(this);
-		currentMillis = 0;
-		isStarted = true;
 		return this;
 	}
 
@@ -284,7 +284,7 @@ public class Timeline extends TimelineObject {
 			testInnerTransition(lastIteration);
 			testLimitTransition(lastIteration);
 			testCompletion();
-			if (isComputeIteration) compute();
+			if (isComputeIteration) compute(deltaMillis);
 		}
 	}
 
@@ -358,7 +358,7 @@ public class Timeline extends TimelineObject {
 		isFinished = (repeatCnt >= 0 && iteration > repeatCnt*2) || (repeatCnt >= 0 && iteration < 0);
 	}
 
-	private void compute() {
+	private void compute(int deltaMillis) {
 		assert currentMillis >= 0;
 		assert currentMillis <= durationMillis;
 		assert isInitialized;
@@ -366,10 +366,10 @@ public class Timeline extends TimelineObject {
 		assert isComputeIteration;
 		assert isValid(iteration);
 
-		int millis = isIterationYoyo(iteration) ? durationMillis - currentMillis : currentMillis;
+		int millis = isIterationYoyo(iteration) ? -deltaMillis : deltaMillis;
 		for (int i=0; i<children.size(); i++) {
 			TimelineObject obj = children.get(i);
-			obj.setCurrentMillis(millis);
+			obj.update(millis);
 		}
 	}
 
@@ -379,6 +379,8 @@ public class Timeline extends TimelineObject {
 
 	private void sequence(Timeline tl) {
 		tl.durationMillis = 0;
+		tl.currentMillis = 0;
+		tl.isStarted = true;
 
 		for (int i=0; i<tl.children.size(); i++) {
 			TimelineObject obj = tl.children.get(i);
@@ -386,6 +388,7 @@ public class Timeline extends TimelineObject {
 			if (obj instanceof Tween) {
 				Tween child = (Tween) obj;
 				if (tl.type == Modes.SEQUENCE) child.delay(tl.durationMillis);
+				child.start();
 				tl.durationMillis = Math.max(tl.durationMillis, child.getFullDuration());
 
 			} else if (obj instanceof Timeline) {
@@ -398,18 +401,16 @@ public class Timeline extends TimelineObject {
 	}
 	
 	private void forceStartValues(int iteration) {
-		int millis = isIterationYoyo(iteration) ? durationMillis : 0;
 		for (int i=0, n=children.size(); i<n; i++) {
 			TimelineObject obj = children.get(i);
-			obj.setCurrentMillis(millis);
+			if (isIterationYoyo(iteration)) obj.forceToEnd(durationMillis); else obj.forceToStart();
 		}
 	}
 
 	private void forceEndValues(int iteration) {
-		int millis = isIterationYoyo(iteration) ? 0 : durationMillis;
 		for (int i=0, n=children.size(); i<n; i++) {
 			TimelineObject obj = children.get(i);
-			obj.setCurrentMillis(millis);
+			if (isIterationYoyo(iteration)) obj.forceToStart(); else obj.forceToEnd(durationMillis);
 		}
 	}
 
@@ -444,8 +445,19 @@ public class Timeline extends TimelineObject {
 	// -------------------------------------------------------------------------
 
 	@Override
-	protected void setCurrentMillis(int millis) {
-		update(millis - currentMillis);
+	protected void forceToStart() {
+		currentMillis = -delayMillis;
+		iteration = -1;
+		isComputeIteration = false;
+		forceStartValues(0);
+	}
+
+	@Override
+	protected void forceToEnd(int millis) {
+		currentMillis = millis;
+		iteration = repeatCnt*2 + 1;
+		isComputeIteration = false;
+		forceEndValues(repeatCnt*2);
 	}
 
 	@Override

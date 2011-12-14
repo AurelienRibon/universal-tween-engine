@@ -98,7 +98,7 @@ public class GdxComplexDemo implements ApplicationListener {
 		text = "Idle (auto-start in 2 seconds)";
 		Tween.call(new TweenCallback() {
 			@Override public void tweenEventOccured(Types eventType, Tween tween) {
-				start();
+				launchAnimation();
 				canControlSpeed = true;
 			}
 		}).delay(2000).start(tweenManager);

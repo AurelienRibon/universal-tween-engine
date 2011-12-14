@@ -988,7 +988,7 @@ public class Tween extends TimelineObject {
 		}
 	}
 
-	private void updateIteration() {
+	private void updateIteration() {		
 		while (isValid(iteration)) {
 			if (!isComputeIteration && currentMillis <= 0) {
 				isComputeIteration = true;
@@ -1101,8 +1101,19 @@ public class Tween extends TimelineObject {
 	// -------------------------------------------------------------------------
 
 	@Override
-	protected void setCurrentMillis(int millis) {
-		update(millis - currentMillis);
+	protected void forceToStart() {
+		currentMillis = -delayMillis;
+		iteration = -1;
+		isComputeIteration = false;
+		forceStartValues(0);
+	}
+
+	@Override
+	protected void forceToEnd(int millis) {
+		currentMillis = millis;
+		iteration = repeatCnt*2 + 1;
+		isComputeIteration = false;
+		forceEndValues(repeatCnt*2);
 	}
 
 	@Override
