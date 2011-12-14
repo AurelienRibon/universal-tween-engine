@@ -1059,14 +1059,12 @@ public class Tween extends TimelineObject {
 	// -------------------------------------------------------------------------
 
 	private void forceStartValues(int iteration) {
-		assert isComputeIteration(iteration);
 		if (target == null) return;
 		boolean swapStartAndTarget = isIterationYoyo(iteration) ? !isFrom : isFrom;
 		accessor.setValues(target, type, swapStartAndTarget ? targetValues : startValues);
 	}
 
 	private void forceEndValues(int iteration) {
-		assert isComputeIteration(iteration);
 		if (target == null) return;
 		boolean swapStartAndTarget = isIterationYoyo(iteration) ? !isFrom : isFrom;
 		accessor.setValues(target, type, swapStartAndTarget ? startValues : targetValues);
@@ -1074,10 +1072,6 @@ public class Tween extends TimelineObject {
 
 	private boolean isValid(int iteration) {
 		return (iteration >= 0 && iteration <= repeatCnt*2) || repeatCnt < 0;
-	}
-
-	private boolean isComputeIteration(int iteration) {
-		return Math.abs(iteration%2) == 0;
 	}
 
 	private boolean isIterationYoyo(int iteration) {

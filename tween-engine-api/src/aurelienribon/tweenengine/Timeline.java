@@ -1,5 +1,6 @@
 package aurelienribon.tweenengine;
 
+import aurelienribon.tweenengine.TimelineCallback.Types;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -79,13 +80,13 @@ public class Timeline extends TimelineObject {
 
 	public static Timeline createSequence() {
 		Timeline root = pool.get();
-		root.type = Types.SEQUENCE;
+		root.type = Modes.SEQUENCE;
 		return root;
 	}
 
 	public static Timeline createParallel() {
 		Timeline root = pool.get();
-		root.type = Types.PARALLEL;
+		root.type = Modes.PARALLEL;
 		return root;
 	}
 
@@ -93,16 +94,18 @@ public class Timeline extends TimelineObject {
 	// Attributes
 	// -------------------------------------------------------------------------
 
-	private enum Types {SEQUENCE, PARALLEL}
+	private enum Modes {SEQUENCE, PARALLEL}
 
 	// Main
 	private final List<TimelineObject> children = new ArrayList<TimelineObject>(10);
 	private Timeline parent;
-	private Types type;
+	private Modes type;
 
 	// General
 	private boolean isPooled;
 	private boolean isYoyo;
+	private boolean isComputeIteration;
+	private int iteration;
 	private int repeatCnt;
 
 	// Timings
@@ -110,6 +113,8 @@ public class Timeline extends TimelineObject {
 	private int durationMillis;
 	private int repeatDelayMillis;
 	private int currentMillis;
+	private boolean isStarted;
+	private boolean isInitialized;
 	private boolean isFinished;
 
 	// -------------------------------------------------------------------------
@@ -120,9 +125,12 @@ public class Timeline extends TimelineObject {
 		children.clear();
 		parent = null;
 
-		repeatCnt = 0;
-		isYoyo = false;
+		isPooled = Tween.isPoolingEnabled();
+		isYoyo = isComputeIteration = false;
+		iteration = repeatCnt = 0;
+
 		delayMillis = durationMillis = repeatDelayMillis = currentMillis = 0;
+		isStarted = isInitialized = isFinished = false;
 	}
 
 	// -------------------------------------------------------------------------
@@ -132,14 +140,14 @@ public class Timeline extends TimelineObject {
 	public Timeline beginSequence() {
 		Timeline child = pool.get();
 		child.parent = this;
-		child.type = Types.SEQUENCE;
+		child.type = Modes.SEQUENCE;
 		return child;
 	}
 
 	public Timeline beginParallel() {
 		Timeline child = pool.get();
 		child.parent = this;
-		child.type = Types.PARALLEL;
+		child.type = Modes.PARALLEL;
 		return child;
 	}
 
@@ -180,7 +188,6 @@ public class Timeline extends TimelineObject {
 
 	public Timeline start() {
 		if (parent != null) throw new RuntimeException("You forgot to call a few 'end()' statements...");
-		initialize(this);
 		sequence(this);
 		return this;
 	}
@@ -237,6 +244,18 @@ public class Timeline extends TimelineObject {
 		return isFinished;
 	}
 
+	/**
+	 * Returns the complete duration of a timeline, including its delay and its
+	 * repetitions. The formula is as follows:
+	 * <br/><br/>
+	 *
+	 * fullDuration = delay + duration + (repeatDelay + duration) * repeatCnt
+	 */
+	@Override
+	public int getFullDuration() {
+		return delayMillis + durationMillis + (repeatDelayMillis + durationMillis) * repeatCnt;
+	}
+
 	// -------------------------------------------------------------------------
 	// Update engine
 	// -------------------------------------------------------------------------
@@ -250,18 +269,105 @@ public class Timeline extends TimelineObject {
 	 */
 	@Override
 	public void update(int deltaMillis) {
+		if (!isStarted) return;
+
+		int lastIteration = iteration;
 		currentMillis += deltaMillis;
 
+		initialize();
+
+		if (isInitialized) {
+			testRelaunch();
+			updateIteration();
+			testInnerTransition(lastIteration);
+			testLimitTransition(lastIteration);
+			testCompletion();
+			if (isComputeIteration) compute();
+		}
+	}
+
+	private void initialize() {
+		if (!isInitialized && currentMillis >= delayMillis) {
+			isInitialized = true;
+			isComputeIteration = true;
+			currentMillis -= delayMillis;
+			callCallbacks(Types.BEGIN);
+			callCallbacks(Types.START);
+		}
+	}
+
+	private void testRelaunch() {
+		if (repeatCnt >= 0 && iteration > repeatCnt*2 && currentMillis <= 0) {
+			assert iteration == repeatCnt*2 + 1;
+			isComputeIteration = true;
+			currentMillis -= durationMillis;
+			iteration = repeatCnt*2;
+
+		} else if (repeatCnt >= 0 && iteration < 0 && currentMillis >= 0) {
+			assert iteration == -1;
+			isComputeIteration = true;
+			iteration = 0;
+		}
+	}
+
+	private void updateIteration() {
+		while (isValid(iteration)) {
+			if (!isComputeIteration && currentMillis <= 0) {
+				isComputeIteration = true;
+				currentMillis += durationMillis;
+				iteration -= 1;
+				callCallbacks(Types.BACK_START);
+
+			} else if (!isComputeIteration && currentMillis >= repeatDelayMillis) {
+				isComputeIteration = true;
+				currentMillis -= repeatDelayMillis;
+				iteration += 1;
+				callCallbacks(Types.START);
+
+			} else if (isComputeIteration && currentMillis < 0) {
+				isComputeIteration = false;
+				currentMillis += isValid(iteration-1) ? repeatDelayMillis : 0;
+				iteration -= 1;
+				callCallbacks(Types.BACK_END);
+
+			} else if (isComputeIteration && currentMillis > durationMillis) {
+				isComputeIteration = false;
+				currentMillis -= durationMillis;
+				iteration += 1;
+				callCallbacks(Types.END);
+
+			} else break;
+		}
+	}
+
+	private void testInnerTransition(int lastIteration) {
+		if (isComputeIteration) return;
+		if (iteration > lastIteration) forceEndValues(iteration-1);
+		else if (iteration < lastIteration) forceStartValues(iteration+1);
+	}
+
+	private void testLimitTransition(int lastIteration) {
+		if (repeatCnt < 0 || iteration == lastIteration) return;
+		if (iteration > repeatCnt*2) callCallbacks(Types.COMPLETE);
+		else if (iteration < 0) callCallbacks(Types.BACK_COMPLETE);
+	}
+
+	private void testCompletion() {
+		isFinished = (repeatCnt >= 0 && iteration > repeatCnt*2) || (repeatCnt >= 0 && iteration < 0);
+	}
+
+	private void compute() {
+		assert currentMillis >= 0;
+		assert currentMillis <= durationMillis;
+		assert isInitialized;
+		assert !isFinished;
+		assert isComputeIteration;
+		assert isValid(iteration);
+
+		int millis = isIterationYoyo(iteration) ? durationMillis - currentMillis : currentMillis;
 		for (int i=0; i<children.size(); i++) {
 			TimelineObject obj = children.get(i);
-
-			if (obj instanceof Tween) {
-				Tween child = (Tween) obj;
-
-			} else if (obj instanceof Timeline) {
-				Timeline child = (Timeline) obj;
-				
-			}
+			obj.setCurrentMillis(millis);
 		}
 	}
 
@@ -269,40 +375,76 @@ public class Timeline extends TimelineObject {
 	// Helpers
 	// -------------------------------------------------------------------------
 
-	private void initialize(Timeline tl) {
-		tl.durationMillis = 0;
-		// TODO : ...
-	}
-
 	private void sequence(Timeline tl) {
+		tl.durationMillis = 0;
+
 		for (int i=0; i<tl.children.size(); i++) {
 			TimelineObject obj = tl.children.get(i);
 
 			if (obj instanceof Tween) {
 				Tween child = (Tween) obj;
-				if (tl.type == Types.SEQUENCE) child.delay(tl.durationMillis);
-				tl.durationMillis = Math.max(tl.durationMillis, getTweenLength(child));
+				if (tl.type == Modes.SEQUENCE) child.delay(tl.durationMillis);
+				tl.durationMillis = Math.max(tl.durationMillis, child.getFullDuration());
 
 			} else if (obj instanceof Timeline) {
 				Timeline child = (Timeline) obj;
-				if (tl.type == Types.SEQUENCE) child.delayMillis = tl.durationMillis;
+				if (tl.type == Modes.SEQUENCE) child.delayMillis = tl.durationMillis;
 				sequence(child);
-				tl.durationMillis = Math.max(tl.durationMillis, getTimelineLength(child));
+				tl.durationMillis = Math.max(tl.durationMillis, child.getFullDuration());
 			}
 		}
 	}
-
-	private int getTweenLength(Tween t) {
-		return t.getDelay() + t.getDuration() + (t.getRepeatDelay() + t.getDuration()) * t.getRepeatCount();
+	
+	private void forceStartValues(int iteration) {
+		int millis = isIterationYoyo(iteration) ? durationMillis : 0;
+		for (int i=0, n=children.size(); i<n; i++) {
+			TimelineObject obj = children.get(i);
+			obj.setCurrentMillis(millis);
+		}
 	}
 
-	private int getTimelineLength(Timeline tl) {
-		return tl.delayMillis + tl.durationMillis + (tl.repeatDelayMillis + tl.durationMillis) * tl.repeatCnt;
+	private void forceEndValues(int iteration) {
+		int millis = isIterationYoyo(iteration) ? 0 : durationMillis;
+		for (int i=0, n=children.size(); i<n; i++) {
+			TimelineObject obj = children.get(i);
+			obj.setCurrentMillis(millis);
+		}
+	}
+
+	private boolean isValid(int iteration) {
+		return (iteration >= 0 && iteration <= repeatCnt*2) || repeatCnt < 0;
+	}
+
+	private boolean isIterationYoyo(int iteration) {
+		return isYoyo && Math.abs(iteration%4) == 2;
+	}
+
+	private void callCallbacks(TimelineCallback.Types type) {
+		List<TimelineCallback> callbacks = null;
+
+		/*switch (type) {
+			case BEGIN: callbacks = startCallbacks; break;
+			case START: callbacks = startCallbacks; break;
+			case END: callbacks = endCallbacks; break;
+			case COMPLETE: callbacks = endCallbacks; break;
+			case BACK_START: callbacks = backStartCallbacks; break;
+			case BACK_END: callbacks = backEndCallbacks; break;
+			case BACK_COMPLETE: callbacks = backEndCallbacks; break;
+		}*/
+
+		if (callbacks != null && !callbacks.isEmpty())
+			for (int i=0, n=callbacks.size(); i<n; i++)
+				callbacks.get(i).timelineEventOccured(type, this);
 	}
 
 	// -------------------------------------------------------------------------
 	// TimelineObject impl.
 	// -------------------------------------------------------------------------
+
+	@Override
+	protected void setCurrentMillis(int millis) {
+		update(millis - currentMillis);
+	}
 
 	@Override
 	protected int getChildrenCount() {
