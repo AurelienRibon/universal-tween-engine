@@ -16,4 +16,5 @@ public abstract class TimelineObject {
 	protected abstract void killTarget(Object target, int tweenType);
 	protected abstract boolean containsTarget(Object target);
 	protected abstract boolean containsTarget(Object target, int tweenType);
+	protected abstract TimelineObject delay(int millis);
 }

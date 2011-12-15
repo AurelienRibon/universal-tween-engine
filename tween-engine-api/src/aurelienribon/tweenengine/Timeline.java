@@ -80,13 +80,13 @@ public class Timeline extends TimelineObject {
 
 	public static Timeline createSequence() {
 		Timeline root = pool.get();
-		root.type = Modes.SEQUENCE;
+		root.mode = Modes.SEQUENCE;
 		return root;
 	}
 
 	public static Timeline createParallel() {
 		Timeline root = pool.get();
-		root.type = Modes.PARALLEL;
+		root.mode = Modes.PARALLEL;
 		return root;
 	}
 
@@ -99,7 +99,7 @@ public class Timeline extends TimelineObject {
 	// Main
 	private final List<TimelineObject> children = new ArrayList<TimelineObject>(10);
 	private Timeline parent;
-	private Modes type;
+	private Modes mode;
 
 	// General
 	private boolean isPooled;
@@ -140,7 +140,7 @@ public class Timeline extends TimelineObject {
 	public Timeline beginSequence() {
 		Timeline child = pool.get();
 		child.parent = this;
-		child.type = Modes.SEQUENCE;
+		child.mode = Modes.SEQUENCE;
 		children.add(child);
 		return child;
 	}
@@ -148,7 +148,7 @@ public class Timeline extends TimelineObject {
 	public Timeline beginParallel() {
 		Timeline child = pool.get();
 		child.parent = this;
-		child.type = Modes.PARALLEL;
+		child.mode = Modes.PARALLEL;
 		children.add(child);
 		return child;
 	}
@@ -391,6 +391,7 @@ public class Timeline extends TimelineObject {
 	// -------------------------------------------------------------------------
 
 	private void sequence(Timeline tl) {
+		tl.delayMillis = 0;
 		tl.durationMillis = 0;
 		tl.currentMillis = 0;
 		tl.isStarted = true;
@@ -398,18 +399,21 @@ public class Timeline extends TimelineObject {
 		for (int i=0; i<tl.children.size(); i++) {
 			TimelineObject obj = tl.children.get(i);
 
-			if (obj instanceof Tween) {
-				Tween child = (Tween) obj;
-				if (tl.type == Modes.SEQUENCE) child.delay(tl.durationMillis);
-				child.start();
-				tl.durationMillis = Math.max(tl.durationMillis, child.getFullDuration());
+			if (obj instanceof Timeline) sequence((Timeline) obj);
 
-			} else if (obj instanceof Timeline) {
-				Timeline child = (Timeline) obj;
-				if (tl.type == Modes.SEQUENCE) child.delayMillis = tl.durationMillis;
-				sequence(child);
-				tl.durationMillis = Math.max(tl.durationMillis, child.getFullDuration());
+			switch (tl.mode) {
+				case SEQUENCE:
+					int delay = tl.durationMillis;
+					tl.durationMillis += obj.getFullDuration();
+					obj.delay(delay);
+					break;
+
+				case PARALLEL:
+					tl.durationMillis = Math.max(tl.durationMillis, obj.getFullDuration());
+					break;
 			}
+
+			if (obj instanceof Tween) ((Tween) obj).start();
 		}
 	}
 	
@@ -515,5 +519,11 @@ public class Timeline extends TimelineObject {
 			if (obj.containsTarget(target, tweenType)) return true;
 		}
 		return false;
+	}
+
+	@Override
+	protected Timeline delay(int millis) {
+		this.delayMillis += millis;
+		return this;
 	}
 }

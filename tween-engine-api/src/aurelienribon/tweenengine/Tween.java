@@ -730,6 +730,7 @@ public class Tween extends TimelineObject {
 	 * @param millis The delay, in milliseconds.
 	 * @return The current tween for chaining instructions.
 	 */
+	@Override
 	public Tween delay(int millis) {
 		if (isStarted) throw new RuntimeException("Cannot change the delay of a running tween");
 		delayMillis += millis;

@@ -78,14 +78,6 @@ public class GdxComplexDemo implements ApplicationListener {
 		sprite2.setOrigin(0.5f, 0.5f);
 		sprite3.setOrigin(0.5f, 0.5f);
 		sprite4.setOrigin(0.5f, 0.5f);
-		sprite1.setPosition((6f/5f)*1 - 3 - 0.5f, -0.5f);
-		sprite2.setPosition((6f/5f)*2 - 3 - 0.5f, -0.5f);
-		sprite3.setPosition((6f/5f)*3 - 3 - 0.5f, -0.5f);
-		sprite4.setPosition((6f/5f)*4 - 3 - 0.5f, -0.5f);
-		sprite1.setColor(1, 1, 1, 0);
-		sprite2.setColor(1, 1, 1, 0);
-		sprite3.setColor(1, 1, 1, 0);
-		sprite4.setColor(1, 1, 1, 0);
 
 		// Tween engine setup
 		Tween.enablePooling(true);
@@ -142,43 +134,17 @@ public class GdxComplexDemo implements ApplicationListener {
 	// ANIMATION
 	// -------------------------------------------------------------------------
 
-	private Timeline buildAnimation(Sprite target, int delay1, int delay2) {
-		return Timeline.createSequence()
-			.push(Tween.set(target, SpriteAccessor.POSITION_XY).target(0, 0))
-			.push(Tween.set(target, SpriteAccessor.SCALE_XY).target(10, 10))
-			.push(Tween.set(target, SpriteAccessor.ROTATION).target(0))
-			.pushPause(delay1)
-			.beginParallel()
-				.push(Tween.to(target, SpriteAccessor.OPACITY, 1000).target(1).ease(Quart.INOUT))
-				.push(Tween.to(target, SpriteAccessor.SCALE_XY, 1000).target(1, 1).ease(Quart.INOUT))
-			.end()
-			.pushPause(-500)
-			.push(Tween.to(target, SpriteAccessor.POSITION_XY, 1000).targetCurrent().ease(Back.OUT))
-			.push(Tween.to(target, SpriteAccessor.ROTATION, 800).target(360).ease(Cubic.INOUT))
-			.pushPause(delay2)
-			.beginParallel()
-				.push(Tween.to(target, SpriteAccessor.SCALE_XY, 300).target(3, 3).ease(Quad.IN))
-				.push(Tween.to(target, SpriteAccessor.OPACITY, 300).target(0).ease(Quad.IN))
-			.end();
-	}
-
 	private void launchAnimation() {
 		final int repeatCnt = 2;
-		Tween startMark = Tween.mark();
-		Tween endMark = Tween.mark();
 		iterationCnt = 0;
 
 		// The animation itself
 
-		Timeline.createSequence()
-			.push(startMark)
-			.beginParallel()
-				.push(buildAnimation(sprite1, 0, 1400))
-				.push(buildAnimation(sprite2, 200, 1000))
-				.push(buildAnimation(sprite3, 400, 600))
-				.push(buildAnimation(sprite4, 600, 200))
-			.end()
-			.push(endMark)
+		Timeline.createParallel()
+			.push(buildSequence(sprite1, 1, 0, 1400))
+			.push(buildSequence(sprite2, 2, 200, 1000))
+			.push(buildSequence(sprite3, 3, 400, 600))
+			.push(buildSequence(sprite4, 4, 600, 200))
 			.repeat(repeatCnt, 0)
 			.start(tweenManager);
 
@@ -213,6 +179,27 @@ public class GdxComplexDemo implements ApplicationListener {
 				}
 			}
 		});*/
+	}
+
+	private Timeline buildSequence(Sprite target, int id, int delay1, int delay2) {
+		return Timeline.createSequence()
+			.push(Tween.set(target, SpriteAccessor.POSITION_XY).target(-0.5f, -0.5f))
+			.push(Tween.set(target, SpriteAccessor.SCALE_XY).target(10, 10))
+			.push(Tween.set(target, SpriteAccessor.ROTATION).target(0))
+			.push(Tween.set(target, SpriteAccessor.OPACITY).target(0))
+			.pushPause(delay1)
+			.beginParallel()
+				.push(Tween.to(target, SpriteAccessor.OPACITY, 1000).target(1).ease(Quart.INOUT))
+				.push(Tween.to(target, SpriteAccessor.SCALE_XY, 1000).target(1, 1).ease(Quart.INOUT))
+			.end()
+			.pushPause(-500)
+			.push(Tween.to(target, SpriteAccessor.POSITION_XY, 1000).target((6f/5f)*id - 3 - 0.5f, -0.5f).ease(Back.OUT))
+			.push(Tween.to(target, SpriteAccessor.ROTATION, 800).target(360).ease(Cubic.INOUT))
+			.pushPause(delay2)
+			.beginParallel()
+				.push(Tween.to(target, SpriteAccessor.SCALE_XY, 300).target(3, 3).ease(Quad.IN))
+				.push(Tween.to(target, SpriteAccessor.OPACITY, 300).target(0).ease(Quad.IN))
+			.end();
 	}
 
 	// -------------------------------------------------------------------------
