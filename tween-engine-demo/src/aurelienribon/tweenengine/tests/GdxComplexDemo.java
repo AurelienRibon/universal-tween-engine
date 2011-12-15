@@ -89,7 +89,7 @@ public class GdxComplexDemo implements ApplicationListener {
 		// Demo of the Tween.call possibility. It's just a timer :)
 		text = "Idle (auto-start in 2 seconds)";
 		Tween.call(new TweenCallback() {
-			@Override public void tweenEventOccured(Types eventType, BaseTween source) {
+			@Override public void onEvent(EventType eventType, BaseTween source) {
 				launchAnimation();
 				canControlSpeed = true;
 			}
@@ -145,7 +145,7 @@ public class GdxComplexDemo implements ApplicationListener {
 		// The callback (to change the text at the right moments)
 
 		TweenCallback callback = new TweenCallback() {
-			@Override public void tweenEventOccured(Types eventType, BaseTween source) {
+			@Override public void onEvent(EventType eventType, BaseTween source) {
 				switch (eventType) {
 					case START: text = "Iteration: " + (++iterationCnt) + " / " + (repeatCnt+1); break;
 					case BACK_START: text = "Iteration: " + (--iterationCnt) + " / " + (repeatCnt+1); break;
@@ -162,10 +162,10 @@ public class GdxComplexDemo implements ApplicationListener {
 			.push(buildSequence(sprite2, 2, 200, 1000))
 			.push(buildSequence(sprite3, 3, 400, 600))
 			.push(buildSequence(sprite4, 4, 600, 200))
-			.addCallback(TweenCallback.Types.START, callback)
-			.addCallback(TweenCallback.Types.BACK_START, callback)
-			.addCallback(TweenCallback.Types.COMPLETE, callback)
-			.addCallback(TweenCallback.Types.BACK_COMPLETE, callback)
+			.addCallback(TweenCallback.EventType.START, callback)
+			.addCallback(TweenCallback.EventType.BACK_START, callback)
+			.addCallback(TweenCallback.EventType.COMPLETE, callback)
+			.addCallback(TweenCallback.EventType.BACK_COMPLETE, callback)
 			.repeat(repeatCnt, 0)
 			.start(tweenManager);
 	}

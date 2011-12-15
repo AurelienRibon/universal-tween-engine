@@ -1,6 +1,6 @@
 package aurelienribon.tweenengine;
 
-import aurelienribon.tweenengine.TweenCallback.Types;
+import aurelienribon.tweenengine.TweenCallback.EventType;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -167,7 +167,7 @@ public abstract class BaseTween {
 	 * @param callback A callback.
 	 * @return The current tween or timeline, for chaining instructions.
 	 */
-	public BaseTween addCallback(Types callbackType, TweenCallback callback) {
+	public BaseTween addCallback(EventType callbackType, TweenCallback callback) {
 		List<TweenCallback> callbacks = null;
 
 		switch (callbackType) {
@@ -314,7 +314,7 @@ public abstract class BaseTween {
 		forceEndValues(repeatCnt*2);
 	}
 
-	protected void callCallbacks(Types type) {
+	protected void callCallbacks(EventType type) {
 		List<TweenCallback> callbacks = null;
 
 		switch (type) {
@@ -329,7 +329,7 @@ public abstract class BaseTween {
 
 		if (callbacks != null && !callbacks.isEmpty())
 			for (int i=0, n=callbacks.size(); i<n; i++)
-				callbacks.get(i).tweenEventOccured(type, null);
+				callbacks.get(i).onEvent(type, null);
 	}
 
 	// -------------------------------------------------------------------------
@@ -368,8 +368,8 @@ public abstract class BaseTween {
 			isInitialized = true;
 			isComputeIteration = true;
 			currentMillis -= delayMillis;
-			callCallbacks(Types.BEGIN);
-			callCallbacks(Types.START);
+			callCallbacks(EventType.BEGIN);
+			callCallbacks(EventType.START);
 		}
 	}
 
@@ -393,25 +393,25 @@ public abstract class BaseTween {
 				isComputeIteration = true;
 				currentMillis += durationMillis;
 				iteration -= 1;
-				callCallbacks(Types.BACK_START);
+				callCallbacks(EventType.BACK_START);
 
 			} else if (!isComputeIteration && currentMillis >= repeatDelayMillis) {
 				isComputeIteration = true;
 				currentMillis -= repeatDelayMillis;
 				iteration += 1;
-				callCallbacks(Types.START);
+				callCallbacks(EventType.START);
 
 			} else if (isComputeIteration && currentMillis < 0) {
 				isComputeIteration = false;
 				currentMillis += isValid(iteration-1) ? repeatDelayMillis : 0;
 				iteration -= 1;
-				callCallbacks(Types.BACK_END);
+				callCallbacks(EventType.BACK_END);
 
 			} else if (isComputeIteration && currentMillis > durationMillis) {
 				isComputeIteration = false;
 				currentMillis -= durationMillis;
 				iteration += 1;
-				callCallbacks(Types.END);
+				callCallbacks(EventType.END);
 
 			} else break;
 		}
@@ -425,8 +425,8 @@ public abstract class BaseTween {
 
 	private void testLimitTransition(int lastIteration) {
 		if (repeatCnt < 0 || iteration == lastIteration) return;
-		if (iteration > repeatCnt*2) callCallbacks(Types.COMPLETE);
-		else if (iteration < 0) callCallbacks(Types.BACK_COMPLETE);
+		if (iteration > repeatCnt*2) callCallbacks(EventType.COMPLETE);
+		else if (iteration < 0) callCallbacks(EventType.BACK_COMPLETE);
 	}
 
 	private void testCompletion() {

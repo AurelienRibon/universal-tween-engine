@@ -1,6 +1,6 @@
 package aurelienribon.tweenengine;
 
-import aurelienribon.tweenengine.TweenCallback.Types;
+import aurelienribon.tweenengine.TweenCallback.EventType;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -241,7 +241,7 @@ public final class Timeline extends BaseTween {
 	}
 
 	@Override
-	public Timeline addCallback(Types callbackType, TweenCallback callback) {
+	public Timeline addCallback(EventType callbackType, TweenCallback callback) {
 		super.addCallback(callbackType, callback);
 		return this;
 	}
