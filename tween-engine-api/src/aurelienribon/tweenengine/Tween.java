@@ -2,9 +2,7 @@ package aurelienribon.tweenengine;
 
 import aurelienribon.tweenengine.TweenCallback.Types;
 import aurelienribon.tweenengine.equations.Linear;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -23,9 +21,9 @@ import java.util.Map;
  *
  * <br/><br/>
  * The following example will move the target horizontal position from its
- * current value to x=200 and y=300, during 500ms, but only after a delay of
+ * current value to x=200 and y=300, during 500ms, but only after a setDelay of
  * 1000ms. The transition will also be repeated 2 times (the starting position
- * is registered at the end of the delay, so the animation will automatically
+ * is registered at the end of the setDelay, so the animation will automatically
  * restart from this registered position).
  *
  * <br/><br/>
@@ -49,7 +47,7 @@ import java.util.Map;
  *
  * @author Aurelien Ribon | http://www.aurelienribon.com/
  */
-public class Tween extends TimelineObject {
+public final class Tween extends TimelineObject {
 	// -------------------------------------------------------------------------
 	// Static -- misc
 	// -------------------------------------------------------------------------
@@ -161,7 +159,7 @@ public class Tween extends TimelineObject {
 	 * <br/><br/>
 	 * You need to set the target values of the interpolation by using one
 	 * of the ".target()" methods. The interpolation will run from the current
-	 * values (retrieved after the delay, if any) to these target values.
+	 * values (retrieved after the setDelay, if any) to these target values.
 	 *
 	 * <br/><br/>
 	 * The common use of Tweens is "fire-and-forget": you do not need to care
@@ -197,7 +195,7 @@ public class Tween extends TimelineObject {
 	 * <br/><br/>
 	 * You need to set the target values of the interpolation by using one
 	 * of the ".target()" methods. The interpolation will run from these
-	 * values (retrieved after the delay, if any) to the current values.
+	 * values (retrieved after the setDelay, if any) to the current values.
 	 *
 	 * <br/><br/>
 	 * The common use of Tweens is "fire-and-forget": you do not need to care
@@ -281,7 +279,7 @@ public class Tween extends TimelineObject {
 	 * reuse for convenience.
 	 *
 	 * @param callback The callback that will be triggered at the end of the
-	 * delay (if specified). A repeat behavior can be set to the tween to
+	 * setDelay (if specified). A repeat behavior can be set to the tween to
 	 * trigger it more than once.
 	 * @return The generated Tween.
 	 * @see TweenCallback
@@ -317,39 +315,13 @@ public class Tween extends TimelineObject {
 	private TweenEquation equation;
 
 	// General
-	private boolean isPooled;
 	private boolean isFrom;
 	private boolean isRelative;
-	private boolean isYoyo;
-	private boolean isComputeIteration;
-	private int iteration;
-	private int repeatCnt;
 	private int combinedTweenCnt;
 
 	// Values
 	private final float[] startValues = new float[MAX_COMBINED_TWEENS];
 	private final float[] targetValues = new float[MAX_COMBINED_TWEENS];
-
-	// Timings
-	private int delayMillis;
-	private int durationMillis;
-	private int repeatDelayMillis;
-	private int currentMillis;
-	private boolean isStarted; // true when the tween is started
-	private boolean isInitialized; // true when starting values have been retrieved (after first delay)
-	private boolean isFinished; // true when all repetitions are done or the tween has been killed
-
-	// Callbacks
-	private List<TweenCallback> beginCallbacks;
-	private List<TweenCallback> startCallbacks;
-	private List<TweenCallback> endCallbacks;
-	private List<TweenCallback> completeCallbacks;
-	private List<TweenCallback> backStartCallbacks;
-	private List<TweenCallback> backEndCallbacks;
-	private List<TweenCallback> backCompleteCallbacks;
-
-	// Misc
-	private Object userData;
 
 	// -------------------------------------------------------------------------
 	// Ctor
@@ -366,28 +338,17 @@ public class Tween extends TimelineObject {
 		setup(target, tweenType, durationMillis);
 	}
 
-	private void reset() {
+	@Override
+	protected void reset() {
+		super.reset();
+
 		target = null;
 		accessor = null;
 		type = -1;
 		equation = null;
 
-		isPooled = Tween.isPoolingEnabled();
-		isFrom = isRelative = isYoyo = isComputeIteration = false;
-		iteration = repeatCnt = combinedTweenCnt = 0;
-
-		delayMillis = durationMillis = repeatDelayMillis = currentMillis = 0;
-		isStarted = isInitialized = isFinished = false;
-
-		if (beginCallbacks != null) beginCallbacks.clear();
-		if (startCallbacks != null) startCallbacks.clear();
-		if (endCallbacks != null) endCallbacks.clear();
-		if (completeCallbacks != null) completeCallbacks.clear();
-		if (backStartCallbacks != null) backStartCallbacks.clear();
-		if (backEndCallbacks != null) backEndCallbacks.clear();
-		if (backCompleteCallbacks != null) backCompleteCallbacks.clear();
-
-		userData = null;
+		isFrom = isRelative = false;
+		combinedTweenCnt = 0;
 	}
 
 	private void setup(Object target, int tweenType, int durationMillis) {
@@ -448,21 +409,52 @@ public class Tween extends TimelineObject {
 	}
 
 	/**
-	 * Kills the interpolation. If pooling was enabled when this tween was
-	 * created, the tween will be freed, cleared, and returned to the pool. As
-	 * a result, you shouldn't use it anymore.
+	 * Sets the easing equation of the tween. Existing equations are located in
+	 * aurelienribon.tweenengine.equations, but you can of course implement
+	 * your own, see TweenEquation.
+	 * @return The current tween for chaining instructions.
+	 * @see TweenEquation
 	 */
-	@Override
-	public void kill() {
-		isFinished = true;
+	public Tween ease(TweenEquation easeEquation) {
+		if (isStarted) throw new RuntimeException("Cannot change the easing of a running tween");
+		this.equation = easeEquation;
+		return this;
 	}
 
 	/**
-	 * If you want to manually manage your tweens (without using a
-	 * TweenManager), and you enabled object pooling, then you need to call
-	 * this method on your tweens once they are finished (see <i>isFinished()
-	 * </i> method).
+	 * Adds a delay to the tween.
+	 * @param millis The setDelay, in milliseconds.
+	 * @return The current tween for chaining instructions.
 	 */
+	public Tween delay(int millis) {
+		delayMillis += millis;
+		return this;
+	}
+
+	@Override
+	public Tween repeat(int count, int delayMillis) {
+		super.repeat(count, delayMillis);
+		return this;
+	}
+
+	@Override
+	public Tween repeatYoyo(int count, int delayMillis) {
+		super.repeatYoyo(count, delayMillis);
+		return this;
+	}
+	
+	@Override
+	public Tween addCallback(Types callbackType, TweenCallback callback) {
+		super.addCallback(callbackType, callback);
+		return this;
+	}
+	
+	@Override
+	public Tween setUserData(Object data) {
+		super.setUserData(data);
+		return this;
+	}
+
 	@Override
 	public void free() {
 		if (isPooled) pool.free(this);
@@ -470,11 +462,11 @@ public class Tween extends TimelineObject {
 
 	/**
 	 * Sets the target value of the interpolation. The interpolation will run
-	 * from the <b>value at start time (after the delay, if any)</b> to this
+	 * from the <b>value at start time (after the setDelay, if any)</b> to this
 	 * target value.
 	 * <br/><br/>
 	 * To sum-up:<br/>
-	 * - start value: value at start time, after delay<br/>
+	 * - start value: value at start time, after setDelay<br/>
 	 * - end value: param
 	 * @param targetValue The target value of the interpolation.
 	 * @return The current tween for chaining instructions.
@@ -487,11 +479,11 @@ public class Tween extends TimelineObject {
 
 	/**
 	 * Sets the target values of the interpolation. The interpolation will run
-	 * from the <b>values at start time (after the delay, if any)</b> to these
+	 * from the <b>values at start time (after the setDelay, if any)</b> to these
 	 * target values.
 	 * <br/><br/>
 	 * To sum-up:<br/>
-	 * - start values: values at start time, after delay<br/>
+	 * - start values: values at start time, after setDelay<br/>
 	 * - end values: params
 	 * @param targetValue1 The 1st target value of the interpolation.
 	 * @param targetValue2 The 2nd target value of the interpolation.
@@ -506,11 +498,11 @@ public class Tween extends TimelineObject {
 
 	/**
 	 * Sets the target values of the interpolation. The interpolation will run
-	 * from the <b>values at start time (after the delay, if any)</b> to these
+	 * from the <b>values at start time (after the setDelay, if any)</b> to these
 	 * target values.
 	 * <br/><br/>
 	 * To sum-up:<br/>
-	 * - start values: values at start time, after delay<br/>
+	 * - start values: values at start time, after setDelay<br/>
 	 * - end values: params
 	 * @param targetValue1 The 1st target value of the interpolation.
 	 * @param targetValue2 The 2nd target value of the interpolation.
@@ -527,11 +519,11 @@ public class Tween extends TimelineObject {
 
 	/**
 	 * Sets the target values of the interpolation. The interpolation will run
-	 * from the <b>values at start time (after the delay, if any)</b> to these
+	 * from the <b>values at start time (after the setDelay, if any)</b> to these
 	 * target values.
 	 * <br/><br/>
 	 * To sum-up:<br/>
-	 * - start values: values at start time, after delay<br/>
+	 * - start values: values at start time, after setDelay<br/>
 	 * - end values: params
 	 * @param targetValues The target values of the interpolation.
 	 * @return The current tween for chaining instructions.
@@ -546,11 +538,11 @@ public class Tween extends TimelineObject {
 
 	/**
 	 * Sets the target value of the interpolation, relatively to the <b>value
-	 * at start time (after the delay, if any)</b>.
+	 * at start time (after the setDelay, if any)</b>.
 	 * <br/><br/>
 	 * To sum-up:<br/>
-	 * - start value: value at start time, after delay<br/>
-	 * - end value: param + value at start time, after delay
+	 * - start value: value at start time, after setDelay<br/>
+	 * - end value: param + value at start time, after setDelay
 	 * @param targetValue The relative target value of the interpolation.
 	 * @return The current tween for chaining instructions.
 	 */
@@ -563,11 +555,11 @@ public class Tween extends TimelineObject {
 
 	/**
 	 * Sets the target values of the interpolation, relatively to the <b>values
-	 * at start time (after the delay, if any)</b>.
+	 * at start time (after the setDelay, if any)</b>.
 	 * <br/><br/>
 	 * To sum-up:<br/>
-	 * - start values: values at start time, after delay<br/>
-	 * - end values: params + values at start time, after delay
+	 * - start values: values at start time, after setDelay<br/>
+	 * - end values: params + values at start time, after setDelay
 	 * @param targetValue1 The 1st relative target value of the interpolation.
 	 * @param targetValue2 The 2nd relative target value of the interpolation.
 	 * @return The current tween for chaining instructions.
@@ -582,11 +574,11 @@ public class Tween extends TimelineObject {
 
 	/**
 	 * Sets the target values of the interpolation, relatively to the <b>values
-	 * at start time (after the delay, if any)</b>.
+	 * at start time (after the setDelay, if any)</b>.
 	 * <br/><br/>
 	 * To sum-up:<br/>
-	 * - start values: values at start time, after delay<br/>
-	 * - end values: params + values at start time, after delay
+	 * - start values: values at start time, after setDelay<br/>
+	 * - end values: params + values at start time, after setDelay
 	 * @param targetValue1 The 1st relative target value of the interpolation.
 	 * @param targetValue2 The 2nd relative target value of the interpolation.
 	 * @param targetValue3 The 3rd relative target value of the interpolation.
@@ -603,11 +595,11 @@ public class Tween extends TimelineObject {
 
 	/**
 	 * Sets the target values of the interpolation, relatively to the <b>values
-	 * at start time (after the delay, if any)</b>.
+	 * at start time (after the setDelay, if any)</b>.
 	 * <br/><br/>
 	 * To sum-up:<br/>
-	 * - start values: values at start time, after delay<br/>
-	 * - end values: params + values at start time, after delay
+	 * - start values: values at start time, after setDelay<br/>
+	 * - end values: params + values at start time, after setDelay
 	 * @param targetValues The relative target values of the interpolation.
 	 * @return The current tween for chaining instructions.
 	 */
@@ -625,7 +617,7 @@ public class Tween extends TimelineObject {
 	 * the one(s) present when this call is made</b>.
 	 * <br/><br/>
 	 * To sum-up:<br/>
-	 * - start value: value at start time, after delay<br/>
+	 * - start value: value at start time, after setDelay<br/>
 	 * - end value: value at current time
 	 * @return The current tween for chaining instructions.
 	 */
@@ -640,7 +632,7 @@ public class Tween extends TimelineObject {
 	 * current value, the one present when this call is made</b>.
 	 * <br/><br/>
 	 * To sum-up:<br/>
-	 * - start value: value at start time, after delay<br/>
+	 * - start value: value at start time, after setDelay<br/>
 	 * - end value: param + value at current time
 	 * @param targetValue The relative target value of the interpolation.
 	 * @return The current tween for chaining instructions.
@@ -657,7 +649,7 @@ public class Tween extends TimelineObject {
 	 * current values, the ones present when this call is made</b>.
 	 * <br/><br/>
 	 * To sum-up:<br/>
-	 * - start values: values at start time, after delay<br/>
+	 * - start values: values at start time, after setDelay<br/>
 	 * - end values: params + values at current time
 	 * @param targetValue1 The 1st relative target value of the interpolation.
 	 * @param targetValue2 The 2nd relative target value of the interpolation.
@@ -676,7 +668,7 @@ public class Tween extends TimelineObject {
 	 * current values, the ones present when this call is made</b>.
 	 * <br/><br/>
 	 * To sum-up:<br/>
-	 * - start values: values at start time, after delay<br/>
+	 * - start values: values at start time, after setDelay<br/>
 	 * - end values: params + values at current time
 	 * @param targetValue1 The 1st relative target value of the interpolation.
 	 * @param targetValue2 The 2nd relative target value of the interpolation.
@@ -697,7 +689,7 @@ public class Tween extends TimelineObject {
 	 * current values, the ones present when this call is made</b>.
 	 * <br/><br/>
 	 * To sum-up:<br/>
-	 * - start values: values at start time, after delay<br/>
+	 * - start values: values at start time, after setDelay<br/>
 	 * - end values: params + values at current time
 	 * @param targetValues The relative target values of the interpolation.
 	 * @return The current tween for chaining instructions.
@@ -709,126 +701,6 @@ public class Tween extends TimelineObject {
 		accessor.getValues(target, type, targetValues);
 		for (int i=0, n=targetValues.length; i<n; i++)
 			this.targetValues[i] += targetValues[i];
-		return this;
-	}
-
-	/**
-	 * Sets the easing equation of the tween. Existing equations are located in
-	 * aurelienribon.tweenengine.equations, but you can of course implement
-	 * your own, see TweenEquation.
-	 * @return The current tween for chaining instructions.
-	 * @see TweenEquation
-	 */
-	public Tween ease(TweenEquation easeEquation) {
-		if (isStarted) throw new RuntimeException("Cannot change the easing of a running tween");
-		this.equation = easeEquation;
-		return this;
-	}
-
-	/**
-	 * Adds a delay to the tween.
-	 * @param millis The delay, in milliseconds.
-	 * @return The current tween for chaining instructions.
-	 */
-	@Override
-	public Tween delay(int millis) {
-		if (isStarted) throw new RuntimeException("Cannot change the delay of a running tween");
-		delayMillis += millis;
-		return this;
-	}
-
-	/**
-	 * Adds a callback to the tween. The moment when the callback is triggered
-	 * depends on its type:
-	 * <br/><br/>
-	 *
-	 * BEGIN: at first START, right after the delay
-	 * START: at each iteration beginning
-	 * END: at each iteration ending, before the repeat delay
-	 * COMPLETE: at last END
-	 * BACK_START: at each bacwards iteration beginning, after the repeat delay
-	 * BACK_END: at each backwards iteration ending
-	 * BACK_COMPLETE: at last BACK_END
-	 *
-	 * <pre>
-	 * forwards :         BEGIN                                   COMPLETE
-	 * forwards :         START    END      START    END      START    END
-	 * |------------------[XXXXXXXXXX]------[XXXXXXXXXX]------[XXXXXXXXXX]
-	 * backwards:         bEND  bSTART      bEND  bSTART      bEND  bSTART
-	 * backwards:         bCOMPLETE
-	 * </pre>
-	 *          
-	 *
-	 * @param callbackType The callback type.
-	 * @param callback A callback.
-	 * @return The current tween for chaining instructions.
-	 */
-	public Tween addCallback(Types callbackType, TweenCallback callback) {
-		List<TweenCallback> callbacks = null;
-
-		switch (callbackType) {
-			case BEGIN: callbacks = beginCallbacks; break;
-			case START: callbacks = startCallbacks; break;
-			case END: callbacks = endCallbacks; break;
-			case COMPLETE: callbacks = completeCallbacks; break;
-			case BACK_START: callbacks = backStartCallbacks; break;
-			case BACK_END: callbacks = backEndCallbacks; break;
-			case BACK_COMPLETE: callbacks = backCompleteCallbacks; break;
-		}
-
-		if (callbacks == null) callbacks = new ArrayList<TweenCallback>(1);
-		callbacks.add(callback);
-
-		switch (callbackType) {
-			case BEGIN: beginCallbacks = callbacks; break;
-			case START: startCallbacks = callbacks; break;
-			case END: endCallbacks = callbacks; break;
-			case COMPLETE: completeCallbacks = callbacks; break;
-			case BACK_START: backStartCallbacks = callbacks; break;
-			case BACK_END: backEndCallbacks = callbacks; break;
-			case BACK_COMPLETE: backCompleteCallbacks = callbacks; break;
-		}
-
-		return this;
-	}
-
-	/**
-	 * Repeats the tween for a given number of times.
-	 * @param count The number of desired repetition. For infinite repetition,
-	 * use Tween.INFINITY, or a negative number.
-	 * @param millis A delay before each repetition.
-	 * @return The current tween for chaining instructions.
-	 */
-	public Tween repeat(int count, int delayMillis) {
-		repeatCnt = count;
-		repeatDelayMillis = delayMillis >= 0 ? delayMillis : 0;
-		isYoyo = false;
-		return this;
-	}
-
-	/**
-	 * Repeats the tween for a given number of times. Every two iterations, the
-	 * tween will be played backwards.
-	 * @param count The number of desired repetition. For infinite repetition,
-	 * use Tween.INFINITY, or a negative number.
-	 * @param millis A delay before each repetition.
-	 * @return The current tween for chaining instructions.
-	 */
-	public Tween repeatYoyo(int count, int delayMillis) {
-		repeatCnt = count;
-		repeatDelayMillis = delayMillis >= 0 ? delayMillis : 0;
-		isYoyo = true;
-		return this;
-	}
-
-	/**
-	 * Sets an object attached to this tween. It can be useful in order to
-	 * retrieve some data from a TweenCallback.
-	 * @param data Any kind of object.
-	 * @return The current tween for chaining instructions.
-	 */
-	public Tween setUserData(Object data) {
-		userData = data;
 		return this;
 	}
 
@@ -865,184 +737,27 @@ public class Tween extends TimelineObject {
 	}
 
 	/**
-	 * Gets the tween duration.
-	 */
-	public int getDuration() {
-		return durationMillis;
-	}
-
-	/**
-	 * Gets the tween delay.
-	 */
-	public int getDelay() {
-		return delayMillis;
-	}
-
-	/**
 	 * Gets the number of combined tweens.
 	 */
 	public int getCombinedTweenCount() {
 		return combinedTweenCnt;
 	}
 
-	/**
-	 * Gets the total number of repetitions.
-	 */
-	public int getRepeatCount() {
-		return repeatCnt;
-	}
-
-	/**
-	 * Gets the delay before each repetition.
-	 */
-	public int getRepeatDelay() {
-		return repeatDelayMillis;
-	}
-
-	/**
-	 * Gets the attached user data, or null if none.
-	 */
-	public Object getUserData() {
-		return userData;
-	}
-
-	/**
-	 * Returns true if the tween is finished (i.e. if the tween has reached
-	 * its end or has been killed). If you don't use a TweenManager, and enabled
-	 * object pooling, then don't forget to call <i>Tween.free()</i> on your
-	 * tweens once <i>isFinished()</i> returns true.
-	 */
-	@Override
-	public boolean isFinished() {
-		return isFinished;
-	}
-
-	/**
-	 * Returns the complete duration of a tween, including its delay and its
-	 * repetitions. The formula is as follows:
-	 * <br/><br/>
-	 *
-	 * fullDuration = delay + duration + (repeatDelay + duration) * repeatCnt
-	 */
-	@Override
-	public int getFullDuration() {
-		return delayMillis + durationMillis + (repeatDelayMillis + durationMillis) * repeatCnt;
-	}
-
 	// -------------------------------------------------------------------------
 	// Update engine
 	// -------------------------------------------------------------------------
 
-	/**
-	 * Updates the tween state. <b>You may want to use a TweenManager to update
-	 * tweens for you.</b> Slow motion, fast motion and backwards play can be
-	 * easily achieved by tweaking the deltaMillis given as parameter.
-	 * @param deltaMillis A delta time, in milliseconds, between now and the
-	 * last call.
-	 */
 	@Override
-	public void update(int deltaMillis) {
-		if (!isStarted) return;
-
-		int lastIteration = iteration;
-		currentMillis += deltaMillis;
-
-		initialize();
-
-		if (isInitialized) {
-			testRelaunch();
-			updateIteration();
-			testInnerTransition(lastIteration);
-			testLimitTransition(lastIteration);
-			testCompletion();
-			if (isComputeIteration) compute();
+	protected void initializeOverride() {
+		if (target != null) {
+			accessor.getValues(target, type, startValues);
+			for (int i=0; i<combinedTweenCnt; i++)
+				targetValues[i] += isRelative ? startValues[i] : 0;
 		}
 	}
 
-	private void initialize() {
-		if (!isInitialized && currentMillis >= delayMillis) {
-			if (target != null) {
-				accessor.getValues(target, type, startValues);
-				for (int i=0; i<combinedTweenCnt; i++)
-					targetValues[i] += isRelative ? startValues[i] : 0;
-			}
-
-			isInitialized = true;
-			isComputeIteration = true;
-			currentMillis -= delayMillis;
-			callCallbacks(Types.BEGIN);
-			callCallbacks(Types.START);
-		}
-	}
-
-	private void testRelaunch() {
-		if (repeatCnt >= 0 && iteration > repeatCnt*2 && currentMillis <= 0) {
-			assert iteration == repeatCnt*2 + 1;
-			isComputeIteration = true;
-			currentMillis += durationMillis;
-			iteration = repeatCnt*2;
-
-		} else if (repeatCnt >= 0 && iteration < 0 && currentMillis >= 0) {
-			assert iteration == -1;
-			isComputeIteration = true;
-			iteration = 0;
-		}
-	}
-
-	private void updateIteration() {
-		while (isValid(iteration)) {
-			if (!isComputeIteration && currentMillis <= 0) {
-				isComputeIteration = true;
-				currentMillis += durationMillis;
-				iteration -= 1;
-				callCallbacks(Types.BACK_START);
-
-			} else if (!isComputeIteration && currentMillis >= repeatDelayMillis) {
-				isComputeIteration = true;
-				currentMillis -= repeatDelayMillis;
-				iteration += 1;
-				callCallbacks(Types.START);
-
-			} else if (isComputeIteration && currentMillis < 0) {
-				isComputeIteration = false;
-				currentMillis += isValid(iteration-1) ? repeatDelayMillis : 0;
-				iteration -= 1;
-				callCallbacks(Types.BACK_END);
-
-			} else if (isComputeIteration && currentMillis > durationMillis) {
-				isComputeIteration = false;
-				currentMillis -= durationMillis;
-				iteration += 1;
-				callCallbacks(Types.END);
-
-			} else break;
-		}
-	}
-
-	private void testInnerTransition(int lastIteration) {
-		if (isComputeIteration) return;
-		if (iteration > lastIteration) forceEndValues(iteration-1);
-		else if (iteration < lastIteration) forceStartValues(iteration+1);
-	}
-
-	private void testLimitTransition(int lastIteration) {
-		if (repeatCnt < 0 || iteration == lastIteration) return;
-		if (iteration > repeatCnt*2) callCallbacks(Types.COMPLETE);
-		else if (iteration < 0) callCallbacks(Types.BACK_COMPLETE);
-	}
-
-	private void testCompletion() {
-		isFinished = (repeatCnt >= 0 && iteration > repeatCnt*2) || (repeatCnt >= 0 && iteration < 0);
-	}
-
-	private void compute() {
-		assert currentMillis >= 0;
-		assert currentMillis <= durationMillis;
-		assert isInitialized;
-		assert !isFinished;
-		assert isComputeIteration;
-		assert isValid(iteration);
-
+	@Override
+	protected void computeOverride(int iteration, int lastIteration, int deltaMillis) {
 		if (target == null || equation == null) return;
 
 		for (int i=0; i<combinedTweenCnt; i++) {
@@ -1056,65 +771,21 @@ public class Tween extends TimelineObject {
 	}
 
 	// -------------------------------------------------------------------------
-	// Helpers
+	// TimelineObject impl.
 	// -------------------------------------------------------------------------
 
-	private void forceStartValues(int iteration) {
+	@Override
+	protected void forceStartValues(int iteration) {
 		if (target == null) return;
 		boolean swapStartAndTarget = isIterationYoyo(iteration) ? !isFrom : isFrom;
 		accessor.setValues(target, type, swapStartAndTarget ? targetValues : startValues);
 	}
 
-	private void forceEndValues(int iteration) {
+	@Override
+	protected void forceEndValues(int iteration) {
 		if (target == null) return;
 		boolean swapStartAndTarget = isIterationYoyo(iteration) ? !isFrom : isFrom;
 		accessor.setValues(target, type, swapStartAndTarget ? startValues : targetValues);
-	}
-
-	private boolean isValid(int iteration) {
-		return (iteration >= 0 && iteration <= repeatCnt*2) || repeatCnt < 0;
-	}
-
-	private boolean isIterationYoyo(int iteration) {
-		return isYoyo && Math.abs(iteration%4) == 2;
-	}
-
-	private void callCallbacks(Types type) {
-		List<TweenCallback> callbacks = null;
-
-		switch (type) {
-			case BEGIN: callbacks = beginCallbacks; break;
-			case START: callbacks = startCallbacks; break;
-			case END: callbacks = endCallbacks; break;
-			case COMPLETE: callbacks = completeCallbacks; break;
-			case BACK_START: callbacks = backStartCallbacks; break;
-			case BACK_END: callbacks = backEndCallbacks; break;
-			case BACK_COMPLETE: callbacks = backCompleteCallbacks; break;
-		}
-
-		if (callbacks != null && !callbacks.isEmpty())
-			for (int i=0, n=callbacks.size(); i<n; i++)
-				callbacks.get(i).tweenEventOccured(type, this);
-	}
-
-	// -------------------------------------------------------------------------
-	// TimelineObject impl.
-	// -------------------------------------------------------------------------
-
-	@Override
-	protected void forceToStart() {
-		currentMillis = -delayMillis;
-		iteration = -1;
-		isComputeIteration = false;
-		forceStartValues(0);
-	}
-
-	@Override
-	protected void forceToEnd(int millis) {
-		currentMillis = millis - getFullDuration();
-		iteration = repeatCnt*2 + 1;
-		isComputeIteration = false;
-		forceEndValues(repeatCnt*2);
 	}
 
 	@Override
