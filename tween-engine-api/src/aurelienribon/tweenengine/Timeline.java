@@ -23,7 +23,7 @@ import java.util.List;
  * iteration:
  * <br/><br/>
  * 
- * <pre>
+ * <pre> {@code
  * Timeline.createSequence()
  *     .push(Tween.set(myObject, OPACITY).target(0))
  *     .push(Tween.set(myObject, SCALE).target(0, 0))
@@ -36,7 +36,7 @@ import java.util.List;
  *     .push(Tween.to(myObject, ROTATION, 500).target(360).ease(Quad.INOUT))
  *     .repeat(5, 500)
  *     .start(myManager);
- * </pre>
+ * }</pre>
  *
  * @see Tween
  * @see TweenManager

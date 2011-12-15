@@ -41,14 +41,14 @@ import java.util.Map;
  * restart from this registered position).
  * <br/><br/>
  * 
- * <pre>
+ * <pre> {@code
  * Tween.to(myObject, POSITION_XY, 500)
  *      .target(200, 300)
  *      .ease(Quad.INOUT)
  *      .delay(1000)
  *      .repeat(2, 200)
  *      .start(myManager);
- * </pre>
+ * }</pre>
  *
  * Tween life-cycles can be automatically managed for you, thanks to the
  * {@link TweenManager} class. If you choose to manage your tween when you start
@@ -202,12 +202,12 @@ public final class Tween extends BaseTween {
 	 * automatically, and cleaned once finished. Common call:
 	 * <br/><br/>
 	 *
-	 * <pre>
+	 * <pre> {@code
 	 * Tween.to(myObject, POSITION, 1000)
 	 *      .target(50, 70)
 	 *      .ease(Quad.INOUT)
 	 *      .start(myManager);
-	 * </pre>
+	 * }</pre>
 	 * 
 	 * Several options such as delay, repetitions and callbacks can be added to
 	 * the tween.
@@ -239,12 +239,12 @@ public final class Tween extends BaseTween {
 	 * automatically, and cleaned once finished. Common call:
 	 * <br/><br/>
 	 *
-	 * <pre>
+	 * <pre> {@code
 	 * Tween.from(myObject, POSITION, 1000)
 	 *      .target(0, 0)
 	 *      .ease(Quad.INOUT)
 	 *      .start(myManager);
-	 * </pre>
+	 * }</pre>
 	 *
 	 * Several options such as delay, repetitions and callbacks can be added to
 	 * the tween.
@@ -277,12 +277,12 @@ public final class Tween extends BaseTween {
 	 * automatically, and cleaned once finished. Common call:
 	 * <br/><br/>
 	 *
-	 * <pre>
+	 * <pre> {@code
 	 * Tween.set(myObject, POSITION)
 	 *      .target(50, 70)
 	 *      .delay(1000)
 	 *      .start(myManager);
-	 * </pre>
+	 * }</pre>
 	 *
 	 * Several options such as delay, repetitions and callbacks can be added to
 	 * the tween.
@@ -307,12 +307,12 @@ public final class Tween extends BaseTween {
 	 * automatically, and cleaned once finished. Common call:
 	 * <br/><br/>
 	 *
-	 * <pre>
+	 * <pre> {@code
 	 * Tween.call(myCallback)
 	 *      .delay(1000)
 	 *      .repeat(10, 1000)
 	 *      .start(myManager);
-	 * </pre>
+	 * }</pre>
 	 *
 	 * @param callback The callback that will be triggered on each iteration
 	 * start.

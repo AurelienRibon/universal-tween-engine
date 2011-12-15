@@ -154,13 +154,13 @@ public abstract class BaseTween {
 	 * <b>BACK_COMPLETE</b>: at last BACK_END
 	 * <br/><br/>
 	 *
-	 * <pre>
+	 * <pre> {@code
 	 * forwards :         BEGIN                                   COMPLETE
 	 * forwards :         START    END      START    END      START    END
 	 * |------------------[XXXXXXXXXX]------[XXXXXXXXXX]------[XXXXXXXXXX]
 	 * backwards:         bEND  bSTART      bEND  bSTART      bEND  bSTART
 	 * backwards:         bCOMPLETE
-	 * </pre>
+	 * }</pre>
 	 *
 	 *
 	 * @param callbackType The callback type.

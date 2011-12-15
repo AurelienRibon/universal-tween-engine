@@ -2,20 +2,19 @@ package aurelienribon.tweenengine;
 
 /**
  * The TweenAccessor interface lets you interpolate any attribute from any
- * object. Just implement it as you want and let the engine do the interpolation
- * for you. To setup the Tween Engine, you need to call Tween.registerAccessor()
- * to register your accessors.
+ * object. Just implement it as you want and register it to the engine by
+ * calling {@link Tween#registerAccessor}.
+ * <br/><br/>
  *
- * <p>
+ * <h2>Example</h2>
+ * 
  * The following code snippet presents an example of implementation for tweening
  * a Particle class. This Particle class is supposed to only define a position
- * with an "x" and an "y" field.
- * </p>
+ * with an "x" and an "y" fields, and their associated getters and setters.
+ * <br/><br/>
  *
- * <pre>
- * public class ParticleTweenAccessor implements TweenAccessor<Particle> {
- *     // The 3 following lines define the different possible tween types.
- *     // It's up to you to define what you need :-)
+ * <pre> {@code
+ * public class ParticleAccessor implements TweenAccessor<Particle> {
  *     public static final int X = 1;
  *     public static final int Y = 2;
  *     public static final int XY = 3;
@@ -44,7 +43,17 @@ package aurelienribon.tweenengine;
  *         }
  *     }
  * }
- * </pre>
+ * }</pre>
+ *
+ * Once done, you only need to register this TweenAccessor once to be able to
+ * use it for every Particle objects in your application:
+ * <br/><br/>
+ *
+ * <pre> {@code
+ * Tween.registerAccessor(Particle.class, new ParticleAccessor());
+ * }</pre>
+ *
+ * And that's all, the Tween Engine can no work with all your particles!
  * 
  * @author Aurelien Ribon | http://www.aurelienribon.com/
  */
@@ -55,8 +64,8 @@ public interface TweenAccessor<T> {
 	 * values.
 	 * @param target The target object of the tween.
 	 * @param tweenType An integer representing the tween type.
-	 * @param returnValues A table which should be modified by this method.
-	 * @return The count of tweened parameters.
+	 * @param returnValues An array which should be modified by this method.
+	 * @return The count of modified slots from the returnValues array.
 	 */
 	public int getValues(T target, int tweenType, float[] returnValues);
 
