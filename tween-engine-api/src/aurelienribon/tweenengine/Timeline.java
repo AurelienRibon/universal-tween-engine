@@ -118,6 +118,7 @@ public final class Timeline extends BaseTween {
 	// -------------------------------------------------------------------------
 
 	public Timeline beginSequence() {
+		if (isStarted) throw new RuntimeException("You can't push anything to a timeline once it is started");
 		Timeline child = pool.get();
 		child.parent = this;
 		child.mode = Modes.SEQUENCE;
@@ -126,6 +127,7 @@ public final class Timeline extends BaseTween {
 	}
 
 	public Timeline beginParallel() {
+		if (isStarted) throw new RuntimeException("You can't push anything to a timeline once it is started");
 		Timeline child = pool.get();
 		child.parent = this;
 		child.mode = Modes.PARALLEL;
@@ -134,22 +136,26 @@ public final class Timeline extends BaseTween {
 	}
 
 	public Timeline end() {
+		if (isStarted) throw new RuntimeException("You can't push anything to a timeline once it is started");
 		if (parent == null) throw new RuntimeException("Nothing to end...");
 		return parent;
 	}
 
 	public Timeline push(Tween tween) {
+		if (isStarted) throw new RuntimeException("You can't push anything to a timeline once it is started");
 		children.add(tween);
 		return this;
 	}
 
 	public Timeline push(Timeline timeline) {
+		if (isStarted) throw new RuntimeException("You can't push anything to a timeline once it is started");
 		timeline.parent = this;
 		children.add(timeline);
 		return this;
 	}
 
 	public Timeline pushPause(int millis) {
+		if (isStarted) throw new RuntimeException("You can't push anything to a timeline once it is started");
 		children.add(Tween.mark().delay(millis));
 		return this;
 	}

@@ -115,6 +115,7 @@ public abstract class BaseTween {
 	 * @return The current tween or timeline, for chaining instructions.
 	 */
 	public BaseTween repeat(int count, int delayMillis) {
+		if (isStarted) throw new RuntimeException("You can't change the repetitions of a tween or timeline once it is started");
 		repeatCnt = count;
 		repeatDelayMillis = delayMillis >= 0 ? delayMillis : 0;
 		isYoyo = false;
@@ -130,6 +131,7 @@ public abstract class BaseTween {
 	 * @return The current tween or timeline, for chaining instructions.
 	 */
 	public BaseTween repeatYoyo(int count, int delayMillis) {
+		if (isStarted) throw new RuntimeException("You can't change the repetitions of a tween or timeline once it is started");
 		repeatCnt = count;
 		repeatDelayMillis = delayMillis >= 0 ? delayMillis : 0;
 		isYoyo = true;

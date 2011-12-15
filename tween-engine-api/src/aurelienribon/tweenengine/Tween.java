@@ -420,7 +420,6 @@ public final class Tween extends BaseTween {
 	 * @see TweenEquation
 	 */
 	public Tween ease(TweenEquation easeEquation) {
-		if (isStarted) throw new RuntimeException("Cannot change the easing of a running tween");
 		this.equation = easeEquation;
 		return this;
 	}
@@ -431,6 +430,7 @@ public final class Tween extends BaseTween {
 	 * @return The current tween for chaining instructions.
 	 */
 	public Tween delay(int millis) {
+		if (isStarted) throw new RuntimeException("You can't delay a tween once it is started");
 		delayMillis += millis;
 		return this;
 	}
@@ -476,7 +476,7 @@ public final class Tween extends BaseTween {
 	 * @return The current tween for chaining instructions.
 	 */
 	public Tween target(float targetValue) {
-		if (isStarted) throw new RuntimeException("Cannot change the targets of a running tween");
+		if (isStarted) throw new RuntimeException("You can't change the target of a tween once it is started");
 		targetValues[0] = targetValue;
 		return this;
 	}
@@ -494,7 +494,7 @@ public final class Tween extends BaseTween {
 	 * @return The current tween for chaining instructions.
 	 */
 	public Tween target(float targetValue1, float targetValue2) {
-		if (isStarted) throw new RuntimeException("Cannot change the targets of a running tween");
+		if (isStarted) throw new RuntimeException("You can't change the target of a tween once it is started");
 		targetValues[0] = targetValue1;
 		targetValues[1] = targetValue2;
 		return this;
@@ -514,7 +514,7 @@ public final class Tween extends BaseTween {
 	 * @return The current tween for chaining instructions.
 	 */
 	public Tween target(float targetValue1, float targetValue2, float targetValue3) {
-		if (isStarted) throw new RuntimeException("Cannot change the targets of a running tween");
+		if (isStarted) throw new RuntimeException("You can't change the target of a tween once it is started");
 		targetValues[0] = targetValue1;
 		targetValues[1] = targetValue2;
 		targetValues[2] = targetValue3;
@@ -533,7 +533,7 @@ public final class Tween extends BaseTween {
 	 * @return The current tween for chaining instructions.
 	 */
 	public Tween target(float... targetValues) {
-		if (isStarted) throw new RuntimeException("Cannot change the targets of a running tween");
+		if (isStarted) throw new RuntimeException("You can't change the target of a tween once it is started");
 		if (targetValues.length > MAX_COMBINED_TWEENS)
 			throw new RuntimeException("You cannot set more than " + MAX_COMBINED_TWEENS + " targets.");
 		System.arraycopy(targetValues, 0, this.targetValues, 0, targetValues.length);
@@ -551,7 +551,7 @@ public final class Tween extends BaseTween {
 	 * @return The current tween for chaining instructions.
 	 */
 	public Tween targetRelative(float targetValue) {
-		if (isStarted) throw new RuntimeException("Cannot change the targets of a running tween");
+		if (isStarted) throw new RuntimeException("You can't change the target of a tween once it is started");
 		isRelative = true;
 		targetValues[0] = targetValue;
 		return this;
@@ -569,7 +569,7 @@ public final class Tween extends BaseTween {
 	 * @return The current tween for chaining instructions.
 	 */
 	public Tween targetRelative(float targetValue1, float targetValue2) {
-		if (isStarted) throw new RuntimeException("Cannot change the targets of a running tween");
+		if (isStarted) throw new RuntimeException("You can't change the target of a tween once it is started");
 		isRelative = true;
 		targetValues[0] = targetValue1;
 		targetValues[1] = targetValue2;
@@ -589,7 +589,7 @@ public final class Tween extends BaseTween {
 	 * @return The current tween for chaining instructions.
 	 */
 	public Tween targetRelative(float targetValue1, float targetValue2, float targetValue3) {
-		if (isStarted) throw new RuntimeException("Cannot change the targets of a running tween");
+		if (isStarted) throw new RuntimeException("You can't change the target of a tween once it is started");
 		isRelative = true;
 		targetValues[0] = targetValue1;
 		targetValues[1] = targetValue2;
@@ -608,7 +608,7 @@ public final class Tween extends BaseTween {
 	 * @return The current tween for chaining instructions.
 	 */
 	public Tween targetRelative(float... targetValues) {
-		if (isStarted) throw new RuntimeException("Cannot change the targets of a running tween");
+		if (isStarted) throw new RuntimeException("You can't change the target of a tween once it is started");
 		if (targetValues.length > MAX_COMBINED_TWEENS)
 			throw new RuntimeException("You cannot set more than " + MAX_COMBINED_TWEENS + " targets.");
 		System.arraycopy(targetValues, 0, this.targetValues, 0, targetValues.length);
@@ -626,7 +626,7 @@ public final class Tween extends BaseTween {
 	 * @return The current tween for chaining instructions.
 	 */
 	public Tween targetCurrent() {
-		if (isStarted) throw new RuntimeException("Cannot change the targets of a running tween");
+		if (isStarted) throw new RuntimeException("You can't change the target of a tween once it is started");
 		accessor.getValues(target, type, targetValues);
 		return this;
 	}
@@ -642,7 +642,7 @@ public final class Tween extends BaseTween {
 	 * @return The current tween for chaining instructions.
 	 */
 	public Tween targetCurrentRelative(float targetValue) {
-		if (isStarted) throw new RuntimeException("Cannot change the targets of a running tween");
+		if (isStarted) throw new RuntimeException("You can't change the target of a tween once it is started");
 		accessor.getValues(target, type, targetValues);
 		targetValues[0] += targetValue;
 		return this;
@@ -660,7 +660,7 @@ public final class Tween extends BaseTween {
 	 * @return The current tween for chaining instructions.
 	 */
 	public Tween targetCurrentRelative(float targetValue1, float targetValue2) {
-		if (isStarted) throw new RuntimeException("Cannot change the targets of a running tween");
+		if (isStarted) throw new RuntimeException("You can't change the target of a tween once it is started");
 		accessor.getValues(target, type, targetValues);
 		targetValues[0] += targetValue1;
 		targetValues[1] += targetValue2;
@@ -680,7 +680,7 @@ public final class Tween extends BaseTween {
 	 * @return The current tween for chaining instructions.
 	 */
 	public Tween targetCurrentRelative(float targetValue1, float targetValue2, float targetValue3) {
-		if (isStarted) throw new RuntimeException("Cannot change the targets of a running tween");
+		if (isStarted) throw new RuntimeException("You can't change the target of a tween once it is started");
 		accessor.getValues(target, type, targetValues);
 		targetValues[0] += targetValue1;
 		targetValues[1] += targetValue2;
@@ -699,7 +699,7 @@ public final class Tween extends BaseTween {
 	 * @return The current tween for chaining instructions.
 	 */
 	public Tween targetCurrentRelative(float... targetValues) {
-		if (isStarted) throw new RuntimeException("Cannot change the targets of a running tween");
+		if (isStarted) throw new RuntimeException("You can't change the target of a tween once it is started");
 		if (targetValues.length > MAX_COMBINED_TWEENS)
 			throw new RuntimeException("You cannot set more than " + MAX_COMBINED_TWEENS + " targets.");
 		accessor.getValues(target, type, targetValues);
