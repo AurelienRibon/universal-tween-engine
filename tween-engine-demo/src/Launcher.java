@@ -20,7 +20,6 @@ public abstract class Launcher {
 					"Simple tween (LibGDX)",
 					"Simple tween (Swing)",
 					"Simple timeline (LibGDX)",
-					"Simple timeline (Swing)",
 					"Complex demo (libGDX)"
 				};
 				
@@ -36,8 +35,7 @@ public abstract class Launcher {
 					if (testResult.equals(tests[0])) GdxSimpleTween.start();
 					else if (testResult.equals(tests[1])) SwingSimpleTween.start();
 					else if (testResult.equals(tests[2])) GdxSimpleTimeline.start();
-					else if (testResult.equals(tests[3])) ;
-					else if (testResult.equals(tests[4])) GdxComplexDemo.start();
+					else if (testResult.equals(tests[3])) GdxComplexDemo.start();
 				}
 			}
 		});

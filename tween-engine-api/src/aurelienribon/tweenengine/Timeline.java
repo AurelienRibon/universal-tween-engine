@@ -23,7 +23,7 @@ import java.util.List;
  * iteration:
  * <br/><br/>
  * 
- * <pre>{@code
+ * <pre>
  * Timeline.createSequence()
  *     .push(Tween.set(myObject, OPACITY).target(0))
  *     .push(Tween.set(myObject, SCALE).target(0, 0))
@@ -36,7 +36,7 @@ import java.util.List;
  *     .push(Tween.to(myObject, ROTATION, 500).target(360).ease(Quad.INOUT))
  *     .repeat(5, 500)
  *     .start(myManager);
- * }</pre>
+ * </pre>
  *
  * @see Tween
  * @see TweenManager
@@ -53,20 +53,20 @@ public final class Timeline extends BaseTween {
 		@Override public void onUnpool(Timeline obj) {obj.isPooled = Tween.isPoolingEnabled();}
 	};
 
-	static final Pool<Timeline> pool = new Pool<Timeline>(15, poolCallback) {
+	static final Pool<Timeline> pool = new Pool<Timeline>(10, poolCallback) {
 		@Override protected Timeline create() {return new Timeline();}
 	};
 
 	/**
 	 * Used for debug purpose. Gets the current number of empty timelines that
-	 * are waiting in the pool.
+	 * are waiting in the Timeline pool.
 	 */
 	public static int getPoolSize() {
 		return pool.size();
 	}
 
 	/**
-	 * Increases the minimum capacity of the pool. Capacity defaults to 20.
+	 * Increases the minimum capacity of the pool. Capacity defaults to 10.
 	 */
 	public static void ensurePoolCapacity(int minCapacity) {
 		pool.ensureCapacity(minCapacity);
@@ -207,9 +207,9 @@ public final class Timeline extends BaseTween {
 	}
 
 	/**
-	 * Starts the timeline unmanaged. You will need to take care of its
-	 * life-cycle. If you want the timeline to be managed for you, use a
-	 * TweenManager.
+	 * Starts or restarts the timeline unmanaged. You will need to take care of
+	 * its life-cycle. If you want the timeline to be managed for you, use a
+	 * {@link TweenManager}.
 	 * @return The current timeline, for chaining instructions.
 	 */
 	public Timeline start() {
@@ -219,8 +219,8 @@ public final class Timeline extends BaseTween {
 	}
 
 	/**
-	 * Start the timeline managed. Its life-cycle will be handled for you. Relax
-	 * and enjoy the animation.
+	 * Start or restarts the timeline managed. Its life-cycle will be handled
+	 * for you. Relax and enjoy the animation.
 	 * @return The current timeline, for chaining instructions.
 	 */
 	public Timeline start(TweenManager manager) {

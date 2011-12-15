@@ -6,39 +6,70 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Core class of the Tween Engine. It contains many static factory methods to
- * create and instantiate new interpolations easily.
- *
+ * Core class of the Tween Engine. A Tween is basically an interpolation
+ * between two values of an object attribute. However, the main interest of a 
+ * Tween is that you can apply an easing formula on this interpolation, in
+ * order to smooth the transitions or to achieve cool effects like springs or
+ * bounces.
  * <br/><br/>
- * The common way to create a Tween is by using one of the static constructor,
- * like:
- *
+ * 
+ * The Universal Tween Engine is called "universal" because it is able to apply
+ * interpolations on every attribute from every possible object. Therefore,
+ * every object in your application can be animated with cool effects: it does
+ * not matter if your application is a game, a desktop interface or even a
+ * console program! If it makes sense to animate something, then it can be
+ * animated through this engine.
  * <br/><br/>
- * -- Tween.to(...);<br/>
- * -- Tween.from(...);<br/>
- * -- Tween.set(...);<br/>
- * -- Tween.call(...);
- *
+ * 
+ * This class contains many static factory methods to create and instantiate
+ * new interpolations easily. The common way to create a Tween is by using one 
+ * of these factories:
  * <br/><br/>
+ *
+ * - Tween.to(...)<br/>
+ * - Tween.from(...)<br/>
+ * - Tween.set(...)<br/>
+ * - Tween.call(...)
+ * <br/><br/>
+ *
+ * <h2>Example - firing a Tween</h2>
+ *
  * The following example will move the target horizontal position from its
  * current value to x=200 and y=300, during 500ms, but only after a delay of
- * 1000ms. The transition will also be repeated 2 times (the starting position
+ * 1000ms. The animation will also be repeated 2 times (the starting position
  * is registered at the end of the delay, so the animation will automatically
  * restart from this registered position).
- *
  * <br/><br/>
+ * 
  * <pre>
  * Tween.to(myObject, POSITION_XY, 500)
  *      .target(200, 300)
  *      .ease(Quad.INOUT)
  *      .delay(1000)
- *      .repeat(2, 0)
+ *      .repeat(2, 200)
  *      .start(myManager);
  * </pre>
  *
+ * Tween life-cycles can be automatically managed for you, thanks to the
+ * {@link TweenManager} class. If you choose to manage your tween when you start
+ * it (with <i>.start(yourManager)</i>), then you don't need to care about it
+ * anymore. <b>Tweens are <i>fire-and-forget</i>: don't think about them
+ * anymore once you started them (if they are managed of course).</b>
+ * <br/><br/>
+ *
  * You need to periodicaly update the tween engine, in order to compute the new
- * values. Add it to a TweenManager, it will take care of the tween life-cycle
- * for you!
+ * values. If your tweens are managed, only update the manager; else you need
+ * to call <i>update()</i> on your tweens periodically.
+ * <br/><br/>
+ *
+ * <h2>Example - setting up the engine</h2>
+ *
+ * The engine cannot directly change your objects attributes, since it doesn't
+ * know them. Therefore, you need to tell him how to get and set the different
+ * attributes of your objects: <b>you need to implement the {@link 
+ * TweenAccessor} interface for each object class you will animate</b>. Once
+ * done, don't forget to register these implementations, using the static method
+ * {@link #registerAccessor}, when you start your application.
  *
  * @see TweenAccessor
  * @see TweenManager
@@ -85,8 +116,8 @@ public final class Tween extends BaseTween {
 
 	/**
 	 * Enables or disables the automatic reuse of finished tweens. Pooling
-	 * prevents the allocation of a new tween object when using the static
-	 * constructors, thus removing the need for garbage collection. Can be quite
+	 * prevents the allocation of a new tween instance when using the static
+	 * factories, thus removing the need for garbage collection. Can be quite
 	 * helpful on slow or embedded devices. <b>Defaults to true</b>.
 	 */
 	public static void enablePooling(boolean value) {
@@ -102,26 +133,24 @@ public final class Tween extends BaseTween {
 
 	/**
 	 * Used for debug purpose. Gets the current number of objects that are
-	 * waiting in the pool.
-	 * @return The current size of the pool.
+	 * waiting in the Tween pool.
 	 */
 	public static int getPoolSize() {
 		return pool.size();
 	}
 
 	/**
-	 * Increases the pool capacity directly. Capacity defaults to 20.
-	 * @param minCapacity The minimum capacity of the pool.
+	 * Increases the minimum capacity of the pool. Capacity defaults to 20.
 	 */
 	public static void ensurePoolCapacity(int minCapacity) {
 		pool.ensureCapacity(minCapacity);
 	}
 
 	/**
-	 * Clears every static resources and resets the static instance.
+	 * Clears every static resources used by the whole engine.
 	 */
 	public static void dispose() {
-		isPoolEnabled = false;
+		isPoolEnabled = true;
 		pool.clear();
 		Timeline.pool.clear();
 	}
@@ -134,8 +163,9 @@ public final class Tween extends BaseTween {
 	private static final float[] buffer = new float[MAX_COMBINED_TWEENS];
 
 	/**
-	 * Registers an engine with the class of an object. This engine will be used
-	 * with interpolations applied to every objects of the registered class.
+	 * Registers an accessor with the class of an object. This accessor will be
+	 * used by tweens applied to every objects implementing the registered
+	 * class, or inheriting from it.
 	 * @param someClass An object class.
 	 * @param defaultAccessor The accessor that will be used to tween any object
 	 * of class "someClass".
@@ -157,30 +187,32 @@ public final class Tween extends BaseTween {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Convenience method to create a new interpolation.
-	 *
+	 * Factory creating a new standard interpolation. This is the most common
+	 * type of interpolation. The starting values are retrieved automatically
+	 * after the delay (if any).
 	 * <br/><br/>
-	 * You need to set the target values of the interpolation by using one
-	 * of the ".target()" methods. The interpolation will run from the current
-	 * values (retrieved after the delay, if any) to these target values.
 	 *
+	 * <b>You need to set the target values of the interpolation by using one
+	 * of the {@link #target} methods</b>. The interpolation will run from the
+	 * starting values to these target values.
 	 * <br/><br/>
+	 *
 	 * The common use of Tweens is "fire-and-forget": you do not need to care
 	 * for tweens once you added them to a TweenManager, they will be updated
 	 * automatically, and cleaned once finished. Common call:
-	 * <br/>
+	 * <br/><br/>
+	 *
 	 * <pre>
 	 * Tween.to(myObject, POSITION, 1000)
 	 *      .target(50, 70)
 	 *      .ease(Quad.INOUT)
-	 *      .addToManager(myManager);
+	 *      .start(myManager);
 	 * </pre>
 	 * 
-	 * Several options such as delays and callbacks can be added to the tween.
-	 * This method hides some of the internal optimizations such as object
-	 * reuse for convenience.
+	 * Several options such as delay, repetitions and callbacks can be added to
+	 * the tween.
 	 *
-	 * @param target The target of the interpolation.
+	 * @param target The target object of the interpolation.
 	 * @param tweenType The desired type of interpolation.
 	 * @param durationMillis The duration of the interpolation, in milliseconds.
 	 * @return The generated Tween.
@@ -193,30 +225,31 @@ public final class Tween extends BaseTween {
 	}
 
 	/**
-	 * Convenience method to create a new reversed interpolation.
-	 *
+	 * Factory creating a new reversed interpolation. The ending values are
+	 * retrieved automatically after the delay (if any).
 	 * <br/><br/>
-	 * You need to set the target values of the interpolation by using one
-	 * of the ".target()" methods. The interpolation will run from these
-	 * values (retrieved after the delay, if any) to the current values.
 	 *
+	 * <b>You need to set the starting values of the interpolation by using one
+	 * of the {@link #target} methods</b>. The interpolation will run from the
+	 * starting values to these target values.
 	 * <br/><br/>
+	 *
 	 * The common use of Tweens is "fire-and-forget": you do not need to care
 	 * for tweens once you added them to a TweenManager, they will be updated
 	 * automatically, and cleaned once finished. Common call:
-	 * <br/>
+	 * <br/><br/>
+	 *
 	 * <pre>
 	 * Tween.from(myObject, POSITION, 1000)
-	 *      .target(50, 70)
+	 *      .target(0, 0)
 	 *      .ease(Quad.INOUT)
-	 *      .addToManager(myManager);
+	 *      .start(myManager);
 	 * </pre>
 	 *
-	 * Several options such as delays and callbacks can be added to the tween.
-	 * This method hides some of the internal optimizations such as object
-	 * reuse for convenience.
+	 * Several options such as delay, repetitions and callbacks can be added to
+	 * the tween.
 	 *
-	 * @param target The target of the interpolation.
+	 * @param target The target object of the interpolation.
 	 * @param tweenType The desired type of interpolation.
 	 * @param durationMillis The duration of the interpolation, in milliseconds.
 	 * @return The generated Tween.
@@ -230,32 +263,32 @@ public final class Tween extends BaseTween {
 	}
 
 	/**
-	 * Convenience method to create a new instantaneous interpolation (as a
-	 * result, this is not really an interpolation).
-	 *
+	 * Factory creating a new instantaneous interpolation (thus this is not
+	 * really an interpolation).
 	 * <br/><br/>
-	 * You need to set the target values of the interpolation by using one
-	 * of the ".target()" methods. The interpolation will directly set the target
-	 * to these values.
 	 *
+	 * <b>You need to set the target values of the interpolation by using one
+	 * of the {@link #target} methods</b>. The interpolation will set the target
+	 * attribute to these values after the delay (if any).
 	 * <br/><br/>
+	 *
 	 * The common use of Tweens is "fire-and-forget": you do not need to care
 	 * for tweens once you added them to a TweenManager, they will be updated
 	 * automatically, and cleaned once finished. Common call:
-	 * <br/>
+	 * <br/><br/>
+	 *
 	 * <pre>
 	 * Tween.set(myObject, POSITION)
 	 *      .target(50, 70)
-	 *      .addToManager(myManager);
+	 *      .delay(1000)
+	 *      .start(myManager);
 	 * </pre>
 	 *
-	 * Several options such as delays and callbacks can be added to the tween.
-	 * This method hides some of the internal optimizations such as object
-	 * reuse for convenience.
+	 * Several options such as delay, repetitions and callbacks can be added to
+	 * the tween.
 	 *
-	 * @param target The target of the interpolation.
+	 * @param target The target object of the interpolation.
 	 * @param tweenType The desired type of interpolation.
-	 * @param durationMillis The duration of the interpolation, in milliseconds.
 	 * @return The generated Tween.
 	 */
 	public static Tween set(Object target, int tweenType) {
@@ -265,25 +298,24 @@ public final class Tween extends BaseTween {
 	}
 
 	/**
-	 * Convenience method to create a new simple timer.
-	 *
+	 * Factory creating a new timer. The given callback will be triggered on
+	 * each iteration start, after the delay.
 	 * <br/><br/>
+	 *
 	 * The common use of Tweens is "fire-and-forget": you do not need to care
 	 * for tweens once you added them to a TweenManager, they will be updated
 	 * automatically, and cleaned once finished. Common call:
-	 * <br/>
+	 * <br/><br/>
+	 *
 	 * <pre>
 	 * Tween.call(myCallback)
-	 *      .addToManager(myManager);
+	 *      .delay(1000)
+	 *      .repeat(10, 1000)
+	 *      .start(myManager);
 	 * </pre>
 	 *
-	 * Several options such as delays and callbacks can be added to the tween.
-	 * This method hides some of the internal optimizations such as object
-	 * reuse for convenience.
-	 *
-	 * @param callback The callback that will be triggered at the end of the
-	 * delay (if specified). A repeat behavior can be set to the tween to
-	 * trigger it more than once.
+	 * @param callback The callback that will be triggered on each iteration
+	 * start.
 	 * @return The generated Tween.
 	 * @see TweenCallback
 	 */
@@ -296,10 +328,11 @@ public final class Tween extends BaseTween {
 
 	/**
 	 * Convenience method to create an empty tween. Such object is only useful
-	 * when placed inside animation sequences (see TweenGroup), in which it
-	 * may act as a beacon, so you can set callbacks on it in order to trigger
-	 * then at the moment you need.
-	 * @see TweenGroup
+	 * when placed inside animation sequences (see {@link Timeline}), in which
+	 * it may act as a beacon, so you can set callbacks on it in order to
+	 * trigger then at the right moment.
+	 * @return The generated Tween.
+	 * @see Timeline
 	 */
 	public static Tween mark() {
 		Tween tween = pool.get();
@@ -383,10 +416,10 @@ public final class Tween extends BaseTween {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Starts or restarts the interpolation. You will need to update the tween
-	 * yourself. <b>Recommanded behavior is to use <i>start(TweenManager)</i>
-	 * </b>.
-	 * @return The current tween for chaining instructions.
+	 * Starts or restarts the tween unmanaged. You will need to take care of
+	 * its life-cycle. If you want the tween to be managed for you, use a
+	 * {@link TweenManager}.
+	 * @return The current tween, for chaining instructions.
 	 */
 	public Tween start() {
 		currentMillis = 0;
@@ -395,9 +428,9 @@ public final class Tween extends BaseTween {
 	}
 
 	/**
-	 * Starts or restarts the interpolation using a manager.
-	 * @param manager A TweenManager.
-	 * @return The current tween for chaining instructions.
+	 * Start or restarts the tween managed. Its life-cycle will be handled
+	 * for you. Relax and enjoy the animation.
+	 * @return The current tween, for chaining instructions.
 	 */
 	public Tween start(TweenManager manager) {
 		manager.add(this);
@@ -406,9 +439,9 @@ public final class Tween extends BaseTween {
 
 	/**
 	 * Sets the easing equation of the tween. Existing equations are located in
-	 * aurelienribon.tweenengine.equations, but you can of course implement
-	 * your own, see TweenEquation.
-	 * @return The current tween for chaining instructions.
+	 * <i>aurelienribon.tweenengine.equations</i> package, but you can of course
+	 * implement your own, see {@link TweenEquation}.
+	 * @return The current tween, for chaining instructions.
 	 * @see TweenEquation
 	 */
 	public Tween ease(TweenEquation easeEquation) {
@@ -419,7 +452,7 @@ public final class Tween extends BaseTween {
 	/**
 	 * Adds a delay to the tween.
 	 * @param millis The delay, in milliseconds.
-	 * @return The current tween for chaining instructions.
+	 * @return The current tween, for chaining instructions.
 	 */
 	public Tween delay(int millis) {
 		if (isStarted) throw new RuntimeException("You can't delay a tween once it is started");
@@ -465,7 +498,7 @@ public final class Tween extends BaseTween {
 	 * - start value: value at start time, after delay<br/>
 	 * - end value: param
 	 * @param targetValue The target value of the interpolation.
-	 * @return The current tween for chaining instructions.
+	 * @return The current tween, for chaining instructions.
 	 */
 	public Tween target(float targetValue) {
 		if (isStarted) throw new RuntimeException("You can't change the target of a tween once it is started");
@@ -483,7 +516,7 @@ public final class Tween extends BaseTween {
 	 * - end values: params
 	 * @param targetValue1 The 1st target value of the interpolation.
 	 * @param targetValue2 The 2nd target value of the interpolation.
-	 * @return The current tween for chaining instructions.
+	 * @return The current tween, for chaining instructions.
 	 */
 	public Tween target(float targetValue1, float targetValue2) {
 		if (isStarted) throw new RuntimeException("You can't change the target of a tween once it is started");
@@ -503,7 +536,7 @@ public final class Tween extends BaseTween {
 	 * @param targetValue1 The 1st target value of the interpolation.
 	 * @param targetValue2 The 2nd target value of the interpolation.
 	 * @param targetValue3 The 3rd target value of the interpolation.
-	 * @return The current tween for chaining instructions.
+	 * @return The current tween, for chaining instructions.
 	 */
 	public Tween target(float targetValue1, float targetValue2, float targetValue3) {
 		if (isStarted) throw new RuntimeException("You can't change the target of a tween once it is started");
@@ -522,7 +555,7 @@ public final class Tween extends BaseTween {
 	 * - start values: values at start time, after delay<br/>
 	 * - end values: params
 	 * @param targetValues The target values of the interpolation.
-	 * @return The current tween for chaining instructions.
+	 * @return The current tween, for chaining instructions.
 	 */
 	public Tween target(float... targetValues) {
 		if (isStarted) throw new RuntimeException("You can't change the target of a tween once it is started");
@@ -540,7 +573,7 @@ public final class Tween extends BaseTween {
 	 * - start value: value at start time, after delay<br/>
 	 * - end value: param + value at start time, after delay
 	 * @param targetValue The relative target value of the interpolation.
-	 * @return The current tween for chaining instructions.
+	 * @return The current tween, for chaining instructions.
 	 */
 	public Tween targetRelative(float targetValue) {
 		if (isStarted) throw new RuntimeException("You can't change the target of a tween once it is started");
@@ -558,7 +591,7 @@ public final class Tween extends BaseTween {
 	 * - end values: params + values at start time, after delay
 	 * @param targetValue1 The 1st relative target value of the interpolation.
 	 * @param targetValue2 The 2nd relative target value of the interpolation.
-	 * @return The current tween for chaining instructions.
+	 * @return The current tween, for chaining instructions.
 	 */
 	public Tween targetRelative(float targetValue1, float targetValue2) {
 		if (isStarted) throw new RuntimeException("You can't change the target of a tween once it is started");
@@ -578,7 +611,7 @@ public final class Tween extends BaseTween {
 	 * @param targetValue1 The 1st relative target value of the interpolation.
 	 * @param targetValue2 The 2nd relative target value of the interpolation.
 	 * @param targetValue3 The 3rd relative target value of the interpolation.
-	 * @return The current tween for chaining instructions.
+	 * @return The current tween, for chaining instructions.
 	 */
 	public Tween targetRelative(float targetValue1, float targetValue2, float targetValue3) {
 		if (isStarted) throw new RuntimeException("You can't change the target of a tween once it is started");
@@ -597,7 +630,7 @@ public final class Tween extends BaseTween {
 	 * - start values: values at start time, after delay<br/>
 	 * - end values: params + values at start time, after delay
 	 * @param targetValues The relative target values of the interpolation.
-	 * @return The current tween for chaining instructions.
+	 * @return The current tween, for chaining instructions.
 	 */
 	public Tween targetRelative(float... targetValues) {
 		if (isStarted) throw new RuntimeException("You can't change the target of a tween once it is started");
@@ -615,7 +648,7 @@ public final class Tween extends BaseTween {
 	 * To sum-up:<br/>
 	 * - start value: value at start time, after delay<br/>
 	 * - end value: value at current time
-	 * @return The current tween for chaining instructions.
+	 * @return The current tween, for chaining instructions.
 	 */
 	public Tween targetCurrent() {
 		if (isStarted) throw new RuntimeException("You can't change the target of a tween once it is started");
@@ -631,7 +664,7 @@ public final class Tween extends BaseTween {
 	 * - start value: value at start time, after delay<br/>
 	 * - end value: param + value at current time
 	 * @param targetValue The relative target value of the interpolation.
-	 * @return The current tween for chaining instructions.
+	 * @return The current tween, for chaining instructions.
 	 */
 	public Tween targetCurrentRelative(float targetValue) {
 		if (isStarted) throw new RuntimeException("You can't change the target of a tween once it is started");
@@ -649,7 +682,7 @@ public final class Tween extends BaseTween {
 	 * - end values: params + values at current time
 	 * @param targetValue1 The 1st relative target value of the interpolation.
 	 * @param targetValue2 The 2nd relative target value of the interpolation.
-	 * @return The current tween for chaining instructions.
+	 * @return The current tween, for chaining instructions.
 	 */
 	public Tween targetCurrentRelative(float targetValue1, float targetValue2) {
 		if (isStarted) throw new RuntimeException("You can't change the target of a tween once it is started");
@@ -669,7 +702,7 @@ public final class Tween extends BaseTween {
 	 * @param targetValue1 The 1st relative target value of the interpolation.
 	 * @param targetValue2 The 2nd relative target value of the interpolation.
 	 * @param targetValue3 The 3rd relative target value of the interpolation.
-	 * @return The current tween for chaining instructions.
+	 * @return The current tween, for chaining instructions.
 	 */
 	public Tween targetCurrentRelative(float targetValue1, float targetValue2, float targetValue3) {
 		if (isStarted) throw new RuntimeException("You can't change the target of a tween once it is started");
@@ -688,7 +721,7 @@ public final class Tween extends BaseTween {
 	 * - start values: values at start time, after delay<br/>
 	 * - end values: params + values at current time
 	 * @param targetValues The relative target values of the interpolation.
-	 * @return The current tween for chaining instructions.
+	 * @return The current tween, for chaining instructions.
 	 */
 	public Tween targetCurrentRelative(float... targetValues) {
 		if (isStarted) throw new RuntimeException("You can't change the target of a tween once it is started");
@@ -705,35 +738,38 @@ public final class Tween extends BaseTween {
 	// -------------------------------------------------------------------------
 	
 	/**
-	 * Gets the tween target.
+	 * Gets the target object.
 	 */
 	public Object getTarget() {
 		return target;
 	}
 
 	/**
-	 * Gets the tween type.
+	 * Gets the type of the tween.
 	 */
 	public int getType() {
 		return type;
 	}
 
 	/**
-	 * Gets the tween easing equation.
+	 * Gets the easing equation.
 	 */
 	public TweenEquation getEasing() {
 		return equation;
 	}
 
 	/**
-	 * Gets the tween target values.
+	 * Gets the target values. The returned buffer is as long as the maximum
+	 * allowed combined values. Therefore, you're surely not interested in all
+	 * its content. Use {@link #getCombinedTweenCount()} to get the number of
+	 * interesting slots.
 	 */
 	public float[] getTargetValues() {
 		return targetValues;
 	}
 
 	/**
-	 * Gets the number of combined tweens.
+	 * Gets the number of combined animations.
 	 */
 	public int getCombinedTweenCount() {
 		return combinedTweenCnt;
