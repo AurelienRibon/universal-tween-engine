@@ -12,22 +12,21 @@ import java.util.List;
  * The following example will create an animation sequence composed of 5 parts:
  * <br/><br/>
  *
- * 1. First, Opacity and Scale are reset to 0. <br/>
- * 2. Then, Opacity and Scale are tweened to 1. <br/>
- * 3. Then, the animation is paused for 1s. <br/>
- * 4. Then, Position is tweened to x=100. <br/>
- * 5. Then, Rotation is tweened to 360°.
+ * 1. First, opacity and scale are set to 0 (with Tween.set() calls).<br/>
+ * 2. Then, opacity and scale are animated in parallel.<br/>
+ * 3. Then, the animation is paused for 1s.<br/>
+ * 4. Then, position is animated to x=100.<br/>
+ * 5. Then, rotation is animated to 360°.
  * <br/><br/>
  *
  * This animation will be repeated 5 times, with a 500ms delay between each
- * iteration.
+ * iteration:
+ * <br/><br/>
  * 
- * <pre>
+ * <pre>{@code
  * Timeline.createSequence()
- *     .beginParallel()
- *         .push(Tween.set(myObject, OPACITY).target(0))
- *         .push(Tween.set(myObject, SCALE).target(0, 0))
- *     .end()
+ *     .push(Tween.set(myObject, OPACITY).target(0))
+ *     .push(Tween.set(myObject, SCALE).target(0, 0))
  *     .beginParallel()
  *          .push(Tween.to(myObject, OPACITY, 500).target(1).ease(Quad.INOUT))
  *          .push(Tween.to(myObject, SCALE, 500).target(1, 1).ease(Quad.INOUT))
@@ -37,10 +36,11 @@ import java.util.List;
  *     .push(Tween.to(myObject, ROTATION, 500).target(360).ease(Quad.INOUT))
  *     .repeat(5, 500)
  *     .start(myManager);
- * </pre>
+ * }</pre>
  *
  * @see Tween
  * @see TweenManager
+ * @see TweenCallback
  * @author Aurelien Ribon | http://www.aurelienribon.com/
  */
 public final class Timeline extends BaseTween {
@@ -54,21 +54,19 @@ public final class Timeline extends BaseTween {
 	};
 
 	static final Pool<Timeline> pool = new Pool<Timeline>(15, poolCallback) {
-		@Override protected Timeline create() {Timeline tl = new Timeline(); tl.reset(); return tl;}
+		@Override protected Timeline create() {return new Timeline();}
 	};
 
 	/**
-	 * Used for debug purpose. Gets the current number of objects that are
-	 * waiting in the pool.
-	 * @return The current size of the pool.
+	 * Used for debug purpose. Gets the current number of empty timelines that
+	 * are waiting in the pool.
 	 */
 	public static int getPoolSize() {
 		return pool.size();
 	}
 
 	/**
-	 * Increases the pool capacity directly. Capacity defaults to 20.
-	 * @param minCapacity The minimum capacity of the pool.
+	 * Increases the minimum capacity of the pool. Capacity defaults to 20.
 	 */
 	public static void ensurePoolCapacity(int minCapacity) {
 		pool.ensureCapacity(minCapacity);
@@ -78,16 +76,24 @@ public final class Timeline extends BaseTween {
 	// Static -- factories
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Creates a new timeline with a 'sequence' behavior. Its children will
+	 * be delayed so that they are triggered one after the other.
+	 */
 	public static Timeline createSequence() {
-		Timeline root = pool.get();
-		root.mode = Modes.SEQUENCE;
-		return root;
+		Timeline tl = pool.get();
+		tl.setup(Modes.SEQUENCE);
+		return tl;
 	}
 
+	/**
+	 * Creates a new timeline with a 'parallel' behavior. Its children will be
+	 * triggered all at once.
+	 */
 	public static Timeline createParallel() {
-		Timeline root = pool.get();
-		root.mode = Modes.PARALLEL;
-		return root;
+		Timeline tl = pool.get();
+		tl.setup(Modes.PARALLEL);
+		return tl;
 	}
 
 	// -------------------------------------------------------------------------
@@ -96,76 +102,127 @@ public final class Timeline extends BaseTween {
 
 	private enum Modes {SEQUENCE, PARALLEL}
 
-	// Main
 	private final List<BaseTween> children = new ArrayList<BaseTween>(10);
+	private Timeline current;
 	private Timeline parent;
 	private Modes mode;
 
 	// -------------------------------------------------------------------------
-	// Ctor
+	// Setup
 	// -------------------------------------------------------------------------
+
+	private Timeline() {
+		reset();
+	}
 
 	@Override
 	protected void reset() {
 		super.reset();
 		
 		children.clear();
-		parent = null;
+		current = parent = null;
+	}
+
+	private void setup(Modes mode) {
+		this.mode = mode;
+		this.current = this;
 	}
 
 	// -------------------------------------------------------------------------
 	// Public API
 	// -------------------------------------------------------------------------
 
-	public Timeline beginSequence() {
-		if (isStarted) throw new RuntimeException("You can't push anything to a timeline once it is started");
-		Timeline child = pool.get();
-		child.parent = this;
-		child.mode = Modes.SEQUENCE;
-		children.add(child);
-		return child;
-	}
-
-	public Timeline beginParallel() {
-		if (isStarted) throw new RuntimeException("You can't push anything to a timeline once it is started");
-		Timeline child = pool.get();
-		child.parent = this;
-		child.mode = Modes.PARALLEL;
-		children.add(child);
-		return child;
-	}
-
-	public Timeline end() {
-		if (isStarted) throw new RuntimeException("You can't push anything to a timeline once it is started");
-		if (parent == null) throw new RuntimeException("Nothing to end...");
-		return parent;
-	}
-
+	/**
+	 * Adds a Tween to the current timeline.
+	 * @return The current timeline, for chaining instructions.
+	 */
 	public Timeline push(Tween tween) {
 		if (isStarted) throw new RuntimeException("You can't push anything to a timeline once it is started");
-		children.add(tween);
+		current.children.add(tween);
 		return this;
 	}
 
+	/**
+	 * Nests a Timeline in the current one.
+	 * @return The current timeline, for chaining instructions.
+	 */
 	public Timeline push(Timeline timeline) {
 		if (isStarted) throw new RuntimeException("You can't push anything to a timeline once it is started");
-		timeline.parent = this;
-		children.add(timeline);
+		if (timeline.current != timeline) throw new RuntimeException("You forgot to call a few 'end()' statements in your pushed timeline");
+		timeline.parent = current;
+		current.children.add(timeline);
 		return this;
 	}
 
+	/**
+	 * Adds a pause to the timeline. The millis may be negative if you want to
+	 * overlap the preceding and following children.
+	 * @return The current timeline, for chaining instructions.
+	 */
 	public Timeline pushPause(int millis) {
 		if (isStarted) throw new RuntimeException("You can't push anything to a timeline once it is started");
-		children.add(Tween.mark().delay(millis));
+		current.children.add(Tween.mark().delay(millis));
 		return this;
 	}
 
+	/**
+	 * Starts a nested timeline with a 'sequence' behavior. Don't forget to call
+	 * <i>end()</i> to close this nested timeline.
+	 * @return The current timeline, for chaining instructions.
+	 */
+	public Timeline beginSequence() {
+		if (isStarted) throw new RuntimeException("You can't push anything to a timeline once it is started");
+		Timeline tl = pool.get();
+		tl.parent = current;
+		tl.mode = Modes.SEQUENCE;
+		current.children.add(tl);
+		current = tl;
+		return this;
+	}
+
+	/**
+	 * Starts a nested timeline with a 'parallel' behavior. Don't forget to call
+	 * <i>end()</i> to close this nested timeline.
+	 * @return The current timeline, for chaining instructions.
+	 */
+	public Timeline beginParallel() {
+		if (isStarted) throw new RuntimeException("You can't push anything to a timeline once it is started");
+		Timeline tl = pool.get();
+		tl.parent = current;
+		tl.mode = Modes.PARALLEL;
+		current.children.add(tl);
+		current = tl;
+		return this;
+	}
+
+	/**
+	 * Closes the last nested timeline.
+	 * @return The current timeline, for chaining instructions.
+	 */
+	public Timeline end() {
+		if (isStarted) throw new RuntimeException("You can't push anything to a timeline once it is started");
+		if (current == this) throw new RuntimeException("Nothing to end...");
+		current = current.parent;
+		return this;
+	}
+
+	/**
+	 * Starts the timeline unmanaged. You will need to take care of its
+	 * life-cycle. If you want the timeline to be managed for you, use a
+	 * TweenManager.
+	 * @return The current timeline, for chaining instructions.
+	 */
 	public Timeline start() {
-		if (parent != null) throw new RuntimeException("You forgot to call a few 'end()' statements...");
+		if (current != this) throw new RuntimeException("You forgot to call a few 'end()' statements before calling start()");
 		sequence(this);
 		return this;
 	}
 
+	/**
+	 * Start the timeline managed. Its life-cycle will be handled for you. Relax
+	 * and enjoy the animation.
+	 * @return The current timeline, for chaining instructions.
+	 */
 	public Timeline start(TweenManager manager) {
 		manager.add(this);
 		return this;

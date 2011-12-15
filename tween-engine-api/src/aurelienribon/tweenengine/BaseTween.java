@@ -14,6 +14,8 @@ import java.util.List;
  * and for making sure that every callbacks are triggered, even if the update
  * engine gets a big delta time at once.
  *
+ * @see Tween
+ * @see Timeline
  * @author Aurelien Ribon | http://www.aurelienribon.com/
  */
 public abstract class BaseTween {
@@ -143,14 +145,14 @@ public abstract class BaseTween {
 	 * triggered depends on its type:
 	 * <br/><br/>
 	 *
-	 * BEGIN: at first START, right after the delay (if any)
-	 * START: at each iteration beginning
-	 * END: at each iteration ending, before the repeat delay
-	 * COMPLETE: at last END
-	 * BACK_START: at each backwards iteration beginning, after the repeat delay
-	 * BACK_END: at each backwards iteration ending
-	 * BACK_COMPLETE: at last BACK_END
-	 * <br/>
+	 * <b>BEGIN</b>: at first START, right after the delay (if any)<br/>
+	 * <b>START</b>: at each iteration beginning<br/>
+	 * <b>END</b>: at each iteration ending, before the repeat delay<br/>
+	 * <b>COMPLETE</b>: at last END<br/>
+	 * <b>BACK_START</b>: at each backwards iteration beginning, after the repeat delay<br/>
+	 * <b>BACK_END</b>: at each backwards iteration ending<br/>
+	 * <b>BACK_COMPLETE</b>: at last BACK_END
+	 * <br/><br/>
 	 *
 	 * <pre>
 	 * forwards :         BEGIN                                   COMPLETE

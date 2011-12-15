@@ -43,7 +43,6 @@ public class GdxComplexDemo implements ApplicationListener {
 
 	private boolean canBeRestarted = false;
 	private boolean canControlSpeed = false;
-	private float speed = 1;
 	private int iterationCnt;
 
 	@Override
@@ -99,7 +98,11 @@ public class GdxComplexDemo implements ApplicationListener {
 
 	@Override
 	public void render() {
-		// Remember to update the tween manager periodically!
+		int w = Gdx.graphics.getWidth();
+		int h = Gdx.graphics.getHeight();
+		float x = Gdx.input.getX();
+
+		float speed = canControlSpeed ? 4f * (x-w/2)/w : 1;
 		int delta = (int) (Gdx.graphics.getDeltaTime() * 1000 * speed);
 		tweenManager.update(delta);
 
@@ -115,7 +118,7 @@ public class GdxComplexDemo implements ApplicationListener {
 		sprite4.draw(sb);
 		sb.end();
 
-		sb.getProjectionMatrix().setToOrtho2D(0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+		sb.getProjectionMatrix().setToOrtho2D(0, 0, w, h);
 		sb.begin();
 		font.setColor(0.5f, 0.5f, 0.5f, 1);
 		font.draw(sb, "Move your mouse over the screen to change the animation speed", 5, Gdx.graphics.getHeight());
@@ -199,15 +202,6 @@ public class GdxComplexDemo implements ApplicationListener {
 				canBeRestarted = false;
 				tweenManager.killAll();
 				launchAnimation();
-			}
-			return true;
-		}
-
-		@Override
-		public boolean touchMoved(int x, int y) {
-			if (canControlSpeed) {
-				int w = Gdx.graphics.getWidth();
-				speed = 4f * (x-w/2)/w;
 			}
 			return true;
 		}

@@ -80,7 +80,7 @@ public final class Tween extends BaseTween {
 	};
 
 	private static final Pool<Tween> pool = new Pool<Tween>(20, poolCallback) {
-		@Override protected Tween create() {Tween t = new Tween(null, -1, 0); t.reset(); return t;}
+		@Override protected Tween create() {return new Tween();}
 	};
 
 	/**
@@ -327,12 +327,11 @@ public final class Tween extends BaseTween {
 	private final float[] targetValues = new float[MAX_COMBINED_TWEENS];
 
 	// -------------------------------------------------------------------------
-	// Ctor
+	// Setup
 	// -------------------------------------------------------------------------
 
-	private Tween(Object target, int tweenType, int durationMillis) {
+	private Tween() {
 		reset();
-		setup(target, tweenType, durationMillis);
 	}
 
 	@Override
