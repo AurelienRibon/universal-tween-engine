@@ -19,7 +19,7 @@ import java.util.List;
  * 5. Then, Rotation is tweened to 360°.
  * <br/><br/>
  *
- * This animation will be repeated 5 times, with a 500ms setDelay between each
+ * This animation will be repeated 5 times, with a 500ms delay between each
  * iteration.
  * 
  * <pre>

@@ -5,6 +5,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * A TimelineObject is the base class of Tween and Timeline. It defines the
+ * iteration engine used to play animations for any number of times, and in
+ * any direction, at any speed.
+ * <br/><br/>
+ *
+ * It is responsible for calling the different callbacks at the right moments,
+ * and for making sure that every callbacks are triggered, even if the update
+ * engine gets a big delta time at once.
+ *
  * @author Aurelien Ribon | http://www.aurelienribon.com/
  */
 public abstract class TimelineObject {
@@ -91,20 +100,19 @@ public abstract class TimelineObject {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Kills the interpolation. If pooling was enabled when this tween was
-	 * created, the tween will be freed, cleared, and returned to the pool. As
-	 * a result, you shouldn't use it anymore.
+	 * Kills the tween or timeline. If you're using a TweenManager, this object
+	 * will be removed automatically.
 	 */
 	public void kill() {
 		isFinished = true;
 	}
 
 	/**
-	 * Repeats the tween for a given number of times.
-	 * @param count The number of desired repetition. For infinite repetition,
+	 * Repeats the tween or timeline for a given number of times.
+	 * @param count The number of repetitions. For infinite repetition,
 	 * use Tween.INFINITY, or a negative number.
-	 * @param millis A setDelay before each repetition.
-	 * @return The current tween for chaining instructions.
+	 * @param millis A delay between each iteration.
+	 * @return The current tween or timeline, for chaining instructions.
 	 */
 	public TimelineObject repeat(int count, int delayMillis) {
 		repeatCnt = count;
@@ -114,12 +122,12 @@ public abstract class TimelineObject {
 	}
 
 	/**
-	 * Repeats the tween for a given number of times. Every two iterations, the
-	 * tween will be played backwards.
-	 * @param count The number of desired repetition. For infinite repetition,
+	 * Repeats the tween or timeline for a given number of times. 
+	 * Every two iterations, it will be played backwards.
+	 * @param count The number of repetitions. For infinite repetition,
 	 * use Tween.INFINITY, or a negative number.
-	 * @param millis A setDelay before each repetition.
-	 * @return The current tween for chaining instructions.
+	 * @param millis A delay before each repetition.
+	 * @return The current tween or timeline, for chaining instructions.
 	 */
 	public TimelineObject repeatYoyo(int count, int delayMillis) {
 		repeatCnt = count;
@@ -129,15 +137,15 @@ public abstract class TimelineObject {
 	}
 
 	/**
-	 * Adds a callback to the tween. The moment when the callback is triggered
-	 * depends on its type:
+	 * Adds a callback to the tween or timeline. The moment when the callback is
+	 * triggered depends on its type:
 	 * <br/><br/>
 	 *
-	 * BEGIN: at first START, right after the setDelay
+	 * BEGIN: at first START, right after the delay (if any)
 	 * START: at each iteration beginning
-	 * END: at each iteration ending, before the repeat setDelay
+	 * END: at each iteration ending, before the repeat delay
 	 * COMPLETE: at last END
-	 * BACK_START: at each bacwards iteration beginning, after the repeat setDelay
+	 * BACK_START: at each backwards iteration beginning, after the repeat delay
 	 * BACK_END: at each backwards iteration ending
 	 * BACK_COMPLETE: at last BACK_END
 	 * <br/>
@@ -153,7 +161,7 @@ public abstract class TimelineObject {
 	 *
 	 * @param callbackType The callback type.
 	 * @param callback A callback.
-	 * @return The current tween for chaining instructions.
+	 * @return The current tween or timeline, for chaining instructions.
 	 */
 	public TimelineObject addCallback(Types callbackType, TweenCallback callback) {
 		List<TweenCallback> callbacks = null;
@@ -185,10 +193,10 @@ public abstract class TimelineObject {
 	}
 
 	/**
-	 * Sets an object attached to this tween. It can be useful in order to
-	 * retrieve some data from a TweenCallback.
+	 * Attaches an object to this tween or timeline. It can be useful in order
+	 * to retrieve some data from a TweenCallback.
 	 * @param data Any kind of object.
-	 * @return The current tween for chaining instructions.
+	 * @return The current tween or timeline, for chaining instructions.
 	 */
 	public TimelineObject setUserData(Object data) {
 		userData = data;
@@ -199,40 +207,56 @@ public abstract class TimelineObject {
 	// Getters
 	// -------------------------------------------------------------------------
 
+	/**
+	 * Gets the delay of the tween or timeline. Nothing won't happen before this
+	 * delay.
+	 */
 	public int getDelay() {
 		return delayMillis;
 	}
 
+	/**
+	 * Gets the duration of a single iteration.
+	 */
 	public int getDuration() {
 		return durationMillis;
 	}
 
+	/**
+	 * Gets the number of iterations that will be played.
+	 */
 	public int getRepeatCount() {
 		return repeatCnt;
 	}
 
+	/**
+	 * Gets the delay occuring between two iterations.
+	 */
 	public int getRepeatDelay() {
 		return repeatDelayMillis;
 	}
 
 	/**
-	 * Returns the complete duration of a timeline, including its setDelay and its
-	 * repetitions. The formula is as follows:
+	 * Returns the complete duration of a tween or timeline, including its
+	 * delay and its repetitions. The formula is as follows:
 	 * <br/><br/>
 	 *
-	 * fullDuration = setDelay + duration + (repeatDelay + duration) * repeatCnt
+	 * fullDuration = delay + duration + (repeatDelay + duration) * repeatCnt
 	 */
 	public int getFullDuration() {
 		return delayMillis + durationMillis + (repeatDelayMillis + durationMillis) * repeatCnt;
 	}
 
 	/**
-	 * Gets the attached user data, or null if none.
+	 * Gets the attached data, or null if none.
 	 */
 	public Object getUserData() {
 		return userData;
 	}
 
+	/**
+	 * Returns true if the tween or timeline has been started.
+	 */
 	public boolean isStarted() {
 		return isStarted;
 	}
@@ -247,6 +271,19 @@ public abstract class TimelineObject {
 		return isFinished;
 	}
 
+	/**
+	 * Returns true if the iterations are played as yoyo. Yoyo means that
+	 * every two iterations, the animation will be played backwards.
+	 */
+	public boolean isYoyo() {
+		return isYoyo;
+	}
+
+	/**
+	 * Returns true if the tween or timeline is pooled. If true, and if you
+	 * don't use a TweenManager, you need to call <i>free()</i> on your objects
+	 * once they are finished.
+	 */
 	public boolean isPooled() {
 		return isPooled;
 	}
@@ -296,9 +333,10 @@ public abstract class TimelineObject {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Updates the timeline state. <b>You may want to use a TweenManager to
-	 * update timelines for you.</b> Slow motion, fast motion and backwards play
-	 * can be easily achieved by tweaking the deltaMillis given as parameter.
+	 * Updates the tween or timeline state. <b>You may want to use a 
+	 * TweenManager to update objects for you.</b> Slow motion, fast motion and
+	 * backwards play can be easily achieved by tweaking the deltaMillis given
+	 * as parameter.
 	 * @param deltaMillis A delta time, in milliseconds, between now and the
 	 * last call.
 	 */

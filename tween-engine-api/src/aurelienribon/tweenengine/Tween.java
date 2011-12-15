@@ -21,9 +21,9 @@ import java.util.Map;
  *
  * <br/><br/>
  * The following example will move the target horizontal position from its
- * current value to x=200 and y=300, during 500ms, but only after a setDelay of
+ * current value to x=200 and y=300, during 500ms, but only after a delay of
  * 1000ms. The transition will also be repeated 2 times (the starting position
- * is registered at the end of the setDelay, so the animation will automatically
+ * is registered at the end of the delay, so the animation will automatically
  * restart from this registered position).
  *
  * <br/><br/>
@@ -52,10 +52,14 @@ public final class Tween extends TimelineObject {
 	// Static -- misc
 	// -------------------------------------------------------------------------
 
-	/** If you need to repeat your tween for infinity, use this. */
+	/**
+	 * Used as parameter in <i>repeat()</i> and <i>repeatYoyo()</i> methods.
+	 */
 	public static final int INFINITY = -1;
 
-	/** The maximum number of attributes that can be tweened in a single tween. */
+	/**
+	 * The maximum number of attributes that can be animated in a single tween.
+	 */
 	public static final int MAX_COMBINED_TWEENS = 10;
 
 	/**
@@ -159,7 +163,7 @@ public final class Tween extends TimelineObject {
 	 * <br/><br/>
 	 * You need to set the target values of the interpolation by using one
 	 * of the ".target()" methods. The interpolation will run from the current
-	 * values (retrieved after the setDelay, if any) to these target values.
+	 * values (retrieved after the delay, if any) to these target values.
 	 *
 	 * <br/><br/>
 	 * The common use of Tweens is "fire-and-forget": you do not need to care
@@ -195,7 +199,7 @@ public final class Tween extends TimelineObject {
 	 * <br/><br/>
 	 * You need to set the target values of the interpolation by using one
 	 * of the ".target()" methods. The interpolation will run from these
-	 * values (retrieved after the setDelay, if any) to the current values.
+	 * values (retrieved after the delay, if any) to the current values.
 	 *
 	 * <br/><br/>
 	 * The common use of Tweens is "fire-and-forget": you do not need to care
@@ -279,7 +283,7 @@ public final class Tween extends TimelineObject {
 	 * reuse for convenience.
 	 *
 	 * @param callback The callback that will be triggered at the end of the
-	 * setDelay (if specified). A repeat behavior can be set to the tween to
+	 * delay (if specified). A repeat behavior can be set to the tween to
 	 * trigger it more than once.
 	 * @return The generated Tween.
 	 * @see TweenCallback
@@ -423,7 +427,7 @@ public final class Tween extends TimelineObject {
 
 	/**
 	 * Adds a delay to the tween.
-	 * @param millis The setDelay, in milliseconds.
+	 * @param millis The delay, in milliseconds.
 	 * @return The current tween for chaining instructions.
 	 */
 	public Tween delay(int millis) {
@@ -462,11 +466,11 @@ public final class Tween extends TimelineObject {
 
 	/**
 	 * Sets the target value of the interpolation. The interpolation will run
-	 * from the <b>value at start time (after the setDelay, if any)</b> to this
+	 * from the <b>value at start time (after the delay, if any)</b> to this
 	 * target value.
 	 * <br/><br/>
 	 * To sum-up:<br/>
-	 * - start value: value at start time, after setDelay<br/>
+	 * - start value: value at start time, after delay<br/>
 	 * - end value: param
 	 * @param targetValue The target value of the interpolation.
 	 * @return The current tween for chaining instructions.
@@ -479,11 +483,11 @@ public final class Tween extends TimelineObject {
 
 	/**
 	 * Sets the target values of the interpolation. The interpolation will run
-	 * from the <b>values at start time (after the setDelay, if any)</b> to these
+	 * from the <b>values at start time (after the delay, if any)</b> to these
 	 * target values.
 	 * <br/><br/>
 	 * To sum-up:<br/>
-	 * - start values: values at start time, after setDelay<br/>
+	 * - start values: values at start time, after delay<br/>
 	 * - end values: params
 	 * @param targetValue1 The 1st target value of the interpolation.
 	 * @param targetValue2 The 2nd target value of the interpolation.
@@ -498,11 +502,11 @@ public final class Tween extends TimelineObject {
 
 	/**
 	 * Sets the target values of the interpolation. The interpolation will run
-	 * from the <b>values at start time (after the setDelay, if any)</b> to these
+	 * from the <b>values at start time (after the delay, if any)</b> to these
 	 * target values.
 	 * <br/><br/>
 	 * To sum-up:<br/>
-	 * - start values: values at start time, after setDelay<br/>
+	 * - start values: values at start time, after delay<br/>
 	 * - end values: params
 	 * @param targetValue1 The 1st target value of the interpolation.
 	 * @param targetValue2 The 2nd target value of the interpolation.
@@ -519,11 +523,11 @@ public final class Tween extends TimelineObject {
 
 	/**
 	 * Sets the target values of the interpolation. The interpolation will run
-	 * from the <b>values at start time (after the setDelay, if any)</b> to these
+	 * from the <b>values at start time (after the delay, if any)</b> to these
 	 * target values.
 	 * <br/><br/>
 	 * To sum-up:<br/>
-	 * - start values: values at start time, after setDelay<br/>
+	 * - start values: values at start time, after delay<br/>
 	 * - end values: params
 	 * @param targetValues The target values of the interpolation.
 	 * @return The current tween for chaining instructions.
@@ -538,11 +542,11 @@ public final class Tween extends TimelineObject {
 
 	/**
 	 * Sets the target value of the interpolation, relatively to the <b>value
-	 * at start time (after the setDelay, if any)</b>.
+	 * at start time (after the delay, if any)</b>.
 	 * <br/><br/>
 	 * To sum-up:<br/>
-	 * - start value: value at start time, after setDelay<br/>
-	 * - end value: param + value at start time, after setDelay
+	 * - start value: value at start time, after delay<br/>
+	 * - end value: param + value at start time, after delay
 	 * @param targetValue The relative target value of the interpolation.
 	 * @return The current tween for chaining instructions.
 	 */
@@ -555,11 +559,11 @@ public final class Tween extends TimelineObject {
 
 	/**
 	 * Sets the target values of the interpolation, relatively to the <b>values
-	 * at start time (after the setDelay, if any)</b>.
+	 * at start time (after the delay, if any)</b>.
 	 * <br/><br/>
 	 * To sum-up:<br/>
-	 * - start values: values at start time, after setDelay<br/>
-	 * - end values: params + values at start time, after setDelay
+	 * - start values: values at start time, after delay<br/>
+	 * - end values: params + values at start time, after delay
 	 * @param targetValue1 The 1st relative target value of the interpolation.
 	 * @param targetValue2 The 2nd relative target value of the interpolation.
 	 * @return The current tween for chaining instructions.
@@ -574,11 +578,11 @@ public final class Tween extends TimelineObject {
 
 	/**
 	 * Sets the target values of the interpolation, relatively to the <b>values
-	 * at start time (after the setDelay, if any)</b>.
+	 * at start time (after the delay, if any)</b>.
 	 * <br/><br/>
 	 * To sum-up:<br/>
-	 * - start values: values at start time, after setDelay<br/>
-	 * - end values: params + values at start time, after setDelay
+	 * - start values: values at start time, after delay<br/>
+	 * - end values: params + values at start time, after delay
 	 * @param targetValue1 The 1st relative target value of the interpolation.
 	 * @param targetValue2 The 2nd relative target value of the interpolation.
 	 * @param targetValue3 The 3rd relative target value of the interpolation.
@@ -595,11 +599,11 @@ public final class Tween extends TimelineObject {
 
 	/**
 	 * Sets the target values of the interpolation, relatively to the <b>values
-	 * at start time (after the setDelay, if any)</b>.
+	 * at start time (after the delay, if any)</b>.
 	 * <br/><br/>
 	 * To sum-up:<br/>
-	 * - start values: values at start time, after setDelay<br/>
-	 * - end values: params + values at start time, after setDelay
+	 * - start values: values at start time, after delay<br/>
+	 * - end values: params + values at start time, after delay
 	 * @param targetValues The relative target values of the interpolation.
 	 * @return The current tween for chaining instructions.
 	 */
@@ -617,7 +621,7 @@ public final class Tween extends TimelineObject {
 	 * the one(s) present when this call is made</b>.
 	 * <br/><br/>
 	 * To sum-up:<br/>
-	 * - start value: value at start time, after setDelay<br/>
+	 * - start value: value at start time, after delay<br/>
 	 * - end value: value at current time
 	 * @return The current tween for chaining instructions.
 	 */
@@ -632,7 +636,7 @@ public final class Tween extends TimelineObject {
 	 * current value, the one present when this call is made</b>.
 	 * <br/><br/>
 	 * To sum-up:<br/>
-	 * - start value: value at start time, after setDelay<br/>
+	 * - start value: value at start time, after delay<br/>
 	 * - end value: param + value at current time
 	 * @param targetValue The relative target value of the interpolation.
 	 * @return The current tween for chaining instructions.
@@ -649,7 +653,7 @@ public final class Tween extends TimelineObject {
 	 * current values, the ones present when this call is made</b>.
 	 * <br/><br/>
 	 * To sum-up:<br/>
-	 * - start values: values at start time, after setDelay<br/>
+	 * - start values: values at start time, after delay<br/>
 	 * - end values: params + values at current time
 	 * @param targetValue1 The 1st relative target value of the interpolation.
 	 * @param targetValue2 The 2nd relative target value of the interpolation.
@@ -668,7 +672,7 @@ public final class Tween extends TimelineObject {
 	 * current values, the ones present when this call is made</b>.
 	 * <br/><br/>
 	 * To sum-up:<br/>
-	 * - start values: values at start time, after setDelay<br/>
+	 * - start values: values at start time, after delay<br/>
 	 * - end values: params + values at current time
 	 * @param targetValue1 The 1st relative target value of the interpolation.
 	 * @param targetValue2 The 2nd relative target value of the interpolation.
@@ -689,7 +693,7 @@ public final class Tween extends TimelineObject {
 	 * current values, the ones present when this call is made</b>.
 	 * <br/><br/>
 	 * To sum-up:<br/>
-	 * - start values: values at start time, after setDelay<br/>
+	 * - start values: values at start time, after delay<br/>
 	 * - end values: params + values at current time
 	 * @param targetValues The relative target values of the interpolation.
 	 * @return The current tween for chaining instructions.
