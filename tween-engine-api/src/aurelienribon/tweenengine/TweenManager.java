@@ -16,7 +16,7 @@ import java.util.ArrayList;
  * @author Aurelien Ribon | http://www.aurelienribon.com/
  */
 public class TweenManager {
-	final ArrayList<TimelineObject> objects = new ArrayList<TimelineObject>(20);
+	final ArrayList<BaseTween> objects = new ArrayList<BaseTween>(20);
 
 	/**
 	 * Adds a tween to the manager and starts or restarts it.
@@ -44,7 +44,7 @@ public class TweenManager {
 	 */
 	public boolean containsTarget(Object target) {
 		for (int i=0, n=objects.size(); i<n; i++) {
-			TimelineObject obj = objects.get(i);
+			BaseTween obj = objects.get(i);
 			if (obj.containsTarget(target)) return true;
 		}
 		return false;
@@ -56,7 +56,7 @@ public class TweenManager {
 	 */
 	public boolean containsTarget(Object target, int tweenType) {
 		for (int i=0, n=objects.size(); i<n; i++) {
-			TimelineObject obj = objects.get(i);
+			BaseTween obj = objects.get(i);
 			if (obj.containsTarget(target, tweenType)) return true;
 		}
 		return false;
@@ -67,7 +67,7 @@ public class TweenManager {
 	 */
 	public void killAll() {
 		for (int i=0, n=objects.size(); i<n; i++) {
-			TimelineObject obj = objects.get(i);
+			BaseTween obj = objects.get(i);
 			obj.kill();
 		}
 	}
@@ -77,7 +77,7 @@ public class TweenManager {
 	 */
 	public void killTarget(Object target) {
 		for (int i=0, n=objects.size(); i<n; i++) {
-			TimelineObject obj = objects.get(i);
+			BaseTween obj = objects.get(i);
 			obj.killTarget(target);
 		}
 	}
@@ -87,7 +87,7 @@ public class TweenManager {
 	 */
 	public void killTarget(Object target, int tweenType) {
 		for (int i=0, n=objects.size(); i<n; i++) {
-			TimelineObject obj = objects.get(i);
+			BaseTween obj = objects.get(i);
 			obj.killTarget(target, tweenType);
 		}
 	}
@@ -98,7 +98,7 @@ public class TweenManager {
 	public int size() {
 		int cnt = 0;
 		for (int i=0, n=objects.size(); i<n; i++) {
-			TimelineObject obj = objects.get(i);
+			BaseTween obj = objects.get(i);
 			cnt += 1 + obj.getChildrenCount();
 		}
 		return cnt;
@@ -120,7 +120,7 @@ public class TweenManager {
 	public void update(int deltaMillis) {
 		if (deltaMillis >= 0) {
 			for (int i=0; i<objects.size(); i++) {
-				TimelineObject obj = objects.get(i);
+				BaseTween obj = objects.get(i);
 				if (obj.isFinished()) {
 					objects.remove(i);
 					i -= 1;
@@ -131,7 +131,7 @@ public class TweenManager {
 			}
 		} else {
 			for (int i=objects.size()-1; i>=0; i--) {
-				TimelineObject obj = objects.get(i);
+				BaseTween obj = objects.get(i);
 				if (obj.isFinished()) {
 					objects.remove(i);
 					obj.free();

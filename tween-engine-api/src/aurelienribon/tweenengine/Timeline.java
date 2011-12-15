@@ -43,7 +43,7 @@ import java.util.List;
  * @see TweenManager
  * @author Aurelien Ribon | http://www.aurelienribon.com/
  */
-public final class Timeline extends TimelineObject {
+public final class Timeline extends BaseTween {
 	// -------------------------------------------------------------------------
 	// Static -- pool
 	// -------------------------------------------------------------------------
@@ -97,7 +97,7 @@ public final class Timeline extends TimelineObject {
 	private enum Modes {SEQUENCE, PARALLEL}
 
 	// Main
-	private final List<TimelineObject> children = new ArrayList<TimelineObject>(10);
+	private final List<BaseTween> children = new ArrayList<BaseTween>(10);
 	private Timeline parent;
 	private Modes mode;
 
@@ -192,7 +192,7 @@ public final class Timeline extends TimelineObject {
 	@Override
 	public void free() {
 		for (int i=0, n=children.size(); i<n; i++) {
-			TimelineObject obj = children.get(i);
+			BaseTween obj = children.get(i);
 			obj.free();
 		}
 		if (isPooled) pool.free(this);
@@ -223,7 +223,7 @@ public final class Timeline extends TimelineObject {
 		}
 
 		for (int i=0; i<children.size(); i++) {
-			TimelineObject obj = children.get(i);
+			BaseTween obj = children.get(i);
 			obj.update(millis);
 		}
 	}
@@ -239,7 +239,7 @@ public final class Timeline extends TimelineObject {
 		tl.isStarted = true;
 
 		for (int i=0; i<tl.children.size(); i++) {
-			TimelineObject obj = tl.children.get(i);
+			BaseTween obj = tl.children.get(i);
 
 			if (obj instanceof Timeline) sequence((Timeline) obj);
 
@@ -260,13 +260,13 @@ public final class Timeline extends TimelineObject {
 	}
 
 	// -------------------------------------------------------------------------
-	// TimelineObject impl.
+	// BaseTween impl.
 	// -------------------------------------------------------------------------
 
 	@Override
 	protected void forceStartValues(int iteration) {
 		for (int i=0, n=children.size(); i<n; i++) {
-			TimelineObject obj = children.get(i);
+			BaseTween obj = children.get(i);
 			if (isIterationYoyo(iteration)) obj.forceToEnd(durationMillis); else obj.forceToStart();
 		}
 	}
@@ -274,7 +274,7 @@ public final class Timeline extends TimelineObject {
 	@Override
 	protected void forceEndValues(int iteration) {
 		for (int i=0, n=children.size(); i<n; i++) {
-			TimelineObject obj = children.get(i);
+			BaseTween obj = children.get(i);
 			if (isIterationYoyo(iteration)) obj.forceToStart(); else obj.forceToEnd(durationMillis);
 		}
 	}
@@ -283,7 +283,7 @@ public final class Timeline extends TimelineObject {
 	protected int getChildrenCount() {
 		int cnt = 0;
 		for (int i=0, n=children.size(); i<n; i++) {
-			TimelineObject obj = children.get(i);
+			BaseTween obj = children.get(i);
 			cnt += 1 + obj.getChildrenCount();
 		}
 		return cnt;
@@ -292,7 +292,7 @@ public final class Timeline extends TimelineObject {
 	@Override
 	protected void killTarget(Object target) {
 		for (int i=0, n=children.size(); i<n; i++) {
-			TimelineObject obj = children.get(i);
+			BaseTween obj = children.get(i);
 			obj.killTarget(target);
 		}
 	}
@@ -300,7 +300,7 @@ public final class Timeline extends TimelineObject {
 	@Override
 	protected void killTarget(Object target, int tweenType) {
 		for (int i=0, n=children.size(); i<n; i++) {
-			TimelineObject obj = children.get(i);
+			BaseTween obj = children.get(i);
 			obj.killTarget(target, tweenType);
 		}
 	}
@@ -308,7 +308,7 @@ public final class Timeline extends TimelineObject {
 	@Override
 	protected boolean containsTarget(Object target) {
 		for (int i=0, n=children.size(); i<n; i++) {
-			TimelineObject obj = children.get(i);
+			BaseTween obj = children.get(i);
 			if (obj.containsTarget(target)) return true;
 		}
 		return false;
@@ -317,7 +317,7 @@ public final class Timeline extends TimelineObject {
 	@Override
 	protected boolean containsTarget(Object target, int tweenType) {
 		for (int i=0, n=children.size(); i<n; i++) {
-			TimelineObject obj = children.get(i);
+			BaseTween obj = children.get(i);
 			if (obj.containsTarget(target, tweenType)) return true;
 		}
 		return false;

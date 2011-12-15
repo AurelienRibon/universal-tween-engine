@@ -47,7 +47,7 @@ import java.util.Map;
  *
  * @author Aurelien Ribon | http://www.aurelienribon.com/
  */
-public final class Tween extends TimelineObject {
+public final class Tween extends BaseTween {
 	// -------------------------------------------------------------------------
 	// Static -- misc
 	// -------------------------------------------------------------------------
@@ -775,7 +775,7 @@ public final class Tween extends TimelineObject {
 	}
 
 	// -------------------------------------------------------------------------
-	// TimelineObject impl.
+	// BaseTween impl.
 	// -------------------------------------------------------------------------
 
 	@Override

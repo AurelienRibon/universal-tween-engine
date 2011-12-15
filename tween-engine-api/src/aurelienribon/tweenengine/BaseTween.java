@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A TimelineObject is the base class of Tween and Timeline. It defines the
+ * BaseTween is the base class of Tween and Timeline. It defines the
  * iteration engine used to play animations for any number of times, and in
  * any direction, at any speed.
  * <br/><br/>
@@ -16,7 +16,7 @@ import java.util.List;
  *
  * @author Aurelien Ribon | http://www.aurelienribon.com/
  */
-public abstract class TimelineObject {
+public abstract class BaseTween {
 
 	// -------------------------------------------------------------------------
 	// Abstract stuff
@@ -114,7 +114,7 @@ public abstract class TimelineObject {
 	 * @param millis A delay between each iteration.
 	 * @return The current tween or timeline, for chaining instructions.
 	 */
-	public TimelineObject repeat(int count, int delayMillis) {
+	public BaseTween repeat(int count, int delayMillis) {
 		repeatCnt = count;
 		repeatDelayMillis = delayMillis >= 0 ? delayMillis : 0;
 		isYoyo = false;
@@ -129,7 +129,7 @@ public abstract class TimelineObject {
 	 * @param millis A delay before each repetition.
 	 * @return The current tween or timeline, for chaining instructions.
 	 */
-	public TimelineObject repeatYoyo(int count, int delayMillis) {
+	public BaseTween repeatYoyo(int count, int delayMillis) {
 		repeatCnt = count;
 		repeatDelayMillis = delayMillis >= 0 ? delayMillis : 0;
 		isYoyo = true;
@@ -163,7 +163,7 @@ public abstract class TimelineObject {
 	 * @param callback A callback.
 	 * @return The current tween or timeline, for chaining instructions.
 	 */
-	public TimelineObject addCallback(Types callbackType, TweenCallback callback) {
+	public BaseTween addCallback(Types callbackType, TweenCallback callback) {
 		List<TweenCallback> callbacks = null;
 
 		switch (callbackType) {
@@ -198,7 +198,7 @@ public abstract class TimelineObject {
 	 * @param data Any kind of object.
 	 * @return The current tween or timeline, for chaining instructions.
 	 */
-	public TimelineObject setUserData(Object data) {
+	public BaseTween setUserData(Object data) {
 		userData = data;
 		return this;
 	}

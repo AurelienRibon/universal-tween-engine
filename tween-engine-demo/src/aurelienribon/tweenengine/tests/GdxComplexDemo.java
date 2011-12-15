@@ -9,7 +9,7 @@ import aurelienribon.tweenengine.equations.Cubic;
 import aurelienribon.tweenengine.equations.Quad;
 import aurelienribon.tweenengine.equations.Quart;
 import aurelienribon.tweenaccessors.gdx.SpriteAccessor;
-import aurelienribon.tweenengine.TimelineObject;
+import aurelienribon.tweenengine.BaseTween;
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
@@ -90,7 +90,7 @@ public class GdxComplexDemo implements ApplicationListener {
 		// Demo of the Tween.call possibility. It's just a timer :)
 		text = "Idle (auto-start in 2 seconds)";
 		Tween.call(new TweenCallback() {
-			@Override public void tweenEventOccured(Types eventType, TimelineObject source) {
+			@Override public void tweenEventOccured(Types eventType, BaseTween source) {
 				launchAnimation();
 				canControlSpeed = true;
 			}
@@ -142,7 +142,7 @@ public class GdxComplexDemo implements ApplicationListener {
 		// The callback (to change the text at the right moments)
 
 		TweenCallback callback = new TweenCallback() {
-			@Override public void tweenEventOccured(Types eventType, TimelineObject source) {
+			@Override public void tweenEventOccured(Types eventType, BaseTween source) {
 				switch (eventType) {
 					case START: text = "Iteration: " + (++iterationCnt) + " / " + (repeatCnt+1); break;
 					case BACK_START: text = "Iteration: " + (--iterationCnt) + " / " + (repeatCnt+1); break;

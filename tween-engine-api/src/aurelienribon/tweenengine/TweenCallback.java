@@ -5,5 +5,5 @@ package aurelienribon.tweenengine;
  */
 public interface TweenCallback {
 	public enum Types {BEGIN, START, END, COMPLETE, BACK_START, BACK_END, BACK_COMPLETE}
-	public void tweenEventOccured(Types eventType, TimelineObject source);
+	public void tweenEventOccured(Types eventType, BaseTween source);
 }
