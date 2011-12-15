@@ -44,7 +44,6 @@ import java.util.Map;
  * @see TweenManager
  * @see TweenEquation
  * @see Timeline
- *
  * @author Aurelien Ribon | http://www.aurelienribon.com/
  */
 public final class Tween extends BaseTween {
@@ -331,13 +330,7 @@ public final class Tween extends BaseTween {
 	// Ctor
 	// -------------------------------------------------------------------------
 
-	/**
-	 * Instantiates a new Tween from scratch.
-	 * @param target The target of the interpolation.
-	 * @param tweenType The desired type of interpolation.
-	 * @param durationMillis The duration of the interpolation, in milliseconds.
-	 */
-	public Tween(Object target, int tweenType, int durationMillis) {
+	private Tween(Object target, int tweenType, int durationMillis) {
 		reset();
 		setup(target, tweenType, durationMillis);
 	}
