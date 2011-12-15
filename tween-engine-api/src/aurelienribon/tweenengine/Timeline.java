@@ -1,6 +1,6 @@
 package aurelienribon.tweenengine;
 
-import aurelienribon.tweenengine.TimelineCallback.Types;
+import aurelienribon.tweenengine.TweenCallback.Types;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -117,6 +117,18 @@ public class Timeline extends TimelineObject {
 	private boolean isInitialized;
 	private boolean isFinished;
 
+	// Callbacks
+	private List<TweenCallback> beginCallbacks;
+	private List<TweenCallback> startCallbacks;
+	private List<TweenCallback> endCallbacks;
+	private List<TweenCallback> completeCallbacks;
+	private List<TweenCallback> backStartCallbacks;
+	private List<TweenCallback> backEndCallbacks;
+	private List<TweenCallback> backCompleteCallbacks;
+
+	// Misc
+	private Object userData;
+
 	// -------------------------------------------------------------------------
 	// Ctor
 	// -------------------------------------------------------------------------
@@ -131,6 +143,16 @@ public class Timeline extends TimelineObject {
 
 		delayMillis = durationMillis = repeatDelayMillis = currentMillis = 0;
 		isStarted = isInitialized = isFinished = false;
+
+		if (beginCallbacks != null) beginCallbacks.clear();
+		if (startCallbacks != null) startCallbacks.clear();
+		if (endCallbacks != null) endCallbacks.clear();
+		if (completeCallbacks != null) completeCallbacks.clear();
+		if (backStartCallbacks != null) backStartCallbacks.clear();
+		if (backEndCallbacks != null) backEndCallbacks.clear();
+		if (backCompleteCallbacks != null) backCompleteCallbacks.clear();
+
+		userData = null;
 	}
 
 	// -------------------------------------------------------------------------
@@ -205,6 +227,72 @@ public class Timeline extends TimelineObject {
 	}
 
 	/**
+	 * Adds a callback to the tween. The moment when the callback is triggered
+	 * depends on its type:
+	 * <br/><br/>
+	 *
+	 * BEGIN: at first START, right after the delay
+	 * START: at each iteration beginning
+	 * END: at each iteration ending, before the repeat delay
+	 * COMPLETE: at last END
+	 * BACK_START: at each bacwards iteration beginning, after the repeat delay
+	 * BACK_END: at each backwards iteration ending
+	 * BACK_COMPLETE: at last BACK_END
+	 *
+	 * <pre>
+	 * forwards :         BEGIN                                   COMPLETE
+	 * forwards :         START    END      START    END      START    END
+	 * |------------------[XXXXXXXXXX]------[XXXXXXXXXX]------[XXXXXXXXXX]
+	 * backwards:         bEND  bSTART      bEND  bSTART      bEND  bSTART
+	 * backwards:         bCOMPLETE
+	 * </pre>
+	 *
+	 *
+	 * @param callbackType The callback type.
+	 * @param callback A callback.
+	 * @return The current tween for chaining instructions.
+	 */
+	public Timeline addCallback(Types callbackType, TweenCallback callback) {
+		List<TweenCallback> callbacks = null;
+
+		switch (callbackType) {
+			case BEGIN: callbacks = beginCallbacks; break;
+			case START: callbacks = startCallbacks; break;
+			case END: callbacks = endCallbacks; break;
+			case COMPLETE: callbacks = completeCallbacks; break;
+			case BACK_START: callbacks = backStartCallbacks; break;
+			case BACK_END: callbacks = backEndCallbacks; break;
+			case BACK_COMPLETE: callbacks = backCompleteCallbacks; break;
+		}
+
+		if (callbacks == null) callbacks = new ArrayList<TweenCallback>(1);
+		callbacks.add(callback);
+
+		switch (callbackType) {
+			case BEGIN: beginCallbacks = callbacks; break;
+			case START: startCallbacks = callbacks; break;
+			case END: endCallbacks = callbacks; break;
+			case COMPLETE: completeCallbacks = callbacks; break;
+			case BACK_START: backStartCallbacks = callbacks; break;
+			case BACK_END: backEndCallbacks = callbacks; break;
+			case BACK_COMPLETE: backCompleteCallbacks = callbacks; break;
+		}
+
+		return this;
+	}
+
+	/**
+	 * Sets an object attached to this tween. It can be useful in order to
+	 * retrieve some data from a TweenCallback.
+	 * @param data Any kind of object.
+	 * @return The current tween for chaining instructions.
+	 */
+	public Timeline setUserData(Object data) {
+		userData = data;
+		return this;
+	}
+
+	/**
 	 * If you want to manually manage your timelines (without using a
 	 * TweenManager), and you enabled object pooling, then you need to call
 	 * this method on your timelines once they are finished (see <i>isFinished()
@@ -233,6 +321,13 @@ public class Timeline extends TimelineObject {
 
 	public int getRepeatDelay() {
 		return repeatDelayMillis;
+	}
+
+	/**
+	 * Gets the attached user data, or null if none.
+	 */
+	public Object getUserData() {
+		return userData;
 	}
 
 	/**
@@ -439,22 +534,22 @@ public class Timeline extends TimelineObject {
 		return isYoyo && Math.abs(iteration%4) == 2;
 	}
 
-	private void callCallbacks(TimelineCallback.Types type) {
-		List<TimelineCallback> callbacks = null;
+	private void callCallbacks(Types type) {
+		List<TweenCallback> callbacks = null;
 
-		/*switch (type) {
-			case BEGIN: callbacks = startCallbacks; break;
+		switch (type) {
+			case BEGIN: callbacks = beginCallbacks; break;
 			case START: callbacks = startCallbacks; break;
 			case END: callbacks = endCallbacks; break;
-			case COMPLETE: callbacks = endCallbacks; break;
+			case COMPLETE: callbacks = completeCallbacks; break;
 			case BACK_START: callbacks = backStartCallbacks; break;
 			case BACK_END: callbacks = backEndCallbacks; break;
-			case BACK_COMPLETE: callbacks = backEndCallbacks; break;
-		}*/
+			case BACK_COMPLETE: callbacks = backCompleteCallbacks; break;
+		}
 
 		if (callbacks != null && !callbacks.isEmpty())
 			for (int i=0, n=callbacks.size(); i<n; i++)
-				callbacks.get(i).timelineEventOccured(type, this);
+				callbacks.get(i).tweenEventOccured(type, null);
 	}
 
 	// -------------------------------------------------------------------------

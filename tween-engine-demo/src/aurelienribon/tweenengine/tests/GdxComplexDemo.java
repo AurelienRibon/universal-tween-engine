@@ -138,6 +138,19 @@ public class GdxComplexDemo implements ApplicationListener {
 		final int repeatCnt = 2;
 		iterationCnt = 0;
 
+		// The callback (to change the text at the right moments)
+
+		TweenCallback callback = new TweenCallback() {
+			@Override public void tweenEventOccured(Types eventType, Tween tween) {
+				switch (eventType) {
+					case START: text = "Iteration: " + (++iterationCnt) + " / " + (repeatCnt+1); break;
+					case BACK_START: text = "Iteration: " + (--iterationCnt) + " / " + (repeatCnt+1); break;
+					case COMPLETE: text = "Forwards play complete (click to restart)"; canBeRestarted = true; break;
+					case BACK_COMPLETE: text = "Backwards play complete (click to restart)"; canBeRestarted = true; break;
+				}
+			}
+		};
+
 		// The animation itself
 
 		Timeline.createParallel()
@@ -145,40 +158,12 @@ public class GdxComplexDemo implements ApplicationListener {
 			.push(buildSequence(sprite2, 2, 200, 1000))
 			.push(buildSequence(sprite3, 3, 400, 600))
 			.push(buildSequence(sprite4, 4, 600, 200))
+			.addCallback(TweenCallback.Types.START, callback)
+			.addCallback(TweenCallback.Types.BACK_START, callback)
+			.addCallback(TweenCallback.Types.COMPLETE, callback)
+			.addCallback(TweenCallback.Types.BACK_COMPLETE, callback)
 			.repeat(repeatCnt, 0)
 			.start(tweenManager);
-
-		// The mark callbacks (to change the text at the right moments)
-
-		/*startMark.addCallback(TweenCallback.Types.START, new TweenCallback() {
-			@Override public void tweenEventOccured(Types eventType, Tween tween) {
-				text = "Iteration: " + (++iterationCnt) + " / " + (repeatCnt+1);
-			}
-		});
-
-		endMark.addBackwardsStartCallback(new TweenCallback() {
-			@Override public void tweenEventOccured(Types eventType, Tween tween) {
-				text = "Iteration: " + (--iterationCnt) + " / " + (repeatCnt+1);
-			}
-		});
-
-		endMark.addStartCallback(new TweenCallback() {
-			@Override public void tweenEventOccured(Types eventType, Tween tween) {
-				if (iterationCnt >= 3) {
-					text = "Forwards play complete (click to restart)";
-					canBeRestarted = true;
-				}
-			}
-		});
-
-		startMark.addBackwardsStartCallback(new TweenCallback() {
-			@Override public void tweenEventOccured(Types eventType, Tween tween) {
-				if (iterationCnt <= 1) {
-					text = "Backwards play complete (click to restart)";
-					canBeRestarted = true;
-				}
-			}
-		});*/
 	}
 
 	private Timeline buildSequence(Sprite target, int id, int delay1, int delay2) {
@@ -211,8 +196,6 @@ public class GdxComplexDemo implements ApplicationListener {
 		public boolean touchDown(int x, int y, int pointer, int button) {
 			if (canBeRestarted) {
 				canBeRestarted = false;
-				// If the user touches the screen, we kill every running tween
-				// and restart the animation.
 				tweenManager.killAll();
 				launchAnimation();
 			}

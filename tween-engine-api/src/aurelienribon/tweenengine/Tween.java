@@ -767,26 +767,26 @@ public class Tween extends TimelineObject {
 		List<TweenCallback> callbacks = null;
 
 		switch (callbackType) {
-			case BEGIN: callbacks = startCallbacks; break;
+			case BEGIN: callbacks = beginCallbacks; break;
 			case START: callbacks = startCallbacks; break;
 			case END: callbacks = endCallbacks; break;
-			case COMPLETE: callbacks = endCallbacks; break;
+			case COMPLETE: callbacks = completeCallbacks; break;
 			case BACK_START: callbacks = backStartCallbacks; break;
 			case BACK_END: callbacks = backEndCallbacks; break;
-			case BACK_COMPLETE: callbacks = backEndCallbacks; break;
+			case BACK_COMPLETE: callbacks = backCompleteCallbacks; break;
 		}
 
 		if (callbacks == null) callbacks = new ArrayList<TweenCallback>(1);
 		callbacks.add(callback);
 
 		switch (callbackType) {
-			case BEGIN: startCallbacks = callbacks; break;
+			case BEGIN: beginCallbacks = callbacks; break;
 			case START: startCallbacks = callbacks; break;
 			case END: endCallbacks = callbacks; break;
-			case COMPLETE: endCallbacks = callbacks; break;
+			case COMPLETE: completeCallbacks = callbacks; break;
 			case BACK_START: backStartCallbacks = callbacks; break;
 			case BACK_END: backEndCallbacks = callbacks; break;
-			case BACK_COMPLETE: backEndCallbacks = callbacks; break;
+			case BACK_COMPLETE: backCompleteCallbacks = callbacks; break;
 		}
 
 		return this;
@@ -1083,13 +1083,13 @@ public class Tween extends TimelineObject {
 		List<TweenCallback> callbacks = null;
 
 		switch (type) {
-			case BEGIN: callbacks = startCallbacks; break;
+			case BEGIN: callbacks = beginCallbacks; break;
 			case START: callbacks = startCallbacks; break;
 			case END: callbacks = endCallbacks; break;
-			case COMPLETE: callbacks = endCallbacks; break;
+			case COMPLETE: callbacks = completeCallbacks; break;
 			case BACK_START: callbacks = backStartCallbacks; break;
 			case BACK_END: callbacks = backEndCallbacks; break;
-			case BACK_COMPLETE: callbacks = backEndCallbacks; break;
+			case BACK_COMPLETE: callbacks = backCompleteCallbacks; break;
 		}
 
 		if (callbacks != null && !callbacks.isEmpty())
