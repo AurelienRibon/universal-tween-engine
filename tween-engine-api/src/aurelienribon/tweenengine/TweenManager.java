@@ -3,13 +3,13 @@ package aurelienribon.tweenengine;
 import java.util.ArrayList;
 
 /**
- * A TweenManager lets you pack many tweens together, and update them at once.
- * Its main interest is that it handles the pooling complexity for you if you
- * decided to enable object pooling using "Tween.enablePooling()".
+ * A TweenManager updates all your tweens and timelines at once.
+ * Its main interest is that it handles the tween/timeline life-cycles for you,
+ * as well as the pooling constraints (if object pooling is enabled).
  * <br/><br/>
  *
- * Just give it a bunch of tweens or timelines to it and call update()
- * periodically.
+ * Just give it a bunch of tweens or timelines and call update() periodically,
+ * you don't need to care for anything else! Relax and enjoy your animations.
  *
  * @see Tween
  * @see Timeline
@@ -39,8 +39,8 @@ public class TweenManager {
 	}
 
 	/**
-	 * Returns true if the manager contains any valid tween associated to the
-	 * given target.
+	 * Returns true if the manager contains any valid interpolation associated
+	 * to the given target object.
 	 */
 	public boolean containsTarget(Object target) {
 		for (int i=0, n=objects.size(); i<n; i++) {
@@ -51,8 +51,8 @@ public class TweenManager {
 	}
 
 	/**
-	 * Returns true if the manager contains any valid tween associated to the
-	 * given target and tween type.
+	 * Returns true if the manager contains any valid interpolation associated
+	 * to the given target object and to the given tween type.
 	 */
 	public boolean containsTarget(Object target, int tweenType) {
 		for (int i=0, n=objects.size(); i<n; i++) {
@@ -63,7 +63,7 @@ public class TweenManager {
 	}
 
 	/**
-	 * Clears the manager from every tween.
+	 * Kills every managed tweens and timelines.
 	 */
 	public void killAll() {
 		for (int i=0, n=objects.size(); i<n; i++) {
@@ -73,7 +73,7 @@ public class TweenManager {
 	}
 
 	/**
-	 * Kills every tween associated to the given target.
+	 * Kills every tweens associated to the given target.
 	 */
 	public void killTarget(Object target) {
 		for (int i=0, n=objects.size(); i<n; i++) {
@@ -83,7 +83,7 @@ public class TweenManager {
 	}
 
 	/**
-	 * Kills every tween associated to the given target and tween type.
+	 * Kills every tweens associated to the given target and tween type.
 	 */
 	public void killTarget(Object target, int tweenType) {
 		for (int i=0, n=objects.size(); i<n; i++) {
@@ -93,7 +93,7 @@ public class TweenManager {
 	}
 
 	/**
-	 * Gets the number of tweens managed by this manager.
+	 * Gets the number of tweens and timelines managed by this manager.
 	 */
 	public int size() {
 		int cnt = 0;
