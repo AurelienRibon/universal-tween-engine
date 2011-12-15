@@ -302,7 +302,7 @@ public class Timeline extends TimelineObject {
 		if (repeatCnt >= 0 && iteration > repeatCnt*2 && currentMillis <= 0) {
 			assert iteration == repeatCnt*2 + 1;
 			isComputeIteration = true;
-			currentMillis -= durationMillis;
+			currentMillis += durationMillis;
 			iteration = repeatCnt*2;
 
 		} else if (repeatCnt >= 0 && iteration < 0 && currentMillis >= 0) {
@@ -369,10 +369,12 @@ public class Timeline extends TimelineObject {
 		int millis = 0;
 
 		if (iteration > lastIteration) {
+			forceStartValues(iteration);
 			millis = isIterationYoyo(iteration) ? -currentMillis : currentMillis;
 
 		} else if (iteration < lastIteration) {
-			millis = isIterationYoyo(iteration) ? currentMillis : -currentMillis;
+			forceEndValues(iteration);
+			millis = isIterationYoyo(iteration) ? durationMillis-currentMillis : currentMillis-durationMillis;
 
 		} else {
 			millis = isIterationYoyo(iteration) ? -deltaMillis : deltaMillis;

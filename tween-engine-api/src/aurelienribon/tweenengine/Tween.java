@@ -988,7 +988,7 @@ public class Tween extends TimelineObject {
 		}
 	}
 
-	private void updateIteration() {		
+	private void updateIteration() {
 		while (isValid(iteration)) {
 			if (!isComputeIteration && currentMillis <= 0) {
 				isComputeIteration = true;
