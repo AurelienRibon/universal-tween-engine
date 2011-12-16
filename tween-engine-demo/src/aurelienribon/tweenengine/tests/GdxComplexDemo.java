@@ -12,6 +12,7 @@ import aurelienribon.tweenaccessors.gdx.SpriteAccessor;
 import aurelienribon.tweenengine.BaseTween;
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input.Buttons;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
@@ -31,10 +32,7 @@ public class GdxComplexDemo implements ApplicationListener {
 
 	private OrthographicCamera camera;
 	private SpriteBatch sb;
-	private TweenManager tweenManager;
-
 	private BitmapFont font;
-	private String text;
 
 	private Sprite sprite1;
 	private Sprite sprite2;
@@ -43,50 +41,58 @@ public class GdxComplexDemo implements ApplicationListener {
 
 	private boolean canBeRestarted = false;
 	private boolean canControlSpeed = false;
+	private String text;
 	private int iterationCnt;
+
+	private TweenManager tweenManager;
 
 	@Override
 	public void create() {
-		// Input manager
+		// GDX stuff...
+
 		Gdx.input.setInputProcessor(inputProcessor);
 
-		// Camera + Spritebatch + font
 		float ratio = (float)Gdx.graphics.getWidth() / (float)Gdx.graphics.getHeight();
-		this.camera = new OrthographicCamera(6, 6/ratio);
-		this.sb = new SpriteBatch();
-		this.font = new BitmapFont();
+		camera = new OrthographicCamera(6, 6/ratio);
+		sb = new SpriteBatch();
+		font = new BitmapFont();
 		font.setColor(Color.BLACK);
 
-		// Creation of the sprites, classic way
-		Texture tex1 = new Texture(Gdx.files.internal("data/logo1.png"));
-		Texture tex2 = new Texture(Gdx.files.internal("data/logo2.png"));
-		Texture tex3 = new Texture(Gdx.files.internal("data/logo3.png"));
-		Texture tex4 = new Texture(Gdx.files.internal("data/logo4.png"));
-		tex1.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
-		tex2.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
-		tex3.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
-		tex4.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
-		this.sprite1 = new Sprite(tex1);
-		this.sprite2 = new Sprite(tex2);
-		this.sprite3 = new Sprite(tex3);
-		this.sprite4 = new Sprite(tex4);
+		sprite1 = new Sprite(new Texture(Gdx.files.internal("data/logo1.png")));
+		sprite1.getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
 		sprite1.setSize(1, 1);
-		sprite2.setSize(1, 1);
-		sprite3.setSize(1, 1);
-		sprite4.setSize(1, 1);
 		sprite1.setOrigin(0.5f, 0.5f);
+		sprite1.setColor(1, 1, 1, 0);
+
+		sprite2 = new Sprite(new Texture(Gdx.files.internal("data/logo2.png")));
+		sprite2.getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+		sprite2.setSize(1, 1);
 		sprite2.setOrigin(0.5f, 0.5f);
+		sprite2.setColor(1, 1, 1, 0);
+
+		sprite3 = new Sprite(new Texture(Gdx.files.internal("data/logo3.png")));
+		sprite3.getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+		sprite3.setSize(1, 1);
 		sprite3.setOrigin(0.5f, 0.5f);
+		sprite3.setColor(1, 1, 1, 0);
+
+		sprite4 = new Sprite(new Texture(Gdx.files.internal("data/logo4.png")));
+		sprite4.getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+		sprite4.setSize(1, 1);
 		sprite4.setOrigin(0.5f, 0.5f);
+		sprite4.setColor(1, 1, 1, 0);
 
 		// Tween engine setup
+
 		Tween.enablePooling(true);
 		Tween.registerAccessor(Sprite.class, new SpriteAccessor());
 
 		// Tween manager creation
+
 		tweenManager = new TweenManager();
 
-		// Demo of the Tween.call possibility. It's just a timer :)
+		// Demo of Tween.call(). It's just a timer :)
+
 		text = "Idle (auto-start in 2 seconds)";
 		Tween.call(new TweenCallback() {
 			@Override public void onEvent(EventType eventType, BaseTween source) {
@@ -101,10 +107,15 @@ public class GdxComplexDemo implements ApplicationListener {
 		int w = Gdx.graphics.getWidth();
 		int h = Gdx.graphics.getHeight();
 		float x = Gdx.input.getX();
+		boolean isLeftBtnHeld = Gdx.input.isButtonPressed(Buttons.LEFT);
 
-		float speed = canControlSpeed ? 4f * (x-w/2)/w : 1;
+		// Tween manager update (speed is based on mouse position)
+
+		float speed = canControlSpeed && isLeftBtnHeld ? 4f * (x-w/2)/w : 1;
 		int delta = (int) (Gdx.graphics.getDeltaTime() * 1000 * speed);
 		tweenManager.update(delta);
+
+		// Gdx stuff...
 
 		GL10 gl = Gdx.gl10;
 		gl.glClearColor(1, 1, 1, 1);
@@ -121,10 +132,10 @@ public class GdxComplexDemo implements ApplicationListener {
 		sb.getProjectionMatrix().setToOrtho2D(0, 0, w, h);
 		sb.begin();
 		font.setColor(0.5f, 0.5f, 0.5f, 1);
-		font.draw(sb, "Move your mouse over the screen to change the animation speed", 5, Gdx.graphics.getHeight());
+		font.draw(sb, "Hold left button and move your mouse to change the animation speed", 5, Gdx.graphics.getHeight());
 		font.draw(sb, String.format(Locale.US, "Current speed: %.2f", speed), 5, Gdx.graphics.getHeight() - 20);
 		font.draw(sb, text, 5, 45);
-		font.draw(sb, "Tweens in pool: " + Tween.getPoolSize(), 150, 25);
+		font.draw(sb, "Tweens in pool: " + (Tween.getPoolSize() + Timeline.getPoolSize()), 150, 25);
 		font.draw(sb, "Running tweens: " + tweenManager.size(), 5, 25);
 		sb.end();
 	}
@@ -197,7 +208,7 @@ public class GdxComplexDemo implements ApplicationListener {
 
 	private InputProcessor inputProcessor = new InputAdapter() {
 		@Override
-		public boolean touchDown(int x, int y, int pointer, int button) {
+		public boolean touchUp(int x, int y, int pointer, int button) {
 			if (canBeRestarted) {
 				canBeRestarted = false;
 				tweenManager.killAll();

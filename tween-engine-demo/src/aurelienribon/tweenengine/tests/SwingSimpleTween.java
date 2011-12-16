@@ -30,6 +30,8 @@ public class SwingSimpleTween {
 	private final TweenManager tweenManager;
 
 	public SwingSimpleTween() {
+		// Swing stuff
+
 		int w = 800;
 		int h = 600;
 
@@ -51,6 +53,28 @@ public class SwingSimpleTween {
 		window.getContentPane().add(button);
 		window.setVisible(true);
 
+		// Tween engine setup
+
+		Tween.enablePooling(false);
+		Tween.registerAccessor(Component.class, new ComponentAccessor());
+
+		// Tween manager creation
+		
+		tweenManager = new TweenManager();
+
+		// Let's make our label move !
+
+		Tween.to(label, ComponentAccessor.POSITION, 1000)
+			.target(window.getContentPane().getWidth() - label.getWidth() - 10, 10)
+			.ease(Cubic.INOUT)
+			.repeatYoyo(-1, 200)
+			.delay(500)
+			.start(tweenManager);
+		
+		// We need to create a timer that will be triggered every 16
+		// milliseconds (to play at 60fps). That's one of the purpose of the
+		// DrawingCanvas class.
+
 		window.addWindowListener(new WindowAdapter() {
 			@Override public void windowOpened(WindowEvent e) {
 				new DrawingCanvas() {
@@ -60,26 +84,24 @@ public class SwingSimpleTween {
 				}.start();
 			}
 		});
-
-		Tween.registerAccessor(Component.class, new ComponentAccessor());
-		tweenManager = new TweenManager();
-
-		Tween.to(label, ComponentAccessor.POSITION, 1000)
-			.target(window.getContentPane().getWidth() - label.getWidth() - 10, 10)
-			.ease(Cubic.INOUT)
-			.repeatYoyo(-1, 200)
-			.delay(500)
-			.start(tweenManager);
 	}
 
 	private final MouseAdapter buttonMouseListener = new MouseAdapter() {
 		@Override
 		public void mouseEntered(MouseEvent e) {
+			// Each time the user enters the button with its mouse cursor, we
+			// throw it away.
+
 			Random rand = new Random();
 			int tx = rand.nextInt(window.getContentPane().getWidth() - button.getWidth());
 			int ty = rand.nextInt(window.getContentPane().getHeight() - 30 - button.getHeight()) + 30;
 
+			// If an animation was running, we first need to stop it.
+
 			tweenManager.killTarget(button);
+			
+			// Then we can safely move the button away.
+
 			Tween.to(button, ComponentAccessor.POSITION, 500)
 				.target(tx, ty)
 				.ease(Back.OUT)

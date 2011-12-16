@@ -71,12 +71,13 @@ public class GdxSimpleTimeline implements ApplicationListener {
 
 	@Override
 	public void render() {
-		// TweenManager update
+		// Tween manager update
 
 		int delta = (int) (Gdx.graphics.getDeltaTime() * 1000);
 		tweenManager.update(delta);
 
 		// Gdx stuff...
+		
 		int w = Gdx.graphics.getWidth();
 		int h = Gdx.graphics.getHeight();
 

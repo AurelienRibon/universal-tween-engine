@@ -26,9 +26,11 @@ public abstract class DrawingCanvas extends JPanel {
 	protected abstract void update(int elapsedMillis);
 
 	private Runnable loop = new Runnable() {
-		private long lastMillis = 0;
+		private long lastMillis;
 
 		@Override public void run() {
+			lastMillis = System.currentTimeMillis();
+
 			while (isRunning) {
 				try {
 					final long millis = System.currentTimeMillis();
