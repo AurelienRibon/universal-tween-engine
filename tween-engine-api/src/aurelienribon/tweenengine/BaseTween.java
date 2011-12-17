@@ -248,6 +248,7 @@ public abstract class BaseTween {
 	 * fullDuration = delay + duration + (repeatDelay + duration) * repeatCnt
 	 */
 	public int getFullDuration() {
+		if (repeatCnt < 0) return -1;
 		return delayMillis + durationMillis + (repeatDelayMillis + durationMillis) * repeatCnt;
 	}
 

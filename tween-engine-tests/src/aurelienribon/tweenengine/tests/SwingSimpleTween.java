@@ -19,6 +19,9 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
+/**
+ * @author Aurelien Ribon | http://www.aurelienribon.com
+ */
 public class SwingSimpleTween {
 	public static void start() {
 		new SwingSimpleTween();
@@ -64,7 +67,7 @@ public class SwingSimpleTween {
 
 		// Let's make our label move !
 
-		Tween.to(label, ComponentAccessor.POSITION, 1000)
+		Tween.to(label, ComponentAccessor.POSITION_XY, 1000)
 			.target(window.getContentPane().getWidth() - label.getWidth() - 10, 10)
 			.ease(Cubic.INOUT)
 			.repeatYoyo(-1, 200)
@@ -102,7 +105,7 @@ public class SwingSimpleTween {
 			
 			// Then we can safely move the button away.
 
-			Tween.to(button, ComponentAccessor.POSITION, 500)
+			Tween.to(button, ComponentAccessor.POSITION_XY, 500)
 				.target(tx, ty)
 				.ease(Back.OUT)
 				.start(tweenManager);

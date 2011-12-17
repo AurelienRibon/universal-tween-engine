@@ -3,7 +3,6 @@ package aurelienribon.tweenengine.tests;
 import aurelienribon.tweenengine.Tween;
 import aurelienribon.tweenengine.TweenManager;
 import aurelienribon.tweenaccessors.gdx.SpriteAccessor;
-import aurelienribon.tweenengine.Timeline;
 import aurelienribon.tweenengine.equations.Quad;
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
@@ -16,15 +15,19 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
-public class GdxSimpleTimeline implements ApplicationListener {
+/**
+ * @author Aurelien Ribon | http://www.aurelienribon.com
+ */
+public class GdxSimpleTween implements ApplicationListener {
 	public static void start() {
-		new LwjglApplication(new GdxSimpleTimeline(), "", 500, 200, false);
+		new LwjglApplication(new GdxSimpleTween(), "", 500, 200, false);
 	}
 
 	private OrthographicCamera camera;
 	private SpriteBatch sb;
 	private BitmapFont font;
 	private Sprite sprite1;
+	private Sprite sprite2;
 
 	private TweenManager tweenManager;
 
@@ -42,7 +45,13 @@ public class GdxSimpleTimeline implements ApplicationListener {
 		sprite1.getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
 		sprite1.setSize(2, 2);
 		sprite1.setOrigin(1, 1);
-		sprite1.setPosition(-4, -1);
+		sprite1.setPosition(-2, 0);
+
+		sprite2 = new Sprite(new Texture(Gdx.files.internal("data/logo2.png")));
+		sprite2.getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
+		sprite2.setSize(2, 2);
+		sprite2.setOrigin(1, 1);
+		sprite2.setPosition(-2, -2);
 
 		// Tween engine setup
 
@@ -55,17 +64,18 @@ public class GdxSimpleTimeline implements ApplicationListener {
 
 		// Let's make our sprite move !
 
-		Timeline.createSequence()
-			.push(Tween.to(sprite1, SpriteAccessor.POSITION_XY, 700).target(2, -1).ease(Quad.IN).repeatYoyo(1, 200))
-			.beginParallel()
-				.push(Tween.to(sprite1, SpriteAccessor.ROTATION, 1000).target(360).ease(Quad.INOUT))
-				.push(Tween.to(sprite1, SpriteAccessor.OPACITY, 500).target(0).ease(Quad.INOUT).repeatYoyo(1, 0))
-				.repeat(1, 200)
-			.end()
-			.push(Tween.set(sprite1, SpriteAccessor.ROTATION).target(0))
-			.push(Tween.to(sprite1, SpriteAccessor.POSITION_XY, 700).target(-1, -1).ease(Quad.IN))
-			.push(Tween.to(sprite1, SpriteAccessor.ROTATION, 500).target(360).ease(Quad.INOUT))
-			.repeatYoyo(1, 200)
+		Tween.to(sprite1, SpriteAccessor.POSITION_XY, 700)
+			.ease(Quad.OUT)
+			.target(2, 0)
+			.repeat(-1, 200)
+			.delay(500)
+			.start(tweenManager);
+
+		Tween.to(sprite2, SpriteAccessor.POSITION_XY, 700)
+			.ease(Quad.OUT)
+			.target(2, -2)
+			.repeatYoyo(-1, 200)
+			.delay(500)
 			.start(tweenManager);
 	}
 
@@ -77,7 +87,7 @@ public class GdxSimpleTimeline implements ApplicationListener {
 		tweenManager.update(delta);
 
 		// Gdx stuff...
-		
+
 		int w = Gdx.graphics.getWidth();
 		int h = Gdx.graphics.getHeight();
 
@@ -88,11 +98,14 @@ public class GdxSimpleTimeline implements ApplicationListener {
 		sb.setProjectionMatrix(camera.combined);
 		sb.begin();
 		sprite1.draw(sb);
+		sprite2.draw(sb);
 		sb.end();
 
 		sb.getProjectionMatrix().setToOrtho2D(0, 0, w, h);
 		sb.begin();
 		font.setColor(0.5f, 0.5f, 0.5f, 1);
+		font.draw(sb, "Repeat :", 40, 3*h/4);
+		font.draw(sb, "Repeat yoyo :", 5, 1*h/4);
 		sb.end();
 	}
 

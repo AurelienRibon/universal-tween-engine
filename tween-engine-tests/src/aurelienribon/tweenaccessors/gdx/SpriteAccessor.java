@@ -4,6 +4,9 @@ import aurelienribon.tweenengine.TweenAccessor;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 
+/**
+ * @author Aurelien Ribon | http://www.aurelienribon.com
+ */
 public class SpriteAccessor implements TweenAccessor<Sprite> {
 	public static final int POSITION_XY = 1;
 	public static final int SCALE_XY = 2;

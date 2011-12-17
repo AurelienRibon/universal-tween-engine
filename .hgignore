@@ -8,8 +8,14 @@ tween-engine-api/build/*
 tween-engine-api/dist/*
 tween-engine-api/nbproject/*
 
-tween-engine-demo/manifest.mf
-tween-engine-demo/nbbuild.xml
-tween-engine-demo/build/*
-tween-engine-demo/dist/*
-tween-engine-demo/nbproject/*
+tween-engine-tests/manifest.mf
+tween-engine-tests/nbbuild.xml
+tween-engine-tests/build/*
+tween-engine-tests/dist/*
+tween-engine-tests/nbproject/*
+
+tween-engine-applets/manifest.mf
+tween-engine-applets/nbbuild.xml
+tween-engine-applets/build/*
+tween-engine-applets/dist/*
+tween-engine-applets/nbproject/*

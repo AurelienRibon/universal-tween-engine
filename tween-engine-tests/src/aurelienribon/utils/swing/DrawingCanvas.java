@@ -4,6 +4,9 @@ import java.lang.reflect.InvocationTargetException;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
+/**
+ * @author Aurelien Ribon | http://www.aurelienribon.com
+ */
 public abstract class DrawingCanvas extends JPanel {
 	private Thread thread = null;
 	private boolean isRunning = false;

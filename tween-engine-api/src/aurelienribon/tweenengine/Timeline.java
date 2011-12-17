@@ -304,6 +304,7 @@ public final class Timeline extends BaseTween {
 		for (int i=0; i<tl.children.size(); i++) {
 			BaseTween obj = tl.children.get(i);
 
+			if (obj.getRepeatCount() < 0) throw new RuntimeException("You can't push an object with infinite repetitions in a timeline");
 			if (obj instanceof Timeline) sequence((Timeline) obj);
 
 			switch (tl.mode) {

@@ -381,6 +381,8 @@ public final class Tween extends BaseTween {
 	}
 
 	private void setup(Object target, int tweenType, int durationMillis) {
+		if (durationMillis < 0) throw new RuntimeException("Duration can't be negative");
+
 		this.target = target;
 		this.type = tweenType;
 		this.durationMillis = durationMillis;

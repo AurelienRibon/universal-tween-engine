@@ -25,6 +25,9 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import java.util.Locale;
 
+/**
+ * @author Aurelien Ribon | http://www.aurelienribon.com
+ */
 public class GdxComplexDemo implements ApplicationListener {
 	public static void start() {
 		new LwjglApplication(new GdxComplexDemo(), "", 500, 200, false);
