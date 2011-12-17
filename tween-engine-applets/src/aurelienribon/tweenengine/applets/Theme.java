@@ -9,6 +9,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JSlider;
 import javax.swing.border.Border;
 
 public class Theme {
@@ -37,20 +38,20 @@ public class Theme {
 			if (border != null && border instanceof GroupBorder) {
 				Font font = c.getFont();
 				c.setFont(new Font(font.getFamily(), Font.BOLD, font.getSize()));
-				c.setBackground(Theme.MAIN_ALT_BACKGROUND);
-				c.setForeground(Theme.MAIN_ALT_FOREGROUND);
+				c.setBackground(MAIN_ALT_BACKGROUND);
+				c.setForeground(MAIN_ALT_FOREGROUND);
 				c.setOpaque(false);
 			}
 		}
 
 		if (cmp instanceof JLabel) {
 			JLabel c = (JLabel) cmp;
-			c.setForeground(Theme.MAIN_FOREGROUND);
+			c.setForeground(MAIN_FOREGROUND);
 		}
 
 		if (cmp instanceof JCheckBox) {
 			JCheckBox c = (JCheckBox) cmp;
-			c.setForeground(Theme.MAIN_FOREGROUND);
+			c.setForeground(MAIN_FOREGROUND);
 			c.setOpaque(false);
 		}
 
@@ -63,6 +64,12 @@ public class Theme {
 		if (cmp instanceof JButton) {
 			JButton c = (JButton) cmp;
 			c.setOpaque(false);
+		}
+
+		if (cmp instanceof JSlider) {
+			JSlider c = (JSlider) cmp;
+			c.setOpaque(false);
+			c.setForeground(MAIN_FOREGROUND);
 		}
 	}
 }

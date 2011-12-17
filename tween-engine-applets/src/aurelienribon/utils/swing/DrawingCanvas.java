@@ -11,6 +11,7 @@ import javax.swing.Timer;
 public abstract class DrawingCanvas extends JPanel {
 	private final Timer timer;
 	private long lastMillis;
+	private Callback callback;
 
 	public DrawingCanvas() {
 		timer = new Timer(1000/60, loop);
@@ -29,6 +30,10 @@ public abstract class DrawingCanvas extends JPanel {
 		timer.stop();
 	}
 
+	public void setCallback(Callback callback) {
+		this.callback = callback;
+	}
+
 	private final ActionListener loop = new ActionListener() {
 		@Override public void actionPerformed(ActionEvent e) {
 			final long millis = System.currentTimeMillis();
@@ -36,6 +41,11 @@ public abstract class DrawingCanvas extends JPanel {
 			lastMillis = millis;
 
 			update((int) delta);
+			if (callback != null) callback.onUpdate((int) delta);
 		}
 	};
+
+	public interface Callback {
+		public void onUpdate(int elapsedMillis);
+	}
 }

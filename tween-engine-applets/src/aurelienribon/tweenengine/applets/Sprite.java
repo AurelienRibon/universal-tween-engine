@@ -10,8 +10,12 @@ import javax.imageio.ImageIO;
  */
 public class Sprite {
 	private BufferedImage image;
-	private float x;
-	private float y;
+	private float x = 0;
+	private float y = 0;
+	private float scaleX = 1;
+	private float scaleY = 1;
+	private boolean isCentered = true;
+	private boolean isVisible = true;
 
 	public Sprite(String gfxName) {
 		try {
@@ -21,17 +25,31 @@ public class Sprite {
 	}
 
 	public void draw(Graphics2D gg) {
+		if (!isVisible) return;
+		gg = (Graphics2D) gg.create();
 		gg.translate(x, y);
-		gg.drawImage(image, null, -image.getWidth()/2, -image.getHeight()/2);
-		gg.translate(-x, -y);
+		gg.scale(scaleX, scaleY);
+		gg.drawImage(image, null, isCentered ? -image.getWidth()/2 : 0, isCentered ? -image.getHeight()/2 : 0);
+		gg.dispose();
 	}
 
-	public void setX(float x) {
+	public void setPosition(float x, float y) {
 		this.x = x;
+		this.y = y;
 	}
 
-	public void setY(float y) {
-		this.y = y;
+	public void setScale(float scaleX, float scaleY) {
+		this.scaleX = scaleX;
+		this.scaleY = scaleY;
+	}
+
+	public Sprite setCentered(boolean isCentered) {
+		this.isCentered = isCentered;
+		return this;
+	}
+
+	public void setVisible(boolean isVisible) {
+		this.isVisible = isVisible;
 	}
 
 	public float getX() {
@@ -40,5 +58,17 @@ public class Sprite {
 
 	public float getY() {
 		return y;
+	}
+
+	public float getScaleX() {
+		return scaleX;
+	}
+
+	public float getScaleY() {
+		return scaleY;
+	}
+
+	public boolean isVisible() {
+		return isVisible;
 	}
 }

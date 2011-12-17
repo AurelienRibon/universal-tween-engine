@@ -293,6 +293,20 @@ public abstract class BaseTween {
 		return isPooled;
 	}
 
+	/**
+	 * Returns the id of the current iteration. Values are as follows:<br/>
+	 * <ul>
+	 * <li>even numbers mean that an iteration is playing,<br/>
+	 * <li>odd numbers mean that we are between two iterations,<br/>
+	 * <li>-2 means that the initial delay has not ended,<br/>
+	 * <li>-1 means that we are before the first iteration,<br/>
+	 * <li>repeatCount*2 + 1 means that we are after the last iteration
+	 */
+	public int getState() {
+		if (!isInitialized) return -2;
+		return iteration;
+	}
+
 	// -------------------------------------------------------------------------
 	// Protected API
 	// -------------------------------------------------------------------------

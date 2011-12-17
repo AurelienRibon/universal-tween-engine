@@ -36,6 +36,10 @@ public class TweenApplet extends javax.swing.JApplet {
 		wnd.setVisible(true);
 	}*/
 
+	// -------------------------------------------------------------------------
+	// Applet
+	// -------------------------------------------------------------------------
+
 	@Override
 	public void init() {
 		try {
@@ -107,6 +111,10 @@ public class TweenApplet extends javax.swing.JApplet {
 		}
 	}
 
+	// -------------------------------------------------------------------------
+	// Canvas
+	// -------------------------------------------------------------------------
+
 	private class MyCanvas extends DrawingCanvas {
 		private final TweenManager tweenManager = new TweenManager();
 		private final Sprite vialSprite;
@@ -116,9 +124,9 @@ public class TweenApplet extends javax.swing.JApplet {
 			Tween.enablePooling(false);
 			Tween.registerAccessor(Sprite.class, new SpriteAccessor());
 			addMouseListener(mouseAdapter);
+
 			vialSprite = new Sprite("vial.png");
-			vialSprite.setX(100);
-			vialSprite.setY(100);
+			vialSprite.setPosition(100, 100);
 
 			try {
 				BufferedImage bgImage = ImageIO.read(TweenApplet.class.getResource("/aurelienribon/tweenengine/applets/gfx/transparent-dark.png"));
@@ -169,6 +177,10 @@ public class TweenApplet extends javax.swing.JApplet {
 			}
 		};
 	}
+
+	// -------------------------------------------------------------------------
+	// Generated stuff
+	// -------------------------------------------------------------------------
 
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -240,7 +252,7 @@ public class TweenApplet extends javax.swing.JApplet {
         jPanel3.setOpaque(false);
 
         jLabel2.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/aurelienribon/tweenengine/applets/gfx/logo.png"))); // NOI18N
+        jLabel2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/aurelienribon/tweenengine/applets/gfx/logo-tween.png"))); // NOI18N
 
         aurelienribon.utils.swing.GroupBorder groupBorder1 = new aurelienribon.utils.swing.GroupBorder();
         groupBorder1.setTitle("Options");
@@ -362,7 +374,7 @@ public class TweenApplet extends javax.swing.JApplet {
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
                 .addComponent(jLabel2)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 28, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 26, Short.MAX_VALUE)
                 .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -387,7 +399,7 @@ public class TweenApplet extends javax.swing.JApplet {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(canvasWrapper, javax.swing.GroupLayout.DEFAULT_SIZE, 367, Short.MAX_VALUE)
+                    .addComponent(canvasWrapper, javax.swing.GroupLayout.DEFAULT_SIZE, 365, Short.MAX_VALUE)
                     .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
