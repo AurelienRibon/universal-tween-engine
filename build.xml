@@ -8,10 +8,10 @@
 	<property name="version" value="6.0.0" />
 
 	<!-- projects properties -->
-	<property name="prj.api.dir" value="tween-engine-api" />
-	<property name="prj.api.filename" value="tween-engine-api" />
-	<property name="prj.demo.dir" value="tween-engine-demo" />
-	<property name="prj.demo.filename" value="tween-engine-demo" />
+	<property name="api.dir" value="tween-engine-api" />
+	<property name="api.name" value="tween-engine-api" />
+	<property name="tests.dir" value="tween-engine-demo" />
+	<property name="tests.name" value="tween-engine-demo" />
 
 	<!-- ****************************************************************** -->
 	<!-- Build tasks -->
@@ -19,23 +19,23 @@
 	
 	<!-- clean -->	
 	<target name="clean">
-		<delete includeEmptyDirs="true"><fileset dir="${prj.api.dir}" includes="*.jar, bin/, build/, dist/"/></delete>
-		<delete includeEmptyDirs="true"><fileset dir="${prj.demo.dir}" includes="*.jar, bin/, build/, dist/"/></delete>
+		<delete includeEmptyDirs="true"><fileset dir="${api.dir}" includes="*.jar, bin/, build/, dist/"/></delete>
+		<delete includeEmptyDirs="true"><fileset dir="${tests.dir}" includes="*.jar, bin/, build/, dist/"/></delete>
 	</target>
 
 	<!-- init -->
 	<target name="init" depends="clean">
-		<mkdir dir="${prj.api.dir}/bin/" />
-		<mkdir dir="${prj.demo.dir}/bin/" />
+		<mkdir dir="${api.dir}/bin/" />
+		<mkdir dir="${tests.dir}/bin/" />
 	</target>
 
 	<!-- compile -->
 	<target name="compile" depends="init">
-		<javac target="1.6" source="1.6" debug="on" srcdir="${prj.api.dir}/src/" destdir="${prj.api.dir}/bin/" />
-		<javac target="1.6" source="1.6" debug="on" srcdir="${prj.demo.dir}/src/" destdir="${prj.demo.dir}/bin/">
+		<javac target="1.6" source="1.6" debug="on" srcdir="${api.dir}/src/" destdir="${api.dir}/bin/" />
+		<javac target="1.6" source="1.6" debug="on" srcdir="${tests.dir}/src/" destdir="${tests.dir}/bin/">
 			<classpath>
-				<pathelement location="${prj.api.dir}/bin/" />
-				<fileset file="${prj.demo.dir}/libs/*.jar" />
+				<pathelement location="${api.dir}/bin/" />
+				<fileset file="${tests.dir}/libs/*.jar" />
 			</classpath>
 		</javac>	
 	</target>
@@ -43,35 +43,32 @@
 	<!-- package -->
 	<target name="package" depends="compile">
 		<!-- api -->
-		<jar destfile="${prj.api.dir}/${prj.api.filename}.jar" basedir="${prj.api.dir}/bin" />
-		<jar destfile="${prj.api.dir}/${prj.api.filename}-sources.jar" basedir="${prj.api.dir}/src" />
+		<jar destfile="${api.dir}/${api.name}.jar" basedir="${api.dir}/bin" />
+		<jar destfile="${api.dir}/${api.name}-sources.jar" basedir="${api.dir}/src" />
 		
-		<!-- demo -->
-		<copy file="${prj.api.dir}/${prj.api.filename}.jar" todir="${prj.demo.dir}/libs" />
-		<pathconvert property="prj.demo.classpath" pathsep=" ">
-			<path><fileset dir="${prj.demo.dir}" includes="libs/**/*.jar" /></path>
-			<chainedmapper>
-				<flattenmapper />
-				<globmapper from="*" to="libs/*" />
-			</chainedmapper>
+		<!-- tests -->
+		<copy file="${api.dir}/${api.name}.jar" todir="${tests.dir}/libs" />
+		<pathconvert property="tests.classpath" pathsep=" ">
+			<path><fileset dir="${tests.dir}" includes="libs/**/*.jar" /></path>
+			<chainedmapper><flattenmapper /><globmapper from="*" to="libs/*" /></chainedmapper>
 		</pathconvert>
-		<delete file="${prj.demo.dir}/libs/${prj.api.filename}.jar"/>
-		<jar destfile="${prj.demo.dir}/${prj.demo.filename}.jar" basedir="${prj.demo.dir}/bin">
+		<delete file="${tests.dir}/libs/${api.name}.jar"/>
+		<jar destfile="${tests.dir}/${tests.name}.jar" basedir="${tests.dir}/bin">
 			<manifest>
 				<attribute name="Main-Class" value="Main"/>
-				<attribute name="Class-Path" value="${prj.demo.classpath}" />
+				<attribute name="Class-Path" value="${tests.classpath}" />
 			</manifest>
 		</jar>
 	</target>
 
 	<!-- zip -->
 	<target name="zip" depends="package">
-		<zip destfile="${prj.api.filename}-${version}.zip">
-			<fileset dir="${prj.api.dir}" includes="*.jar" />
+		<zip destfile="${api.name}-${version}.zip">
+			<fileset dir="${api.dir}" includes="*.jar" />
 		</zip>
-		<zip destfile="${prj.demo.filename}-${version}.zip">
-			<fileset dir="${prj.demo.dir}" includes="*.jar, libs/, data/" />
-			<zipfileset file="${prj.api.dir}/${prj.api.filename}.jar" fullpath="libs/${prj.api.filename}.jar"/>
+		<zip destfile="${tests.name}-${version}.zip">
+			<fileset dir="${tests.dir}" includes="*.jar, libs/, data/" />
+			<zipfileset file="${api.dir}/${api.name}.jar" fullpath="libs/${api.name}.jar"/>
 		</zip>
 	</target>
 	
