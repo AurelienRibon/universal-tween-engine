@@ -10,8 +10,8 @@
 	<!-- projects properties -->
 	<property name="api.dir" value="tween-engine-api" />
 	<property name="api.name" value="tween-engine-api" />
-	<property name="tests.dir" value="tween-engine-demo" />
-	<property name="tests.name" value="tween-engine-demo" />
+	<property name="tests.dir" value="tween-engine-tests" />
+	<property name="tests.name" value="tween-engine-tests" />
 
 	<!-- ****************************************************************** -->
 	<!-- Build tasks -->
