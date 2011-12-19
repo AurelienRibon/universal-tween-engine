@@ -62,6 +62,7 @@ public abstract class BaseTween {
 	protected boolean isStarted; // true when the object is started
 	protected boolean isInitialized; // true after the delay
 	protected boolean isFinished; // true when all repetitions are done or the object has been killed
+	protected boolean isPaused;
 
 	// Callbacks
 	private List<TweenCallback> beginCallbacks;
@@ -74,6 +75,9 @@ public abstract class BaseTween {
 
 	// Misc
 	private Object userData;
+	
+	// Package access
+	boolean isRemovable;
 
 	// -------------------------------------------------------------------------
 
@@ -84,7 +88,7 @@ public abstract class BaseTween {
 		iteration = repeatCnt = 0;
 		
 		delayMillis = durationMillis = repeatDelayMillis = currentMillis = 0;
-		isStarted = isInitialized = isFinished = false;
+		isStarted = isInitialized = isFinished = isPaused = false;
 
 		if (beginCallbacks != null) beginCallbacks.clear();
 		if (startCallbacks != null) startCallbacks.clear();
@@ -95,6 +99,8 @@ public abstract class BaseTween {
 		if (backCompleteCallbacks != null) backCompleteCallbacks.clear();
 
 		userData = null;
+
+		isRemovable = true;
 	}
 
 	// -------------------------------------------------------------------------
@@ -107,6 +113,20 @@ public abstract class BaseTween {
 	 */
 	public void kill() {
 		isFinished = true;
+	}
+
+	/**
+	 * Pauses the tween or timeline. Further update calls won't have any effect.
+	 */
+	public void pause() {
+		isPaused = true;
+	}
+
+	/**
+	 * Resumes the tween or timeline. Has no effect is it was no already paused.
+	 */
+	public void resume() {
+		isPaused = false;
 	}
 
 	/**
@@ -260,6 +280,20 @@ public abstract class BaseTween {
 	}
 
 	/**
+	 * Returns the id of the current iteration. Values are as follows:<br/>
+	 * <ul>
+	 * <li>even numbers mean that an iteration is playing,<br/>
+	 * <li>odd numbers mean that we are between two iterations,<br/>
+	 * <li>-2 means that the initial delay has not ended,<br/>
+	 * <li>-1 means that we are before the first iteration,<br/>
+	 * <li>repeatCount*2 + 1 means that we are after the last iteration
+	 */
+	public int getState() {
+		if (!isInitialized) return -2;
+		return iteration;
+	}
+
+	/**
 	 * Returns true if the tween or timeline has been started.
 	 */
 	public boolean isStarted() {
@@ -294,17 +328,10 @@ public abstract class BaseTween {
 	}
 
 	/**
-	 * Returns the id of the current iteration. Values are as follows:<br/>
-	 * <ul>
-	 * <li>even numbers mean that an iteration is playing,<br/>
-	 * <li>odd numbers mean that we are between two iterations,<br/>
-	 * <li>-2 means that the initial delay has not ended,<br/>
-	 * <li>-1 means that we are before the first iteration,<br/>
-	 * <li>repeatCount*2 + 1 means that we are after the last iteration
+	 * Returns true if the tween or timeline is currently paused.
 	 */
-	public int getState() {
-		if (!isInitialized) return -2;
-		return iteration;
+	public boolean isPaused() {
+		return isPaused;
 	}
 
 	// -------------------------------------------------------------------------
@@ -360,7 +387,7 @@ public abstract class BaseTween {
 	 * last call.
 	 */
 	public void update(int deltaMillis) {
-		if (!isStarted) return;
+		if (!isStarted || isPaused) return;
 
 		int lastIteration = iteration;
 		currentMillis += deltaMillis;

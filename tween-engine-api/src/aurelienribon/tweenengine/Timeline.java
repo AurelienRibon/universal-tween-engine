@@ -254,11 +254,13 @@ public final class Timeline extends BaseTween {
 
 	@Override
 	public void free() {
-		for (int i=0, n=children.size(); i<n; i++) {
-			BaseTween obj = children.get(i);
-			obj.free();
+		if (isPooled) {
+			for (int i=0, n=children.size(); i<n; i++) {
+				BaseTween obj = children.get(i);
+				obj.free();
+			}
+			pool.free(this);
 		}
-		if (isPooled) pool.free(this);
 	}
 
 	// -------------------------------------------------------------------------

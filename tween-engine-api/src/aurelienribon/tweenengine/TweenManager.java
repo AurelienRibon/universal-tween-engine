@@ -17,6 +17,7 @@ import java.util.ArrayList;
  */
 public class TweenManager {
 	final ArrayList<BaseTween> objects = new ArrayList<BaseTween>(20);
+	private boolean isPaused = false;
 
 	/**
 	 * Adds a tween to the manager and starts or restarts it.
@@ -36,6 +37,18 @@ public class TweenManager {
 		if (!objects.contains(timeline)) objects.add(timeline);
 		timeline.start();
 		return this;
+	}
+
+	/**
+	 * Disables or enables the "auto remove" mode of the tween manager for a
+	 * particular tween or timeline. This mode is activated by default. The
+	 * interest of desactivating it is to prevent some tweens or timelines from
+	 * being automatically removed from the manager once they are finished.
+	 * Therefore, if you update the manager backwards, the tweens or timelines
+	 * will be played again, even if they were finished.
+	 */
+	public void setAutoRemove(BaseTween object, boolean value) {
+		object.isRemovable = value;
 	}
 
 	/**
@@ -112,16 +125,32 @@ public class TweenManager {
 	}
 
 	/**
+	 * Pauses the manager. Further update calls won't have any effect.
+	 */
+	public void pause() {
+		isPaused = true;
+	}
+
+	/**
+	 * Resumes the manager. Has no effect is it was no already paused.
+	 */
+	public void resume() {
+		isPaused = false;
+	}
+
+	/**
 	 * Updates every tweens with a delta time. Handles the tween life-cycles
 	 * automatically. If a tween is finished, it will be removed from the
 	 * manager. Slow motion, fast motion and backwards play can be easily
 	 * achieved by tweaking the deltaMillis given as parameter.
 	 */
 	public void update(int deltaMillis) {
+		if (isPaused) return;
+
 		if (deltaMillis >= 0) {
 			for (int i=0; i<objects.size(); i++) {
 				BaseTween obj = objects.get(i);
-				if (obj.isFinished()) {
+				if (obj.isFinished() && obj.isRemovable) {
 					objects.remove(i);
 					i -= 1;
 					obj.free();
@@ -132,7 +161,7 @@ public class TweenManager {
 		} else {
 			for (int i=objects.size()-1; i>=0; i--) {
 				BaseTween obj = objects.get(i);
-				if (obj.isFinished()) {
+				if (obj.isFinished() && obj.isRemovable) {
 					objects.remove(i);
 					obj.free();
 				} else {
