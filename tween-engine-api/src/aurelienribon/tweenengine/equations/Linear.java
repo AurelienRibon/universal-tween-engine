@@ -3,14 +3,14 @@ package aurelienribon.tweenengine.equations;
 import aurelienribon.tweenengine.TweenEquation;
 
 /**
- * Easing equations based on Robert Penner's work:
+ * Easing equation based on Robert Penner's work:
  * http://robertpenner.com/easing/
  * @author Aurelien Ribon | http://www.aurelienribon.com/
  */
-public class Linear {
-	public static final TweenEquation INOUT = new TweenEquation() {
+public abstract class Linear extends TweenEquation {
+	public static final Linear INOUT = new Linear() {
 		@Override
-		public final float compute(float t, float b, float c, float d) {
+		public float compute(float t, float b, float c, float d) {
 			return c * t/d + b;
 		}
 

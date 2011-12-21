@@ -3,15 +3,14 @@ package aurelienribon.tweenengine.equations;
 import aurelienribon.tweenengine.TweenEquation;
 
 /**
- * Easing equations based on Robert Penner's work:
+ * Easing equation based on Robert Penner's work:
  * http://robertpenner.com/easing/
  * @author Aurelien Ribon | http://www.aurelienribon.com/
  */
-public class Back {
-	public static final TweenEquation IN = new TweenEquation() {
+public abstract class Back extends TweenEquation {
+	public static final Back IN = new Back() {
 		@Override
 		public final float compute(float t, float b, float c, float d) {
-			float s = 1.70158f;
 			return c*(t/=d)*t*((s+1)*t - s) + b;
 		}
 
@@ -21,10 +20,9 @@ public class Back {
 		}
 	};
 
-	public static final TweenEquation OUT = new TweenEquation() {
+	public static final Back OUT = new Back() {
 		@Override
 		public final float compute(float t, float b, float c, float d) {
-			float s = 1.70158f;
 			return c*((t=t/d-1)*t*((s+1)*t + s) + 1) + b;
 		}
 
@@ -34,10 +32,9 @@ public class Back {
 		}
 	};
 
-	public static final TweenEquation INOUT = new TweenEquation() {
+	public static final Back INOUT = new Back() {
 		@Override
 		public final float compute(float t, float b, float c, float d) {
-			float s = 1.70158f;
 			if ((t/=d/2) < 1) return c/2*(t*t*(((s*=(1.525))+1)*t - s)) + b;
 			return c/2*((t-=2)*t*(((s*=(1.525))+1)*t + s) + 2) + b;
 		}
@@ -47,4 +44,13 @@ public class Back {
 			return "Back.INOUT";
 		}
 	};
+
+	// -------------------------------------------------------------------------
+
+	protected float s = 1.70158f;
+
+	public Back s(float s) {
+		this.s = s;
+		return this;
+	}
 }

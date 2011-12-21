@@ -3,12 +3,12 @@ package aurelienribon.tweenengine.equations;
 import aurelienribon.tweenengine.TweenEquation;
 
 /**
- * Easing equations based on Robert Penner's work:
+ * Easing equation based on Robert Penner's work:
  * http://robertpenner.com/easing/
  * @author Aurelien Ribon | http://www.aurelienribon.com/
  */
-public class Expo {
-	public static final TweenEquation IN = new TweenEquation() {
+public abstract class Expo extends TweenEquation {
+	public static final Expo IN = new Expo() {
 		@Override
 		public final float compute(float t, float b, float c, float d) {
 			return (t==0) ? b : c * (float)Math.pow(2, 10 * (t/d - 1)) + b;
@@ -20,7 +20,7 @@ public class Expo {
 		}
 	};
 
-	public static final TweenEquation OUT = new TweenEquation() {
+	public static final Expo OUT = new Expo() {
 		@Override
 		public final float compute(float t, float b, float c, float d) {
 			return (t==d) ? b+c : c * (-(float)Math.pow(2, -10 * t/d) + 1) + b;
@@ -32,7 +32,7 @@ public class Expo {
 		}
 	};
 
-	public static final TweenEquation INOUT = new TweenEquation() {
+	public static final Expo INOUT = new Expo() {
 		@Override
 		public final float compute(float t, float b, float c, float d) {
 			if (t==0) return b;
