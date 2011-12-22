@@ -794,6 +794,11 @@ public final class Tween extends BaseTween {
 	protected void computeOverride(int iteration, int lastIteration, int deltaMillis) {
 		if (target == null || equation == null) return;
 
+		if (durationMillis == 0) {
+			accessor.setValues(target, type, isFrom ? startValues : targetValues);
+			return;
+		}
+
 		for (int i=0; i<combinedTweenCnt; i++) {
 			float startValue = !isFrom ? startValues[i] : targetValues[i];
 			float deltaValue = (targetValues[i] - startValues[i]) * (!isFrom ? +1 : -1);
