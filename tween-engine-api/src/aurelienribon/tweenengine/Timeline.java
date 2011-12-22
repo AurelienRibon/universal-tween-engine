@@ -287,9 +287,16 @@ public final class Timeline extends BaseTween {
 			millis = isIterationYoyo(iteration) ? -deltaMillis : deltaMillis;
 		}
 
-		for (int i=0; i<children.size(); i++) {
-			BaseTween obj = children.get(i);
-			obj.update(millis);
+		if (deltaMillis >= 0) {
+			for (int i=0, n=children.size(); i<n; i++) {
+				BaseTween obj = children.get(i);
+				obj.update(millis);
+			}
+		} else {
+			for (int i=children.size()-1; i>=0; i--) {
+				BaseTween obj = children.get(i);
+				obj.update(millis);
+			}
 		}
 	}
 
