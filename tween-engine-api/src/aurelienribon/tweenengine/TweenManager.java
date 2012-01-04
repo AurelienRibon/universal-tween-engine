@@ -16,7 +16,50 @@ import java.util.ArrayList;
  * @author Aurelien Ribon | http://www.aurelienribon.com/
  */
 public class TweenManager {
-	final ArrayList<BaseTween> objects = new ArrayList<BaseTween>(20);
+	// -------------------------------------------------------------------------
+	// Static API
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Disables or enables the "auto remove" mode of any tween manager for a
+	 * particular tween or timeline. This mode is activated by default. The
+	 * interest of desactivating it is to prevent some tweens or timelines from
+	 * being automatically removed from a manager once they are finished.
+	 * Therefore, if you update a manager backwards, the tweens or timelines
+	 * will be played again, even if they were finished.
+	 */
+	public static void setAutoRemove(BaseTween object, boolean value) {
+		object.isAutoRemoveEnabled = value;
+	}
+
+	/**
+	 * Disables or enables the "auto free" mode of any tween manager for a
+	 * particular tween or timeline. This mode is activated by default.
+	 * Commonly, tweens and timelines are automatically freed and removed
+	 * from the manager once they are finished. If "auto free" is disabled, a
+	 * tween or timeline will be removed from the manager when finished, but not
+	 * freed, allowing you to restart it later even if object pooling is
+	 * enabled.
+	 */
+	public static void setAutoFree(BaseTween object, boolean value) {
+		object.isAutoRemoveEnabled = value;
+	}
+
+	/**
+	 * Disables or enables the "auto start" mode of any tween manager for a
+	 * particular tween or timeline. This mode is activated by default. If it
+	 * is not enabled, add a tween or timeline to any manager won't start it
+	 * automatically, and you'll need to call "start()" manually on your object.
+	 */
+	public static void setAutoStart(BaseTween object, boolean value) {
+		object.isAutoStartEnabled = value;
+	}
+
+	// -------------------------------------------------------------------------
+	// Public API
+	// -------------------------------------------------------------------------
+
+	private final ArrayList<BaseTween> objects = new ArrayList<BaseTween>(20);
 	private boolean isPaused = false;
 
 	/**
@@ -25,7 +68,7 @@ public class TweenManager {
 	 */
 	public TweenManager add(Tween tween) {
 		if (!objects.contains(tween)) objects.add(tween);
-		tween.start();
+		if (tween.isAutoStartEnabled) tween.start();
 		return this;
 	}
 
@@ -35,20 +78,8 @@ public class TweenManager {
 	 */
 	public TweenManager add(Timeline timeline) {
 		if (!objects.contains(timeline)) objects.add(timeline);
-		timeline.start();
+		if (timeline.isAutoStartEnabled) timeline.start();
 		return this;
-	}
-
-	/**
-	 * Disables or enables the "auto remove" mode of the tween manager for a
-	 * particular tween or timeline. This mode is activated by default. The
-	 * interest of desactivating it is to prevent some tweens or timelines from
-	 * being automatically removed from the manager once they are finished.
-	 * Therefore, if you update the manager backwards, the tweens or timelines
-	 * will be played again, even if they were finished.
-	 */
-	public void setAutoRemove(BaseTween object, boolean value) {
-		object.isRemovable = value;
 	}
 
 	/**
@@ -150,10 +181,10 @@ public class TweenManager {
 		if (deltaMillis >= 0) {
 			for (int i=0; i<objects.size(); i++) {
 				BaseTween obj = objects.get(i);
-				if (obj.isFinished() && obj.isRemovable) {
+				if (obj.isFinished() && obj.isAutoRemoveEnabled) {
 					objects.remove(i);
 					i -= 1;
-					obj.free();
+					if (obj.isAutoFreeEnabled) obj.free();
 				} else {
 					obj.update(deltaMillis);
 				}
@@ -161,9 +192,9 @@ public class TweenManager {
 		} else {
 			for (int i=objects.size()-1; i>=0; i--) {
 				BaseTween obj = objects.get(i);
-				if (obj.isFinished() && obj.isRemovable) {
+				if (obj.isFinished() && obj.isAutoRemoveEnabled) {
 					objects.remove(i);
-					obj.free();
+					if (obj.isAutoFreeEnabled) obj.free();
 				} else {
 					obj.update(deltaMillis);
 				}

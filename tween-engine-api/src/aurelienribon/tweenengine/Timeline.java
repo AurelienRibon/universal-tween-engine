@@ -2,6 +2,7 @@ package aurelienribon.tweenengine;
 
 import aurelienribon.tweenengine.TweenCallback.EventType;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -228,6 +229,15 @@ public final class Timeline extends BaseTween {
 		return this;
 	}
 
+	/**
+	 * Gets a list of the timeline children. If the timeline is started, the
+	 * list will be immutable.
+	 */
+	public List<BaseTween> getChildren() {
+		if (isStarted) return Collections.unmodifiableList(current.children);
+		else return current.children;
+	}
+
 	@Override
 	public Timeline repeat(int count, int delayMillis) {
 		super.repeat(count, delayMillis);
@@ -254,13 +264,12 @@ public final class Timeline extends BaseTween {
 
 	@Override
 	public void free() {
-		if (isPooled) {
-			for (int i=0, n=children.size(); i<n; i++) {
-				BaseTween obj = children.get(i);
-				obj.free();
-			}
-			pool.free(this);
+		for (int i=children.size()-1; i>=0; i--) {
+			BaseTween obj = children.remove(i);
+			obj.free();
 		}
+
+		if (isPooled) pool.free(this);
 	}
 
 	// -------------------------------------------------------------------------

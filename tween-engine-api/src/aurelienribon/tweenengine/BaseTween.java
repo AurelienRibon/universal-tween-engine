@@ -77,7 +77,9 @@ public abstract class BaseTween {
 	private Object userData;
 	
 	// Package access
-	boolean isRemovable;
+	boolean isAutoRemoveEnabled;
+	boolean isAutoFreeEnabled;
+	boolean isAutoStartEnabled;
 
 	// -------------------------------------------------------------------------
 
@@ -100,7 +102,7 @@ public abstract class BaseTween {
 
 		userData = null;
 
-		isRemovable = true;
+		isAutoRemoveEnabled = isAutoFreeEnabled = isAutoStartEnabled = true;
 	}
 
 	// -------------------------------------------------------------------------

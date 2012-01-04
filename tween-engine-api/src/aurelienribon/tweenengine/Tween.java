@@ -401,8 +401,8 @@ public final class Tween extends BaseTween {
 			if (accessor == null) accessor = (TweenAccessor) target;
 
 			combinedTweenCnt = accessor.getValues(target, tweenType, buffer);
-			if (combinedTweenCnt < 1 || combinedTweenCnt > MAX_COMBINED_TWEENS)
-				throw new RuntimeException("Min combined tweens = 1, max = " + MAX_COMBINED_TWEENS);
+			if (combinedTweenCnt < 0 || combinedTweenCnt > MAX_COMBINED_TWEENS)
+				throw new RuntimeException("Min combined tweens = 0, max = " + MAX_COMBINED_TWEENS);
 		}
 	}
 
