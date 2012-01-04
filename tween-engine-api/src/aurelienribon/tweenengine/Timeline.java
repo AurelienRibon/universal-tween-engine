@@ -220,11 +220,12 @@ public final class Timeline extends BaseTween {
 	}
 
 	/**
-	 * Start or restarts the timeline managed. Its life-cycle will be handled
-	 * for you. Relax and enjoy the animation.
+	 * Convenience method to add a timeline to a manager. Its life-cycle will be
+	 * handled for you. By default, the timeline will be automatically started.
+	 * Relax and enjoy the animation.
 	 * @return The current timeline, for chaining instructions.
 	 */
-	public Timeline start(TweenManager manager) {
+	public Timeline addTo(TweenManager manager) {
 		manager.add(this);
 		return this;
 	}

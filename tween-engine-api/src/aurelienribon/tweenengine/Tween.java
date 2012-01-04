@@ -388,17 +388,7 @@ public final class Tween extends BaseTween {
 		this.durationMillis = durationMillis;
 
 		if (target != null) {
-			if (!registeredAccessors.containsKey(target.getClass()) && !(target instanceof TweenAccessor)) {
-				TweenAccessor parentAccessor = getParentAccessor(target.getClass());
-				if (parentAccessor != null) {
-					registerAccessor(target.getClass(), parentAccessor);
-				} else {
-					throw new RuntimeException("No TweenAccessor was found for the target class");
-				}
-			}
-
-			accessor = registeredAccessors.get(target.getClass());
-			if (accessor == null) accessor = (TweenAccessor) target;
+			accessor = findAccessor(target);
 
 			combinedTweenCnt = accessor.getValues(target, tweenType, buffer);
 			if (combinedTweenCnt < 0 || combinedTweenCnt > MAX_COMBINED_TWEENS)
@@ -406,11 +396,18 @@ public final class Tween extends BaseTween {
 		}
 	}
 
-	private TweenAccessor getParentAccessor(Class clazz) {
-		Class parentClass = clazz.getSuperclass();
+	private TweenAccessor findAccessor(Object target) {
+		Class targetClass = target.getClass();
+
+		if (target instanceof TweenAccessor) return (TweenAccessor) target;
+		if (registeredAccessors.containsKey(targetClass)) return registeredAccessors.get(targetClass);
+
+		Class parentClass = targetClass.getSuperclass();
 		while (parentClass != null && !registeredAccessors.containsKey(parentClass))
 			parentClass = parentClass.getSuperclass();
-		return parentClass != null ? registeredAccessors.get(parentClass) : null;
+		if (parentClass != null) return registeredAccessors.get(parentClass);
+
+		return null;
 	}
 
 	// -------------------------------------------------------------------------
@@ -424,17 +421,19 @@ public final class Tween extends BaseTween {
 	 * @return The current tween, for chaining instructions.
 	 */
 	public Tween start() {
+		if (accessor == null) throw new RuntimeException("No TweenAccessor was found for the target");
 		currentMillis = 0;
 		isStarted = true;
 		return this;
 	}
 
 	/**
-	 * Start or restarts the tween managed. Its life-cycle will be handled
-	 * for you. Relax and enjoy the animation.
+	 * Convenience method to add a tween to a manager. Its life-cycle will be
+	 * handled for you. By default, the tween will be automatically started.
+	 * Relax and enjoy the animation.
 	 * @return The current tween, for chaining instructions.
 	 */
-	public Tween start(TweenManager manager) {
+	public Tween addTo(TweenManager manager) {
 		manager.add(this);
 		return this;
 	}
@@ -640,98 +639,6 @@ public final class Tween extends BaseTween {
 			throw new RuntimeException("You cannot set more than " + MAX_COMBINED_TWEENS + " targets.");
 		System.arraycopy(targetValues, 0, this.targetValues, 0, targetValues.length);
 		isRelative = true;
-		return this;
-	}
-
-	/**
-	 * Sets the target value(s) of the interpolation as <b>the current value(s),
-	 * the one(s) present when this call is made</b>.
-	 * <br/><br/>
-	 * To sum-up:<br/>
-	 * - start value: value at start time, after delay<br/>
-	 * - end value: value at current time
-	 * @return The current tween, for chaining instructions.
-	 */
-	public Tween targetCurrent() {
-		if (isStarted) throw new RuntimeException("You can't change the target of a tween once it is started");
-		accessor.getValues(target, type, targetValues);
-		return this;
-	}
-
-	/**
-	 * Sets the target value of the interpolation, relatively to the <b>the
-	 * current value, the one present when this call is made</b>.
-	 * <br/><br/>
-	 * To sum-up:<br/>
-	 * - start value: value at start time, after delay<br/>
-	 * - end value: param + value at current time
-	 * @param targetValue The relative target value of the interpolation.
-	 * @return The current tween, for chaining instructions.
-	 */
-	public Tween targetCurrentRelative(float targetValue) {
-		if (isStarted) throw new RuntimeException("You can't change the target of a tween once it is started");
-		accessor.getValues(target, type, targetValues);
-		targetValues[0] += targetValue;
-		return this;
-	}
-
-	/**
-	 * Sets the target values of the interpolation, relatively to the <b>the
-	 * current values, the ones present when this call is made</b>.
-	 * <br/><br/>
-	 * To sum-up:<br/>
-	 * - start values: values at start time, after delay<br/>
-	 * - end values: params + values at current time
-	 * @param targetValue1 The 1st relative target value of the interpolation.
-	 * @param targetValue2 The 2nd relative target value of the interpolation.
-	 * @return The current tween, for chaining instructions.
-	 */
-	public Tween targetCurrentRelative(float targetValue1, float targetValue2) {
-		if (isStarted) throw new RuntimeException("You can't change the target of a tween once it is started");
-		accessor.getValues(target, type, targetValues);
-		targetValues[0] += targetValue1;
-		targetValues[1] += targetValue2;
-		return this;
-	}
-
-	/**
-	 * Sets the target values of the interpolation, relatively to the <b>the
-	 * current values, the ones present when this call is made</b>.
-	 * <br/><br/>
-	 * To sum-up:<br/>
-	 * - start values: values at start time, after delay<br/>
-	 * - end values: params + values at current time
-	 * @param targetValue1 The 1st relative target value of the interpolation.
-	 * @param targetValue2 The 2nd relative target value of the interpolation.
-	 * @param targetValue3 The 3rd relative target value of the interpolation.
-	 * @return The current tween, for chaining instructions.
-	 */
-	public Tween targetCurrentRelative(float targetValue1, float targetValue2, float targetValue3) {
-		if (isStarted) throw new RuntimeException("You can't change the target of a tween once it is started");
-		accessor.getValues(target, type, targetValues);
-		targetValues[0] += targetValue1;
-		targetValues[1] += targetValue2;
-		targetValues[2] += targetValue3;
-		return this;
-	}
-
-	/**
-	 * Sets the target values of the interpolation, relatively to the <b>the
-	 * current values, the ones present when this call is made</b>.
-	 * <br/><br/>
-	 * To sum-up:<br/>
-	 * - start values: values at start time, after delay<br/>
-	 * - end values: params + values at current time
-	 * @param targetValues The relative target values of the interpolation.
-	 * @return The current tween, for chaining instructions.
-	 */
-	public Tween targetCurrentRelative(float... targetValues) {
-		if (isStarted) throw new RuntimeException("You can't change the target of a tween once it is started");
-		if (targetValues.length > MAX_COMBINED_TWEENS)
-			throw new RuntimeException("You cannot set more than " + MAX_COMBINED_TWEENS + " targets.");
-		accessor.getValues(target, type, targetValues);
-		for (int i=0, n=targetValues.length; i<n; i++)
-			this.targetValues[i] += targetValues[i];
 		return this;
 	}
 
