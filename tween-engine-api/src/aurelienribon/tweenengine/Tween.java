@@ -389,7 +389,6 @@ public final class Tween extends BaseTween {
 
 		if (target != null) {
 			accessor = findAccessor(target);
-
 			combinedTweenCnt = accessor.getValues(target, tweenType, buffer);
 			if (combinedTweenCnt < 0 || combinedTweenCnt > MAX_COMBINED_TWEENS)
 				throw new RuntimeException("Min combined tweens = 0, max = " + MAX_COMBINED_TWEENS);
@@ -415,30 +414,6 @@ public final class Tween extends BaseTween {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Starts or restarts the tween unmanaged. You will need to take care of
-	 * its life-cycle. If you want the tween to be managed for you, use a
-	 * {@link TweenManager}.
-	 * @return The current tween, for chaining instructions.
-	 */
-	public Tween start() {
-		if (accessor == null) throw new RuntimeException("No TweenAccessor was found for the target");
-		currentMillis = 0;
-		isStarted = true;
-		return this;
-	}
-
-	/**
-	 * Convenience method to add a tween to a manager. Its life-cycle will be
-	 * handled for you. By default, the tween will be automatically started.
-	 * Relax and enjoy the animation.
-	 * @return The current tween, for chaining instructions.
-	 */
-	public Tween addTo(TweenManager manager) {
-		manager.add(this);
-		return this;
-	}
-
-	/**
 	 * Sets the easing equation of the tween. Existing equations are located in
 	 * <i>aurelienribon.tweenengine.equations</i> package, but you can of course
 	 * implement your own, see {@link TweenEquation}.
@@ -459,35 +434,6 @@ public final class Tween extends BaseTween {
 		if (isStarted) throw new RuntimeException("You can't delay a tween once it is started");
 		delayMillis += millis;
 		return this;
-	}
-
-	@Override
-	public Tween repeat(int count, int delayMillis) {
-		super.repeat(count, delayMillis);
-		return this;
-	}
-
-	@Override
-	public Tween repeatYoyo(int count, int delayMillis) {
-		super.repeatYoyo(count, delayMillis);
-		return this;
-	}
-	
-	@Override
-	public Tween addCallback(EventType callbackType, TweenCallback callback) {
-		super.addCallback(callbackType, callback);
-		return this;
-	}
-	
-	@Override
-	public Tween setUserData(Object data) {
-		super.setUserData(data);
-		return this;
-	}
-
-	@Override
-	public void free() {
-		if (isPooled) pool.free(this);
 	}
 
 	/**
@@ -640,6 +586,49 @@ public final class Tween extends BaseTween {
 		System.arraycopy(targetValues, 0, this.targetValues, 0, targetValues.length);
 		isRelative = true;
 		return this;
+	}
+
+	@Override
+	public Tween start() {
+		if (target != null && accessor == null) throw new RuntimeException("No TweenAccessor was found for the target");
+		currentMillis = 0;
+		isStarted = true;
+		return this;
+	}
+
+	@Override
+	public Tween start(TweenManager manager) {
+		manager.add(this);
+		return this;
+	}
+
+	@Override
+	public Tween repeat(int count, int delayMillis) {
+		super.repeat(count, delayMillis);
+		return this;
+	}
+
+	@Override
+	public Tween repeatYoyo(int count, int delayMillis) {
+		super.repeatYoyo(count, delayMillis);
+		return this;
+	}
+
+	@Override
+	public Tween addCallback(EventType callbackType, TweenCallback callback) {
+		super.addCallback(callbackType, callback);
+		return this;
+	}
+
+	@Override
+	public Tween setUserData(Object data) {
+		super.setUserData(data);
+		return this;
+	}
+
+	@Override
+	public void free() {
+		if (isPooled) pool.free(this);
 	}
 
 	// -------------------------------------------------------------------------

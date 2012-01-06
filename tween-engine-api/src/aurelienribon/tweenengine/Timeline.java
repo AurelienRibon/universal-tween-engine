@@ -208,35 +208,25 @@ public final class Timeline extends BaseTween {
 	}
 
 	/**
-	 * Starts or restarts the timeline unmanaged. You will need to take care of
-	 * its life-cycle. If you want the timeline to be managed for you, use a
-	 * {@link TweenManager}.
-	 * @return The current timeline, for chaining instructions.
-	 */
-	public Timeline start() {
-		if (current != this) throw new RuntimeException("You forgot to call a few 'end()' statements before calling start()");
-		sequence(this);
-		return this;
-	}
-
-	/**
-	 * Convenience method to add a timeline to a manager. Its life-cycle will be
-	 * handled for you. By default, the timeline will be automatically started.
-	 * Relax and enjoy the animation.
-	 * @return The current timeline, for chaining instructions.
-	 */
-	public Timeline addTo(TweenManager manager) {
-		manager.add(this);
-		return this;
-	}
-
-	/**
 	 * Gets a list of the timeline children. If the timeline is started, the
 	 * list will be immutable.
 	 */
 	public List<BaseTween> getChildren() {
 		if (isStarted) return Collections.unmodifiableList(current.children);
 		else return current.children;
+	}
+
+	@Override
+	public Timeline start() {
+		if (current != this) throw new RuntimeException("You forgot to call a few 'end()' statements before calling start()");
+		sequence(this);
+		return this;
+	}
+
+	@Override
+	public Timeline start(TweenManager manager) {
+		manager.add(this);
+		return this;
 	}
 
 	@Override

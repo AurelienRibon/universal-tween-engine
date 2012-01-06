@@ -25,6 +25,24 @@ public abstract class BaseTween {
 	// -------------------------------------------------------------------------
 
 	/**
+	 * Starts or restarts the object unmanaged. You will need to take care of
+	 * its life-cycle. If you want the tween to be managed for you, use a
+	 * {@link TweenManager}.
+	 * @return The current object, for chaining instructions.
+	 */
+	public abstract BaseTween start();
+
+	/**
+	 * Convenience method to add an object to a manager. Its life-cycle will be
+	 * handled for you. Relax and enjoy the animation. By default, the object
+	 * will be automatically started, but it may no be the case if you called
+	 * {@link TweenManager.setAutoStart} with a false param on your object
+	 * before.
+	 * @return The current object, for chaining instructions.
+	 */
+	public abstract BaseTween start(TweenManager manager);
+
+	/**
 	 * If you want to manually manage your tweens and timelines (without using a
 	 * TweenManager), and you enabled object pooling, then you need to call
 	 * this method on your tweens and timelines once they are finished (see
@@ -373,7 +391,7 @@ public abstract class BaseTween {
 
 		if (callbacks != null && !callbacks.isEmpty())
 			for (int i=0, n=callbacks.size(); i<n; i++)
-				callbacks.get(i).onEvent(type, null);
+				callbacks.get(i).onEvent(type, this);
 	}
 
 	// -------------------------------------------------------------------------
