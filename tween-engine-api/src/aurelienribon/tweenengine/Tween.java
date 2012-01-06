@@ -389,21 +389,24 @@ public final class Tween extends BaseTween {
 
 		if (target != null) {
 			accessor = findAccessor(target);
-			combinedTweenCnt = accessor.getValues(target, tweenType, buffer);
-			if (combinedTweenCnt < 0 || combinedTweenCnt > MAX_COMBINED_TWEENS)
-				throw new RuntimeException("Min combined tweens = 0, max = " + MAX_COMBINED_TWEENS);
+			if (accessor != null) {
+				combinedTweenCnt = accessor.getValues(target, tweenType, buffer);
+				if (combinedTweenCnt < 0 || combinedTweenCnt > MAX_COMBINED_TWEENS)
+					throw new RuntimeException("Min combined tweens = 0, max = " + MAX_COMBINED_TWEENS);
+			}
 		}
 	}
 
 	private TweenAccessor findAccessor(Object target) {
 		Class targetClass = target.getClass();
 
-		if (target instanceof TweenAccessor) return (TweenAccessor) target;
 		if (registeredAccessors.containsKey(targetClass)) return registeredAccessors.get(targetClass);
+		if (target instanceof TweenAccessor) return (TweenAccessor) target;
 
 		Class parentClass = targetClass.getSuperclass();
 		while (parentClass != null && !registeredAccessors.containsKey(parentClass))
 			parentClass = parentClass.getSuperclass();
+
 		if (parentClass != null) return registeredAccessors.get(parentClass);
 
 		return null;
@@ -433,6 +436,25 @@ public final class Tween extends BaseTween {
 	public Tween delay(int millis) {
 		if (isStarted) throw new RuntimeException("You can't delay a tween once it is started");
 		delayMillis += millis;
+		return this;
+	}
+
+	/**
+	 * Forces the tween to use the TweenAccessor registered with the given
+	 * target class. Useful if you want to use a specific accessor associated
+	 * to an interface, for instance.
+	 * @param targetClass A class registered with an accessor.
+	 * @return The current tween, for chaining instructions.
+	 */
+	public Tween as(Class targetClass) {
+		if (!registeredAccessors.containsKey(targetClass))
+			throw new RuntimeException("given class does not have a registered accessor");
+
+		accessor = registeredAccessors.get(targetClass);
+
+		combinedTweenCnt = accessor.getValues(target, type, buffer);
+		if (combinedTweenCnt < 0 || combinedTweenCnt > MAX_COMBINED_TWEENS)
+			throw new RuntimeException("Min combined tweens = 0, max = " + MAX_COMBINED_TWEENS);
 		return this;
 	}
 
