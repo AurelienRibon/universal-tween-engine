@@ -96,7 +96,7 @@ public final class Tween extends BaseTween {
 	 * Gets the version number of the library.
 	 */
 	public static String getVersion() {
-		return "6.0.0";
+		return "6.1.0";
 	}
 
 	// -------------------------------------------------------------------------
