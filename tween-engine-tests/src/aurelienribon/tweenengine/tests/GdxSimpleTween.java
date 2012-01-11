@@ -3,6 +3,7 @@ package aurelienribon.tweenengine.tests;
 import aurelienribon.tweenengine.Tween;
 import aurelienribon.tweenengine.TweenManager;
 import aurelienribon.tweenaccessors.gdx.SpriteAccessor;
+import aurelienribon.tweenengine.equations.Back;
 import aurelienribon.tweenengine.equations.Quad;
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
@@ -65,14 +66,14 @@ public class GdxSimpleTween implements ApplicationListener {
 		// Let's make our sprite move !
 
 		Tween.to(sprite1, SpriteAccessor.POSITION_XY, 700)
-			.ease(Quad.OUT)
+			.ease(Back.INOUT)
 			.target(2, 0)
 			.repeat(-1, 200)
 			.delay(500)
 			.start(tweenManager);
 
 		Tween.to(sprite2, SpriteAccessor.POSITION_XY, 700)
-			.ease(Quad.OUT)
+			.ease(Back.INOUT)
 			.target(2, -2)
 			.repeatYoyo(-1, 200)
 			.delay(500)

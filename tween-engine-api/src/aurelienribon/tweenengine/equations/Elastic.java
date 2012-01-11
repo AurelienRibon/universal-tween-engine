@@ -13,6 +13,8 @@ public abstract class Elastic extends TweenEquation {
 	public static final Elastic IN = new Elastic() {
 		@Override
 		public final float compute(float t, float b, float c, float d) {
+			float a = param_a;
+			float p = param_p;
 			if (t==0) return b;  if ((t/=d)==1) return b+c; if (!setP) p=d*.3f;
 			float s;
 			if (!setA || a < Math.abs(c)) { a=c; s=p/4; }
@@ -29,6 +31,8 @@ public abstract class Elastic extends TweenEquation {
 	public static final Elastic OUT = new Elastic() {
 		@Override
 		public final float compute(float t, float b, float c, float d) {
+			float a = param_a;
+			float p = param_p;
 			if (t==0) return b;  if ((t/=d)==1) return b+c; if (!setP) p=d*.3f;
 			float s;
 			if (!setA || a < Math.abs(c)) { a=c; s=p/4; }
@@ -45,6 +49,8 @@ public abstract class Elastic extends TweenEquation {
 	public static final Elastic INOUT = new Elastic() {
 		@Override
 		public final float compute(float t, float b, float c, float d) {
+			float a = param_a;
+			float p = param_p;
 			if (t==0) return b;  if ((t/=d/2)==2) return b+c; if (!setP) p=d*(.3f*1.5f);
 			float s;
 			if (!setA || a < Math.abs(c)) { a=c; s=p/4; }
@@ -61,19 +67,19 @@ public abstract class Elastic extends TweenEquation {
 
 	// -------------------------------------------------------------------------
 
-	protected float a;
-	protected float p;
+	protected float param_a;
+	protected float param_p;
 	protected boolean setA = false;
 	protected boolean setP = false;
 
 	public Elastic a(float a) {
-		this.a = a;
+		param_a = a;
 		this.setA = true;
 		return this;
 	}
 
 	public Elastic p(float p) {
-		this.p = p;
+		param_p = p;
 		this.setP = true;
 		return this;
 	}

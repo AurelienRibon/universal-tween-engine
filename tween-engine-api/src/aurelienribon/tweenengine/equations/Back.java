@@ -11,6 +11,7 @@ public abstract class Back extends TweenEquation {
 	public static final Back IN = new Back() {
 		@Override
 		public final float compute(float t, float b, float c, float d) {
+			float s = param_s;
 			return c*(t/=d)*t*((s+1)*t - s) + b;
 		}
 
@@ -23,6 +24,7 @@ public abstract class Back extends TweenEquation {
 	public static final Back OUT = new Back() {
 		@Override
 		public final float compute(float t, float b, float c, float d) {
+			float s = param_s;
 			return c*((t=t/d-1)*t*((s+1)*t + s) + 1) + b;
 		}
 
@@ -35,8 +37,9 @@ public abstract class Back extends TweenEquation {
 	public static final Back INOUT = new Back() {
 		@Override
 		public final float compute(float t, float b, float c, float d) {
-			if ((t/=d/2) < 1) return c/2*(t*t*(((s*=(1.525))+1)*t - s)) + b;
-			return c/2*((t-=2)*t*(((s*=(1.525))+1)*t + s) + 2) + b;
+			float s = param_s;
+			if ((t/=d/2) < 1) return c/2*(t*t*(((s*=(1.525f))+1)*t - s)) + b;
+			return c/2*((t-=2)*t*(((s*=(1.525f))+1)*t + s) + 2) + b;
 		}
 
 		@Override
@@ -47,10 +50,10 @@ public abstract class Back extends TweenEquation {
 
 	// -------------------------------------------------------------------------
 
-	protected float s = 1.70158f;
+	protected float param_s = 1.70158f;
 
 	public Back s(float s) {
-		this.s = s;
+		param_s = s;
 		return this;
 	}
 }
