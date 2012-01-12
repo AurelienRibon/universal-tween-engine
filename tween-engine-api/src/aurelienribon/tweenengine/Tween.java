@@ -346,6 +346,7 @@ public final class Tween extends BaseTween {
 
 	// Main
 	private Object target;
+	private Class targetClass;
 	private TweenAccessor accessor;
 	private int type;
 	private TweenEquation equation;
@@ -372,6 +373,7 @@ public final class Tween extends BaseTween {
 		super.reset();
 
 		target = null;
+		targetClass = null;
 		accessor = null;
 		type = -1;
 		equation = null;
@@ -384,32 +386,22 @@ public final class Tween extends BaseTween {
 		if (durationMillis < 0) throw new RuntimeException("Duration can't be negative");
 
 		this.target = target;
+		this.targetClass = findTargetClass();
 		this.type = tweenType;
 		this.durationMillis = durationMillis;
 
-		if (target != null) {
-			accessor = findAccessor(target);
-			if (accessor != null) {
-				combinedTweenCnt = accessor.getValues(target, tweenType, buffer);
-				if (combinedTweenCnt < 0 || combinedTweenCnt > MAX_COMBINED_TWEENS)
-					throw new RuntimeException("Min combined tweens = 0, max = " + MAX_COMBINED_TWEENS);
-			}
-		}
+		if (target != null) this.accessor = registeredAccessors.get(targetClass);
 	}
 
-	private TweenAccessor findAccessor(Object target) {
-		Class targetClass = target.getClass();
-
-		if (registeredAccessors.containsKey(targetClass)) return registeredAccessors.get(targetClass);
-		if (target instanceof TweenAccessor) return (TweenAccessor) target;
+	private Class findTargetClass() {
+		if (registeredAccessors.containsKey(target.getClass())) return target.getClass();
+		if (target instanceof TweenAccessor) return target.getClass();
 
 		Class parentClass = targetClass.getSuperclass();
 		while (parentClass != null && !registeredAccessors.containsKey(parentClass))
 			parentClass = parentClass.getSuperclass();
 
-		if (parentClass != null) return registeredAccessors.get(parentClass);
-
-		return null;
+		return parentClass;
 	}
 
 	// -------------------------------------------------------------------------
@@ -447,14 +439,8 @@ public final class Tween extends BaseTween {
 	 * @return The current tween, for chaining instructions.
 	 */
 	public Tween as(Class targetClass) {
-		if (!registeredAccessors.containsKey(targetClass))
-			throw new RuntimeException("given class does not have a registered accessor");
-
-		accessor = registeredAccessors.get(targetClass);
-
-		combinedTweenCnt = accessor.getValues(target, type, buffer);
-		if (combinedTweenCnt < 0 || combinedTweenCnt > MAX_COMBINED_TWEENS)
-			throw new RuntimeException("Min combined tweens = 0, max = " + MAX_COMBINED_TWEENS);
+		this.targetClass = targetClass;
+		this.accessor = registeredAccessors.get(targetClass);
 		return this;
 	}
 
@@ -612,7 +598,14 @@ public final class Tween extends BaseTween {
 
 	@Override
 	public Tween start() {
-		if (target != null && accessor == null) throw new RuntimeException("No TweenAccessor was found for the target");
+		if (target != null && accessor == null)
+			throw new RuntimeException("No TweenAccessor was found for the target");
+
+		combinedTweenCnt = accessor.getValues(target, type, buffer);
+
+		if (combinedTweenCnt < 0 || combinedTweenCnt > MAX_COMBINED_TWEENS)
+			throw new RuntimeException("Min combined tweens = 0, max = " + MAX_COMBINED_TWEENS);
+
 		currentMillis = 0;
 		isStarted = true;
 		return this;
@@ -693,6 +686,20 @@ public final class Tween extends BaseTween {
 	 */
 	public int getCombinedTweenCount() {
 		return combinedTweenCnt;
+	}
+
+	/**
+	 * Gets the TweenAccessor used with the target.
+	 */
+	public TweenAccessor getAccessor() {
+		return accessor;
+	}
+
+	/**
+	 * Gets the class that was used to find the associated TweenAccessor.
+	 */
+	public Class getTargetClass() {
+		return targetClass;
 	}
 
 	// -------------------------------------------------------------------------
