@@ -389,8 +389,6 @@ public final class Tween extends BaseTween {
 		this.targetClass = findTargetClass();
 		this.type = tweenType;
 		this.durationMillis = durationMillis;
-
-		if (target != null) this.accessor = registeredAccessors.get(targetClass);
 	}
 
 	private Class findTargetClass() {
@@ -440,7 +438,6 @@ public final class Tween extends BaseTween {
 	 */
 	public Tween as(Class targetClass) {
 		this.targetClass = targetClass;
-		this.accessor = registeredAccessors.get(targetClass);
 		return this;
 	}
 
@@ -596,16 +593,26 @@ public final class Tween extends BaseTween {
 		return this;
 	}
 
-	@Override
-	public Tween start() {
+	/**
+	 * Builds and validate the tween. Only needed if you want to finalize a
+	 * tween without starting it, since a call to ".start()" also calls this
+	 * method.
+	 */
+	public Tween build() {
+		if (target != null) accessor = registeredAccessors.get(targetClass);
+		if (accessor != null) combinedTweenCnt = accessor.getValues(target, type, buffer);
+
 		if (target != null && accessor == null)
 			throw new RuntimeException("No TweenAccessor was found for the target");
-
-		combinedTweenCnt = accessor.getValues(target, type, buffer);
-
 		if (combinedTweenCnt < 0 || combinedTweenCnt > MAX_COMBINED_TWEENS)
 			throw new RuntimeException("Min combined tweens = 0, max = " + MAX_COMBINED_TWEENS);
 
+		return this;
+	}
+
+	@Override
+	public Tween start() {
+		build();
 		currentMillis = 0;
 		isStarted = true;
 		return this;
