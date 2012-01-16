@@ -395,7 +395,7 @@ public final class Tween extends BaseTween {
 		if (registeredAccessors.containsKey(target.getClass())) return target.getClass();
 		if (target instanceof TweenAccessor) return target.getClass();
 
-		Class parentClass = targetClass.getSuperclass();
+		Class parentClass = target.getClass().getSuperclass();
 		while (parentClass != null && !registeredAccessors.containsKey(parentClass))
 			parentClass = parentClass.getSuperclass();
 
@@ -436,7 +436,7 @@ public final class Tween extends BaseTween {
 	 * @param targetClass A class registered with an accessor.
 	 * @return The current tween, for chaining instructions.
 	 */
-	public Tween as(Class targetClass) {
+	public Tween cast(Class targetClass) {
 		this.targetClass = targetClass;
 		return this;
 	}
