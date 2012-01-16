@@ -25,6 +25,13 @@ public abstract class BaseTween {
 	// -------------------------------------------------------------------------
 
 	/**
+	 * Builds and validate the object. Only needed if you want to finalize a
+	 * tween or timeline without starting it, since a call to ".start()" also
+	 * calls this method.
+	 */
+	public abstract BaseTween build();
+
+	/**
 	 * Starts or restarts the object unmanaged. You will need to take care of
 	 * its life-cycle. If you want the tween to be managed for you, use a
 	 * {@link TweenManager}.
@@ -67,6 +74,7 @@ public abstract class BaseTween {
 	
 	// General
 	protected boolean isPooled;
+	protected boolean isBuilt;
 	private boolean isYoyo;
 	private boolean isComputeIteration;
 	private int iteration;
@@ -104,7 +112,7 @@ public abstract class BaseTween {
 	protected void reset() {
 		isPooled = Tween.isPoolingEnabled();
 
-		isYoyo = isComputeIteration = false;
+		isYoyo = isComputeIteration = isBuilt = false;
 		iteration = repeatCnt = 0;
 		
 		delayMillis = durationMillis = repeatDelayMillis = currentMillis = 0;

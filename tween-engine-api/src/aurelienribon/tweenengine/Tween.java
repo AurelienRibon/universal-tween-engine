@@ -437,7 +437,9 @@ public final class Tween extends BaseTween {
 	 * @return The current tween, for chaining instructions.
 	 */
 	public Tween cast(Class targetClass) {
+		if (isStarted) throw new RuntimeException("You can't cast the target of a tween once it is started");
 		this.targetClass = targetClass;
+		isBuilt = false;
 		return this;
 	}
 
@@ -593,20 +595,20 @@ public final class Tween extends BaseTween {
 		return this;
 	}
 
-	/**
-	 * Builds and validate the tween. Only needed if you want to finalize a
-	 * tween without starting it, since a call to ".start()" also calls this
-	 * method.
-	 */
+	
+	@Override
 	public Tween build() {
-		if (target != null) accessor = registeredAccessors.get(targetClass);
-		if (accessor != null) combinedTweenCnt = accessor.getValues(target, type, buffer);
+		if (!isBuilt) {
+			if (target != null) accessor = registeredAccessors.get(targetClass);
+			if (accessor != null) combinedTweenCnt = accessor.getValues(target, type, buffer);
 
-		if (target != null && accessor == null)
-			throw new RuntimeException("No TweenAccessor was found for the target");
-		if (combinedTweenCnt < 0 || combinedTweenCnt > MAX_COMBINED_TWEENS)
-			throw new RuntimeException("Min combined tweens = 0, max = " + MAX_COMBINED_TWEENS);
+			if (target != null && accessor == null)
+				throw new RuntimeException("No TweenAccessor was found for the target");
+			if (combinedTweenCnt < 0 || combinedTweenCnt > MAX_COMBINED_TWEENS)
+				throw new RuntimeException("Min combined tweens = 0, max = " + MAX_COMBINED_TWEENS);
 
+			isBuilt = true;
+		}
 		return this;
 	}
 

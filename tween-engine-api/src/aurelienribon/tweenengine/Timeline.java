@@ -138,7 +138,7 @@ public final class Timeline extends BaseTween {
 	 * @return The current timeline, for chaining instructions.
 	 */
 	public Timeline push(Tween tween) {
-		if (isStarted) throw new RuntimeException("You can't push anything to a timeline once it is started");
+		if (isBuilt) throw new RuntimeException("You can't push anything to a timeline once it is started");
 		current.children.add(tween);
 		return this;
 	}
@@ -148,7 +148,7 @@ public final class Timeline extends BaseTween {
 	 * @return The current timeline, for chaining instructions.
 	 */
 	public Timeline push(Timeline timeline) {
-		if (isStarted) throw new RuntimeException("You can't push anything to a timeline once it is started");
+		if (isBuilt) throw new RuntimeException("You can't push anything to a timeline once it is started");
 		if (timeline.current != timeline) throw new RuntimeException("You forgot to call a few 'end()' statements in your pushed timeline");
 		timeline.parent = current;
 		current.children.add(timeline);
@@ -161,7 +161,7 @@ public final class Timeline extends BaseTween {
 	 * @return The current timeline, for chaining instructions.
 	 */
 	public Timeline pushPause(int millis) {
-		if (isStarted) throw new RuntimeException("You can't push anything to a timeline once it is started");
+		if (isBuilt) throw new RuntimeException("You can't push anything to a timeline once it is started");
 		current.children.add(Tween.mark().delay(millis));
 		return this;
 	}
@@ -172,7 +172,7 @@ public final class Timeline extends BaseTween {
 	 * @return The current timeline, for chaining instructions.
 	 */
 	public Timeline beginSequence() {
-		if (isStarted) throw new RuntimeException("You can't push anything to a timeline once it is started");
+		if (isBuilt) throw new RuntimeException("You can't push anything to a timeline once it is started");
 		Timeline tl = pool.get();
 		tl.parent = current;
 		tl.mode = Modes.SEQUENCE;
@@ -187,7 +187,7 @@ public final class Timeline extends BaseTween {
 	 * @return The current timeline, for chaining instructions.
 	 */
 	public Timeline beginParallel() {
-		if (isStarted) throw new RuntimeException("You can't push anything to a timeline once it is started");
+		if (isBuilt) throw new RuntimeException("You can't push anything to a timeline once it is started");
 		Timeline tl = pool.get();
 		tl.parent = current;
 		tl.mode = Modes.PARALLEL;
@@ -201,7 +201,7 @@ public final class Timeline extends BaseTween {
 	 * @return The current timeline, for chaining instructions.
 	 */
 	public Timeline end() {
-		if (isStarted) throw new RuntimeException("You can't push anything to a timeline once it is started");
+		if (isBuilt) throw new RuntimeException("You can't push anything to a timeline once it is started");
 		if (current == this) throw new RuntimeException("Nothing to end...");
 		current = current.parent;
 		return this;
@@ -212,14 +212,52 @@ public final class Timeline extends BaseTween {
 	 * list will be immutable.
 	 */
 	public List<BaseTween> getChildren() {
-		if (isStarted) return Collections.unmodifiableList(current.children);
+		if (isBuilt) return Collections.unmodifiableList(current.children);
 		else return current.children;
 	}
 
 	@Override
+	public Timeline build() {
+		if (!isBuilt) {
+			delayMillis = 0;
+			durationMillis = 0;
+
+			for (int i=0; i<children.size(); i++) {
+				BaseTween obj = children.get(i);
+
+				if (obj.getRepeatCount() < 0) throw new RuntimeException("You can't push an object with infinite repetitions in a timeline");
+				obj.build();
+
+				switch (mode) {
+					case SEQUENCE:
+						int delay = durationMillis;
+						durationMillis += obj.getFullDuration();
+						obj.delayMillis += delay;
+						break;
+
+					case PARALLEL:
+						durationMillis = Math.max(durationMillis, obj.getFullDuration());
+						break;
+				}
+			}
+			
+			isBuilt = true;
+		}
+
+		return this;
+	}
+
+	@Override
 	public Timeline start() {
-		if (current != this) throw new RuntimeException("You forgot to call a few 'end()' statements before calling start()");
-		sequence(this);
+		build();
+		currentMillis = 0;
+		isStarted = true;
+
+		for (int i=0; i<children.size(); i++) {
+			BaseTween obj = children.get(i);
+			obj.start();
+		}
+
 		return this;
 	}
 
@@ -297,38 +335,6 @@ public final class Timeline extends BaseTween {
 				BaseTween obj = children.get(i);
 				obj.update(millis);
 			}
-		}
-	}
-
-	// -------------------------------------------------------------------------
-	// Helpers
-	// -------------------------------------------------------------------------
-
-	private void sequence(Timeline tl) {
-		tl.delayMillis = 0;
-		tl.durationMillis = 0;
-		tl.currentMillis = 0;
-		tl.isStarted = true;
-
-		for (int i=0; i<tl.children.size(); i++) {
-			BaseTween obj = tl.children.get(i);
-
-			if (obj.getRepeatCount() < 0) throw new RuntimeException("You can't push an object with infinite repetitions in a timeline");
-			if (obj instanceof Timeline) sequence((Timeline) obj);
-
-			switch (tl.mode) {
-				case SEQUENCE:
-					int delay = tl.durationMillis;
-					tl.durationMillis += obj.getFullDuration();
-					obj.delayMillis += delay;
-					break;
-
-				case PARALLEL:
-					tl.durationMillis = Math.max(tl.durationMillis, obj.getFullDuration());
-					break;
-			}
-
-			if (obj instanceof Tween) ((Tween) obj).start();
 		}
 	}
 
