@@ -586,7 +586,6 @@ public final class Tween extends BaseTween {
 			this.targetValues[i] = isInitialized ? targetValues[i] + startValues[i] : targetValues[i];
 		return this;
 	}
-
 	
 	@Override
 	public Tween build() {

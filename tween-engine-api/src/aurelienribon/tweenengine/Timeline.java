@@ -218,32 +218,31 @@ public final class Timeline extends BaseTween {
 
 	@Override
 	public Timeline build() {
-		if (!isBuilt) {
-			delayMillis = 0;
-			durationMillis = 0;
+		if (isBuilt) return this;
 
-			for (int i=0; i<children.size(); i++) {
-				BaseTween obj = children.get(i);
+		delayMillis = 0;
+		durationMillis = 0;
 
-				if (obj.getRepeatCount() < 0) throw new RuntimeException("You can't push an object with infinite repetitions in a timeline");
-				obj.build();
+		for (int i=0; i<children.size(); i++) {
+			BaseTween obj = children.get(i);
 
-				switch (mode) {
-					case SEQUENCE:
-						int delay = durationMillis;
-						durationMillis += obj.getFullDuration();
-						obj.delayMillis += delay;
-						break;
+			if (obj.getRepeatCount() < 0) throw new RuntimeException("You can't push an object with infinite repetitions in a timeline");
+			obj.build();
 
-					case PARALLEL:
-						durationMillis = Math.max(durationMillis, obj.getFullDuration());
-						break;
-				}
+			switch (mode) {
+				case SEQUENCE:
+					int delay = durationMillis;
+					durationMillis += obj.getFullDuration();
+					obj.delayMillis += delay;
+					break;
+
+				case PARALLEL:
+					durationMillis = Math.max(durationMillis, obj.getFullDuration());
+					break;
 			}
-			
-			isBuilt = true;
 		}
 
+		isBuilt = true;
 		return this;
 	}
 
