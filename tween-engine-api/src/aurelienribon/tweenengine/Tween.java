@@ -7,12 +7,12 @@ import java.util.Map;
 
 /**
  * Core class of the Tween Engine. A Tween is basically an interpolation
- * between two values of an object attribute. However, the main interest of a 
+ * between two values of an object attribute. However, the main interest of a
  * Tween is that you can apply an easing formula on this interpolation, in
  * order to smooth the transitions or to achieve cool effects like springs or
  * bounces.
  * <br/><br/>
- * 
+ *
  * The Universal Tween Engine is called "universal" because it is able to apply
  * interpolations on every attribute from every possible object. Therefore,
  * every object in your application can be animated with cool effects: it does
@@ -20,9 +20,9 @@ import java.util.Map;
  * console program! If it makes sense to animate something, then it can be
  * animated through this engine.
  * <br/><br/>
- * 
+ *
  * This class contains many static factory methods to create and instantiate
- * new interpolations easily. The common way to create a Tween is by using one 
+ * new interpolations easily. The common way to create a Tween is by using one
  * of these factories:
  * <br/><br/>
  *
@@ -40,7 +40,7 @@ import java.util.Map;
  * is registered at the end of the delay, so the animation will automatically
  * restart from this registered position).
  * <br/><br/>
- * 
+ *
  * <pre> {@code
  * Tween.to(myObject, POSITION_XY, 500)
  *      .target(200, 300)
@@ -66,7 +66,7 @@ import java.util.Map;
  *
  * The engine cannot directly change your objects attributes, since it doesn't
  * know them. Therefore, you need to tell him how to get and set the different
- * attributes of your objects: <b>you need to implement the {@link 
+ * attributes of your objects: <b>you need to implement the {@link
  * TweenAccessor} interface for each object class you will animate</b>. Once
  * done, don't forget to register these implementations, using the static method
  * {@link #registerAccessor}, when you start your application.
@@ -208,7 +208,7 @@ public final class Tween extends BaseTween {
 	 *      .ease(Quad.INOUT)
 	 *      .start(myManager);
 	 * }</pre>
-	 * 
+	 *
 	 * Several options such as delay, repetitions and callbacks can be added to
 	 * the tween.
 	 *
@@ -438,7 +438,6 @@ public final class Tween extends BaseTween {
 	public Tween cast(Class targetClass) {
 		if (isStarted) throw new RuntimeException("You can't cast the target of a tween once it is started");
 		this.targetClass = targetClass;
-		this.isBuilt = false;
 		return this;
 	}
 
@@ -586,18 +585,24 @@ public final class Tween extends BaseTween {
 			this.targetValues[i] = isInitialized ? targetValues[i] + startValues[i] : targetValues[i];
 		return this;
 	}
-	
+
 	@Override
 	public Tween build() {
-		if (target != null) accessor = registeredAccessors.get(targetClass);
-		if (accessor != null) combinedTweenCnt = accessor.getValues(target, type, buffer);
+		if (target != null) {
+			accessor = registeredAccessors.get(targetClass);
 
-		if (target != null && accessor == null)
-			throw new RuntimeException("No TweenAccessor was found for the target");
-		if (combinedTweenCnt < 0 || combinedTweenCnt > MAX_COMBINED_TWEENS)
-			throw new RuntimeException("Min combined tweens = 0, max = " + MAX_COMBINED_TWEENS);
+			if (accessor == null && target instanceof TweenAccessor) {
+				accessor = (TweenAccessor) target;
+			}
 
-		isBuilt = true;
+			if (accessor != null) combinedTweenCnt = accessor.getValues(target, type, buffer);
+			else throw new RuntimeException("No TweenAccessor was found for the target");
+
+			if (combinedTweenCnt < 0 || combinedTweenCnt > MAX_COMBINED_TWEENS) {
+				throw new RuntimeException("Min combined tweens = 0, max = " + MAX_COMBINED_TWEENS);
+			}
+		}
+
 		return this;
 	}
 
@@ -647,7 +652,7 @@ public final class Tween extends BaseTween {
 	// -------------------------------------------------------------------------
 	// Getters
 	// -------------------------------------------------------------------------
-	
+
 	/**
 	 * Gets the target object.
 	 */

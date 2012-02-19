@@ -71,10 +71,9 @@ public abstract class BaseTween {
 	// -------------------------------------------------------------------------
 	// Attributes
 	// -------------------------------------------------------------------------
-	
+
 	// General
 	protected boolean isPooled;
-	protected boolean isBuilt;
 	private boolean isYoyo;
 	private boolean isComputeIteration;
 	private int iteration;
@@ -101,7 +100,7 @@ public abstract class BaseTween {
 
 	// Misc
 	private Object userData;
-	
+
 	// Package access
 	boolean isAutoRemoveEnabled;
 	boolean isAutoFreeEnabled;
@@ -112,9 +111,9 @@ public abstract class BaseTween {
 	protected void reset() {
 		isPooled = Tween.isPoolingEnabled();
 
-		isYoyo = isComputeIteration = isBuilt = false;
+		isYoyo = isComputeIteration = false;
 		iteration = repeatCnt = 0;
-		
+
 		delayMillis = durationMillis = repeatDelayMillis = currentMillis = 0;
 		isStarted = isInitialized = isFinished = isPaused = false;
 
@@ -173,7 +172,7 @@ public abstract class BaseTween {
 	}
 
 	/**
-	 * Repeats the tween or timeline for a given number of times. 
+	 * Repeats the tween or timeline for a given number of times.
 	 * Every two iterations, it will be played backwards.
 	 * @param count The number of repetitions. For infinite repetition,
 	 * use Tween.INFINITY, or a negative number.
@@ -407,7 +406,7 @@ public abstract class BaseTween {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Updates the tween or timeline state. <b>You may want to use a 
+	 * Updates the tween or timeline state. <b>You may want to use a
 	 * TweenManager to update objects for you.</b> Slow motion, fast motion and
 	 * backwards play can be easily achieved by tweaking the deltaMillis given
 	 * as parameter.

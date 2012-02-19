@@ -23,7 +23,7 @@ import java.util.List;
  * This animation will be repeated 5 times, with a 500ms delay between each
  * iteration:
  * <br/><br/>
- * 
+ *
  * <pre> {@code
  * Timeline.createSequence()
  *     .push(Tween.set(myObject, OPACITY).target(0))
@@ -107,6 +107,7 @@ public final class Timeline extends BaseTween {
 	private Timeline current;
 	private Timeline parent;
 	private Modes mode;
+	private boolean isBuilt;
 
 	// -------------------------------------------------------------------------
 	// Setup
@@ -119,9 +120,11 @@ public final class Timeline extends BaseTween {
 	@Override
 	protected void reset() {
 		super.reset();
-		
+
 		children.clear();
 		current = parent = null;
+
+		isBuilt = false;
 	}
 
 	private void setup(Modes mode) {
@@ -310,7 +313,7 @@ public final class Timeline extends BaseTween {
 
 	@Override
 	protected void computeOverride(int iteration, int lastIteration, int deltaMillis) {
-		int millis = 0;
+		int millis;
 
 		if (iteration > lastIteration) {
 			forceStartValues(iteration);

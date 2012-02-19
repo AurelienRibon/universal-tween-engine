@@ -63,22 +63,12 @@ public class TweenManager {
 	private boolean isPaused = false;
 
 	/**
-	 * Adds a tween to the manager and starts or restarts it.
+	 * Adds a tween or timeline to the manager and starts or restarts it.
 	 * @return The manager, for instruction chaining.
 	 */
-	public TweenManager add(Tween tween) {
-		if (!objects.contains(tween)) objects.add(tween);
-		if (tween.isAutoStartEnabled) tween.start();
-		return this;
-	}
-
-	/**
-	 * Adds a timeline to the manager and starts or restarts it.
-	 * @return The manager, for instruction chaining.
-	 */
-	public TweenManager add(Timeline timeline) {
-		if (!objects.contains(timeline)) objects.add(timeline);
-		if (timeline.isAutoStartEnabled) timeline.start();
+	public TweenManager add(BaseTween object) {
+		if (!objects.contains(object)) objects.add(object);
+		if (object.isAutoStartEnabled) object.start();
 		return this;
 	}
 
