@@ -86,8 +86,8 @@ public abstract class BaseTween {
 	protected int currentMillis;
 	protected boolean isStarted; // true when the object is started
 	protected boolean isInitialized; // true after the delay
-	protected boolean isFinished; // true when all repetitions are done or the object has been killed
-	protected boolean isPaused;
+	protected boolean isFinished; // true when all repetitions are done or kill() was called
+	protected boolean isPaused; // true if pause() was called
 
 	// Callbacks
 	private List<TweenCallback> beginCallbacks;

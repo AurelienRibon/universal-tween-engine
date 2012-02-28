@@ -328,15 +328,9 @@ public final class Timeline extends BaseTween {
 		}
 
 		if (deltaMillis >= 0) {
-			for (int i=0, n=children.size(); i<n; i++) {
-				BaseTween obj = children.get(i);
-				obj.update(millis);
-			}
+			for (int i=0, n=children.size(); i<n; i++) children.get(i).update(millis);
 		} else {
-			for (int i=children.size()-1; i>=0; i--) {
-				BaseTween obj = children.get(i);
-				obj.update(millis);
-			}
+			for (int i=children.size()-1; i>=0; i--) children.get(i).update(millis);
 		}
 	}
 
@@ -372,18 +366,12 @@ public final class Timeline extends BaseTween {
 
 	@Override
 	protected void killTarget(Object target) {
-		for (int i=0, n=children.size(); i<n; i++) {
-			BaseTween obj = children.get(i);
-			obj.killTarget(target);
-		}
+		if (containsTarget(target)) kill();
 	}
 
 	@Override
 	protected void killTarget(Object target, int tweenType) {
-		for (int i=0, n=children.size(); i<n; i++) {
-			BaseTween obj = children.get(i);
-			obj.killTarget(target, tweenType);
-		}
+		if (containsTarget(target, tweenType)) kill();
 	}
 
 	@Override

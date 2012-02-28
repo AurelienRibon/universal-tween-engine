@@ -122,7 +122,7 @@ public class GdxComplexDemo implements ApplicationListener {
 
 		GL10 gl = Gdx.gl10;
 		gl.glClearColor(1, 1, 1, 1);
-		gl.glClear(gl.GL_COLOR_BUFFER_BIT);
+		gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
 
 		sb.setProjectionMatrix(camera.combined);
 		sb.begin();

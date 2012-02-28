@@ -42,7 +42,7 @@ public class TweenManager {
 	 * enabled.
 	 */
 	public static void setAutoFree(BaseTween object, boolean value) {
-		object.isAutoRemoveEnabled = value;
+		object.isAutoFreeEnabled = value;
 	}
 
 	/**
@@ -107,7 +107,8 @@ public class TweenManager {
 	}
 
 	/**
-	 * Kills every tweens associated to the given target.
+	 * Kills every tweens associated to the given target. Will also kill every
+	 * timelines containing a tween associated to the given target.
 	 */
 	public void killTarget(Object target) {
 		for (int i=0, n=objects.size(); i<n; i++) {
@@ -117,7 +118,9 @@ public class TweenManager {
 	}
 
 	/**
-	 * Kills every tweens associated to the given target and tween type.
+	 * Kills every tweens associated to the given target and tween type. Will
+	 * also kill every timelines containing a tween associated to the given
+	 * target and tween type.
 	 */
 	public void killTarget(Object target, int tweenType) {
 		for (int i=0, n=objects.size(); i<n; i++) {
@@ -166,29 +169,21 @@ public class TweenManager {
 	 * achieved by tweaking the deltaMillis given as parameter.
 	 */
 	public void update(int deltaMillis) {
+		for (int i=objects.size()-1; i>=0; i--) {
+			BaseTween obj = objects.get(i);
+
+			if (obj.isFinished() && obj.isAutoRemoveEnabled) {
+				objects.remove(i);
+				if (obj.isAutoFreeEnabled) obj.free();
+			}
+		}
+
 		if (isPaused) return;
 
 		if (deltaMillis >= 0) {
-			for (int i=0; i<objects.size(); i++) {
-				BaseTween obj = objects.get(i);
-				if (obj.isFinished() && obj.isAutoRemoveEnabled) {
-					objects.remove(i);
-					i -= 1;
-					if (obj.isAutoFreeEnabled) obj.free();
-				} else {
-					obj.update(deltaMillis);
-				}
-			}
+			for (int i=0, n=objects.size(); i<n; i++) objects.get(i).update(deltaMillis);
 		} else {
-			for (int i=objects.size()-1; i>=0; i--) {
-				BaseTween obj = objects.get(i);
-				if (obj.isFinished() && obj.isAutoRemoveEnabled) {
-					objects.remove(i);
-					if (obj.isAutoFreeEnabled) obj.free();
-				} else {
-					obj.update(deltaMillis);
-				}
-			}
+			for (int i=objects.size()-1; i>=0; i--) objects.get(i).update(deltaMillis);
 		}
 	}
 }
