@@ -103,33 +103,13 @@ public final class Tween extends BaseTween {
 	// Static -- pool
 	// -------------------------------------------------------------------------
 
-	private static boolean isPoolEnabled = false;
-
 	private static final Pool.Callback<Tween> poolCallback = new Pool.Callback<Tween>() {
 		@Override public void onPool(Tween obj) {obj.reset();}
-		@Override public void onUnpool(Tween obj) {obj.isPooled = Tween.isPoolingEnabled();}
 	};
 
 	private static final Pool<Tween> pool = new Pool<Tween>(20, poolCallback) {
 		@Override protected Tween create() {return new Tween();}
 	};
-
-	/**
-	 * Enables or disables the automatic reuse of finished tweens. Pooling
-	 * prevents the allocation of a new tween instance when using the static
-	 * factories, thus removing the need for garbage collection. Can be quite
-	 * helpful on slow or embedded devices. <b>Defaults to true</b>.
-	 */
-	public static void enablePooling(boolean value) {
-		isPoolEnabled = value;
-	}
-
-	/**
-	 * Returns true if object pooling is enabled.
-	 */
-	public static boolean isPoolingEnabled() {
-		return isPoolEnabled;
-	}
 
 	/**
 	 * Used for debug purpose. Gets the current number of objects that are
@@ -144,15 +124,6 @@ public final class Tween extends BaseTween {
 	 */
 	public static void ensurePoolCapacity(int minCapacity) {
 		pool.ensureCapacity(minCapacity);
-	}
-
-	/**
-	 * Clears every static resources used by the whole engine.
-	 */
-	public static void dispose() {
-		isPoolEnabled = true;
-		pool.clear();
-		Timeline.pool.clear();
 	}
 
 	// -------------------------------------------------------------------------
@@ -646,7 +617,7 @@ public final class Tween extends BaseTween {
 
 	@Override
 	public void free() {
-		if (isPooled) pool.free(this);
+		pool.free(this);
 	}
 
 	// -------------------------------------------------------------------------

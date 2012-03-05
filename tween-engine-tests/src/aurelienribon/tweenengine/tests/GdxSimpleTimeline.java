@@ -49,7 +49,6 @@ public class GdxSimpleTimeline implements ApplicationListener {
 
 		// Tween engine setup
 
-		Tween.enablePooling(true);
 		Tween.registerAccessor(Sprite.class, new SpriteAccessor());
 
 		// Tween manager creation
@@ -80,7 +79,7 @@ public class GdxSimpleTimeline implements ApplicationListener {
 		tweenManager.update(delta);
 
 		// Gdx stuff...
-		
+
 		int w = Gdx.graphics.getWidth();
 		int h = Gdx.graphics.getHeight();
 

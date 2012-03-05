@@ -58,11 +58,10 @@ public class SwingSimpleTween {
 
 		// Tween engine setup
 
-		Tween.enablePooling(false);
 		Tween.registerAccessor(Component.class, new ComponentAccessor());
 
 		// Tween manager creation
-		
+
 		tweenManager = new TweenManager();
 
 		// Let's make our label move !
@@ -73,7 +72,7 @@ public class SwingSimpleTween {
 			.repeatYoyo(-1, 200)
 			.delay(500)
 			.start(tweenManager);
-		
+
 		// We need to create a timer that will be triggered every 16
 		// milliseconds (to play at 60fps). That's one of the purpose of the
 		// DrawingCanvas class.
@@ -102,7 +101,7 @@ public class SwingSimpleTween {
 			// If an animation was running, we first need to stop it.
 
 			tweenManager.killTarget(button);
-			
+
 			// Then we can safely move the button away.
 
 			Tween.to(button, ComponentAccessor.POSITION_XY, 500)

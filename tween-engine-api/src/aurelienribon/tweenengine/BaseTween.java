@@ -73,7 +73,6 @@ public abstract class BaseTween {
 	// -------------------------------------------------------------------------
 
 	// General
-	protected boolean isPooled;
 	private boolean isYoyo;
 	private boolean isComputeIteration;
 	private int iteration;
@@ -109,8 +108,6 @@ public abstract class BaseTween {
 	// -------------------------------------------------------------------------
 
 	protected void reset() {
-		isPooled = Tween.isPoolingEnabled();
-
 		isYoyo = isComputeIteration = false;
 		iteration = repeatCnt = 0;
 
@@ -343,15 +340,6 @@ public abstract class BaseTween {
 	 */
 	public boolean isYoyo() {
 		return isYoyo;
-	}
-
-	/**
-	 * Returns true if the tween or timeline is pooled. If true, and if you
-	 * don't use a TweenManager, you need to call <i>free()</i> on your objects
-	 * once they are finished.
-	 */
-	public boolean isPooled() {
-		return isPooled;
 	}
 
 	/**

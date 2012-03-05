@@ -56,7 +56,6 @@ public class GdxSimpleTween implements ApplicationListener {
 
 		// Tween engine setup
 
-		Tween.enablePooling(true);
 		Tween.registerAccessor(Sprite.class, new SpriteAccessor());
 
 		// Tween manager creation
