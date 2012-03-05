@@ -62,7 +62,6 @@ public abstract class BaseTween {
 	protected abstract void forceStartValues(int iteration);
 	protected abstract void forceEndValues(int iteration);
 
-	protected abstract int getChildrenCount();
 	protected abstract void killTarget(Object target);
 	protected abstract void killTarget(Object target, int tweenType);
 	protected abstract boolean containsTarget(Object target);

@@ -727,11 +727,6 @@ public final class Tween extends BaseTween {
 	}
 
 	@Override
-	protected int getChildrenCount() {
-		return 0;
-	}
-
-	@Override
 	protected void killTarget(Object target) {
 		if (this.target == target) kill();
 	}

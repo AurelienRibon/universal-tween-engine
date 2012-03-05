@@ -354,16 +354,6 @@ public final class Timeline extends BaseTween {
 	}
 
 	@Override
-	protected int getChildrenCount() {
-		int cnt = 0;
-		for (int i=0, n=children.size(); i<n; i++) {
-			BaseTween obj = children.get(i);
-			cnt += 1 + obj.getChildrenCount();
-		}
-		return cnt;
-	}
-
-	@Override
 	protected void killTarget(Object target) {
 		if (containsTarget(target)) kill();
 	}

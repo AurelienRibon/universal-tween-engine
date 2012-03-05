@@ -130,18 +130,6 @@ public class TweenManager {
 	}
 
 	/**
-	 * Gets the number of tweens and timelines managed by this manager.
-	 */
-	public int size() {
-		int cnt = 0;
-		for (int i=0, n=objects.size(); i<n; i++) {
-			BaseTween obj = objects.get(i);
-			cnt += 1 + obj.getChildrenCount();
-		}
-		return cnt;
-	}
-
-	/**
 	 * Increases the minimum capacity of the manager. Defaults to 20.
 	 */
 	public void ensureCapacity(int minCapacity) {
