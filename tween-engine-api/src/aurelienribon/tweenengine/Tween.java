@@ -666,7 +666,7 @@ public final class Tween extends BaseTween<Tween> {
 		for (int i=0; i<combinedTweenCnt; i++) {
 			float startValue = !isFrom ? startValues[i] : targetValues[i];
 			float deltaValue = (targetValues[i] - startValues[i]) * (!isFrom ? +1 : -1);
-			int millis = isStepYoyo(step) ? durationMillis - currentMillis : currentMillis;
+			int millis = isYoyo(step) ? durationMillis - currentMillis : currentMillis;
 			buffer[i] = equation.compute(millis, startValue, deltaValue, durationMillis);
 		}
 
@@ -674,17 +674,15 @@ public final class Tween extends BaseTween<Tween> {
 	}
 
 	@Override
-	protected void forceStartValues(int step) {
+	protected void forceStartValues() {
 		if (target == null) return;
-		boolean swapStartAndTarget = isStepYoyo(step) ? !isFrom : isFrom;
-		accessor.setValues(target, type, swapStartAndTarget ? targetValues : startValues);
+		accessor.setValues(target, type, isFrom ? targetValues : startValues);
 	}
 
 	@Override
-	protected void forceEndValues(int step) {
+	protected void forceEndValues() {
 		if (target == null) return;
-		boolean swapStartAndTarget = isStepYoyo(step) ? !isFrom : isFrom;
-		accessor.setValues(target, type, swapStartAndTarget ? startValues : targetValues);
+		accessor.setValues(target, type, isFrom ? startValues : targetValues);
 	}
 
 	@Override

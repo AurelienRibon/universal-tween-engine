@@ -310,8 +310,8 @@ public abstract class BaseTween<T> {
 	// Abstract API
 	// -------------------------------------------------------------------------
 
-	protected abstract void forceStartValues(int step);
-	protected abstract void forceEndValues(int step);
+	protected abstract void forceStartValues();
+	protected abstract void forceEndValues();
 
 	protected abstract void initializeOverride();
 	protected abstract void computeOverride(int step, int lastStep, int deltaMillis);
@@ -324,10 +324,6 @@ public abstract class BaseTween<T> {
 	// -------------------------------------------------------------------------
 	// Protected API
 	// -------------------------------------------------------------------------
-
-	protected boolean isStepYoyo(int step) {
-		return isYoyo && Math.abs(step%4) == 2;
-	}
 
 	protected void forceToStart() {
 		currentMillis = -delayMillis;
@@ -345,6 +341,20 @@ public abstract class BaseTween<T> {
 
 	protected void callCallback(int type) {
 		if (callback != null && (callbackTriggers & type) > 0) callback.onEvent(type, this);
+	}
+
+	protected boolean isYoyo(int step) {
+		return isYoyo && Math.abs(step%4) == 2;
+	}
+
+	protected void forceStartValues(int step) {
+		if (isYoyo(step)) forceEndValues();
+		else forceStartValues();
+	}
+
+	protected void forceEndValues(int step) {
+		if (isYoyo(step)) forceStartValues();
+		else forceEndValues();
 	}
 
 	// -------------------------------------------------------------------------
