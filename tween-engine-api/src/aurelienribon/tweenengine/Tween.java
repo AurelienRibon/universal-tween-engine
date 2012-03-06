@@ -76,7 +76,7 @@ import java.util.Map;
  * @see Timeline
  * @author Aurelien Ribon | http://www.aurelienribon.com/
  */
-public final class Tween extends BaseTween {
+public final class Tween extends BaseTween<Tween> {
 	// -------------------------------------------------------------------------
 	// Static -- misc
 	// -------------------------------------------------------------------------
@@ -588,36 +588,6 @@ public final class Tween extends BaseTween {
 	@Override
 	public Tween start(TweenManager manager) {
 		manager.add(this);
-		return this;
-	}
-
-	@Override
-	public Tween repeat(int count, int delayMillis) {
-		super.repeat(count, delayMillis);
-		return this;
-	}
-
-	@Override
-	public Tween repeatYoyo(int count, int delayMillis) {
-		super.repeatYoyo(count, delayMillis);
-		return this;
-	}
-
-	@Override
-	public Tween setCallback(TweenCallback callback) {
-		super.setCallback(callback);
-		return this;
-	}
-
-	@Override
-	public Tween setCallbackTriggers(int flags) {
-		super.setCallbackTriggers(flags);
-		return this;
-	}
-
-	@Override
-	public Tween setUserData(Object data) {
-		super.setUserData(data);
 		return this;
 	}
 

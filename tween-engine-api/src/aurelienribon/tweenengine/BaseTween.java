@@ -14,7 +14,7 @@ package aurelienribon.tweenengine;
  * @see Timeline
  * @author Aurelien Ribon | http://www.aurelienribon.com/
  */
-public abstract class BaseTween {
+public abstract class BaseTween<T> {
 
 	// -------------------------------------------------------------------------
 	// Abstract stuff
@@ -141,12 +141,12 @@ public abstract class BaseTween {
 	 * @param millis A delay between each iteration.
 	 * @return The current tween or timeline, for chaining instructions.
 	 */
-	public BaseTween repeat(int count, int delayMillis) {
+	public T repeat(int count, int delayMillis) {
 		if (isStarted) throw new RuntimeException("You can't change the repetitions of a tween or timeline once it is started");
 		repeatCnt = count;
 		repeatDelayMillis = delayMillis >= 0 ? delayMillis : 0;
 		isYoyo = false;
-		return this;
+		return (T) this;
 	}
 
 	/**
@@ -157,12 +157,12 @@ public abstract class BaseTween {
 	 * @param millis A delay before each repetition.
 	 * @return The current tween or timeline, for chaining instructions.
 	 */
-	public BaseTween repeatYoyo(int count, int delayMillis) {
+	public T repeatYoyo(int count, int delayMillis) {
 		if (isStarted) throw new RuntimeException("You can't change the repetitions of a tween or timeline once it is started");
 		repeatCnt = count;
 		repeatDelayMillis = delayMillis >= 0 ? delayMillis : 0;
 		isYoyo = true;
-		return this;
+		return (T) this;
 	}
 
 	/**
@@ -171,10 +171,10 @@ public abstract class BaseTween {
 	 * and add more triggers, use the {@link setCallbackTriggers} method.
 	 * @see TweenCallback
 	 */
-	public BaseTween setCallback(TweenCallback callback) {
+	public T setCallback(TweenCallback callback) {
 		this.callback = callback;
 		this.callbackTriggers = TweenCallback.COMPLETE;
-		return this;
+		return (T) this;
 	}
 
 	/**
@@ -201,9 +201,9 @@ public abstract class BaseTween {
 	 *
 	 * @see TweenCallback
 	 */
-	public BaseTween setCallbackTriggers(int flags) {
+	public T setCallbackTriggers(int flags) {
 		this.callbackTriggers = flags;
-		return this;
+		return (T) this;
 	}
 
 	/**
@@ -212,9 +212,9 @@ public abstract class BaseTween {
 	 * @param data Any kind of object.
 	 * @return The current tween or timeline, for chaining instructions.
 	 */
-	public BaseTween setUserData(Object data) {
+	public T setUserData(Object data) {
 		userData = data;
-		return this;
+		return (T) this;
 	}
 
 	// -------------------------------------------------------------------------

@@ -43,7 +43,7 @@ import java.util.List;
  * @see TweenCallback
  * @author Aurelien Ribon | http://www.aurelienribon.com/
  */
-public final class Timeline extends BaseTween {
+public final class Timeline extends BaseTween<Timeline> {
 	// -------------------------------------------------------------------------
 	// Static -- pool
 	// -------------------------------------------------------------------------
@@ -264,36 +264,6 @@ public final class Timeline extends BaseTween {
 	@Override
 	public Timeline start(TweenManager manager) {
 		manager.add(this);
-		return this;
-	}
-
-	@Override
-	public Timeline repeat(int count, int delayMillis) {
-		super.repeat(count, delayMillis);
-		return this;
-	}
-
-	@Override
-	public Timeline repeatYoyo(int count, int delayMillis) {
-		super.repeatYoyo(count, delayMillis);
-		return this;
-	}
-
-	@Override
-	public Timeline setCallback(TweenCallback callback) {
-		super.setCallback(callback);
-		return this;
-	}
-
-	@Override
-	public Timeline setCallbackTriggers(int flags) {
-		super.setCallbackTriggers(flags);
-		return this;
-	}
-
-	@Override
-	public Timeline setUserData(Object data) {
-		super.setUserData(data);
 		return this;
 	}
 
