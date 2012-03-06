@@ -184,12 +184,12 @@ public final class Tween extends BaseTween<Tween> {
 	 *
 	 * @param target The target object of the interpolation.
 	 * @param tweenType The desired type of interpolation.
-	 * @param durationMillis The duration of the interpolation, in milliseconds.
+	 * @param duration The duration of the interpolation, in milliseconds.
 	 * @return The generated Tween.
 	 */
-	public static Tween to(Object target, int tweenType, int durationMillis) {
+	public static Tween to(Object target, int tweenType, float duration) {
 		Tween tween = pool.get();
-		tween.setup(target, tweenType, durationMillis);
+		tween.setup(target, tweenType, duration);
 		tween.ease(Linear.INOUT);
 		return tween;
 	}
@@ -221,12 +221,12 @@ public final class Tween extends BaseTween<Tween> {
 	 *
 	 * @param target The target object of the interpolation.
 	 * @param tweenType The desired type of interpolation.
-	 * @param durationMillis The duration of the interpolation, in milliseconds.
+	 * @param duration The duration of the interpolation, in milliseconds.
 	 * @return The generated Tween.
 	 */
-	public static Tween from(Object target, int tweenType, int durationMillis) {
+	public static Tween from(Object target, int tweenType, float duration) {
 		Tween tween = pool.get();
-		tween.setup(target, tweenType, durationMillis);
+		tween.setup(target, tweenType, duration);
 		tween.ease(Linear.INOUT);
 		tween.isFrom = true;
 		return tween;
@@ -353,13 +353,13 @@ public final class Tween extends BaseTween<Tween> {
 		combinedTweenCnt = 0;
 	}
 
-	private void setup(Object target, int tweenType, int durationMillis) {
-		if (durationMillis < 0) throw new RuntimeException("Duration can't be negative");
+	private void setup(Object target, int tweenType, float duration) {
+		if (duration < 0) throw new RuntimeException("Duration can't be negative");
 
 		this.target = target;
 		this.targetClass = target != null ? findTargetClass() : null;
 		this.type = tweenType;
-		this.durationMillis = durationMillis;
+		this.duration = duration;
 	}
 
 	private Class findTargetClass() {
@@ -391,11 +391,11 @@ public final class Tween extends BaseTween<Tween> {
 
 	/**
 	 * Adds a delay to the tween.
-	 * @param millis The delay, in milliseconds.
+	 * @param delay The delay, in milliseconds.
 	 * @return The current tween, for chaining instructions.
 	 */
-	public Tween delay(int millis) {
-		delayMillis += millis;
+	public Tween delay(float delay) {
+		this.delay += delay;
 		return this;
 	}
 
@@ -655,10 +655,10 @@ public final class Tween extends BaseTween<Tween> {
 	}
 
 	@Override
-	protected void computeOverride(int step, int lastStep, int deltaMillis) {
+	protected void computeOverride(int step, int lastStep, float delta) {
 		if (target == null || equation == null) return;
 
-		if (durationMillis == 0) {
+		if (duration == 0) {
 			accessor.setValues(target, type, isFrom ? startValues : targetValues);
 			return;
 		}
@@ -666,8 +666,8 @@ public final class Tween extends BaseTween<Tween> {
 		for (int i=0; i<combinedTweenCnt; i++) {
 			float startValue = !isFrom ? startValues[i] : targetValues[i];
 			float deltaValue = (targetValues[i] - startValues[i]) * (!isFrom ? +1 : -1);
-			int millis = isYoyo(step) ? durationMillis - currentMillis : currentMillis;
-			buffer[i] = equation.compute(millis, startValue, deltaValue, durationMillis);
+			float time = isYoyo(step) ? duration - currentTime : currentTime;
+			buffer[i] = equation.compute(time, startValue, deltaValue, duration);
 		}
 
 		accessor.setValues(target, type, buffer);

@@ -23,10 +23,10 @@ public abstract class BaseTween<T> {
 	private boolean isYoyo;
 
 	// Timings
-	protected int delayMillis;
-	protected int durationMillis;
-	protected int repeatDelayMillis;
-	protected int currentMillis;
+	protected float delay;
+	protected float duration;
+	protected float repeatDelay;
+	protected float currentTime;
 	protected boolean isStarted; // true when the object is started
 	protected boolean isInitialized; // true after the delay
 	protected boolean isFinished; // true when all repetitions are done or kill() was called
@@ -47,7 +47,7 @@ public abstract class BaseTween<T> {
 		step = repeatCnt = 0;
 		isIterationStep = isYoyo = false;
 
-		delayMillis = durationMillis = repeatDelayMillis = currentMillis = 0;
+		delay = duration = repeatDelay = currentTime = 0;
 		isStarted = isInitialized = isFinished = isPaused = false;
 
 		callback = null;
@@ -79,7 +79,7 @@ public abstract class BaseTween<T> {
 	 */
 	public T start() {
 		build();
-		currentMillis = 0;
+		currentTime = 0;
 		isStarted = true;
 		return (T) this;
 	}
@@ -132,10 +132,10 @@ public abstract class BaseTween<T> {
 	 * @param millis A delay between each iteration.
 	 * @return The current tween or timeline, for chaining instructions.
 	 */
-	public T repeat(int count, int delayMillis) {
+	public T repeat(int count, float delay) {
 		if (isStarted) throw new RuntimeException("You can't change the repetitions of a tween or timeline once it is started");
 		repeatCnt = count;
-		repeatDelayMillis = delayMillis >= 0 ? delayMillis : 0;
+		repeatDelay = delay >= 0 ? delay : 0;
 		isYoyo = false;
 		return (T) this;
 	}
@@ -148,10 +148,10 @@ public abstract class BaseTween<T> {
 	 * @param millis A delay before each repetition.
 	 * @return The current tween or timeline, for chaining instructions.
 	 */
-	public T repeatYoyo(int count, int delayMillis) {
+	public T repeatYoyo(int count, float delay) {
 		if (isStarted) throw new RuntimeException("You can't change the repetitions of a tween or timeline once it is started");
 		repeatCnt = count;
-		repeatDelayMillis = delayMillis >= 0 ? delayMillis : 0;
+		repeatDelay = delay >= 0 ? delay : 0;
 		isYoyo = true;
 		return (T) this;
 	}
@@ -216,15 +216,15 @@ public abstract class BaseTween<T> {
 	 * Gets the delay of the tween or timeline. Nothing won't happen before this
 	 * delay.
 	 */
-	public int getDelay() {
-		return delayMillis;
+	public float getDelay() {
+		return delay;
 	}
 
 	/**
 	 * Gets the duration of a single iteration.
 	 */
-	public int getDuration() {
-		return durationMillis;
+	public float getDuration() {
+		return duration;
 	}
 
 	/**
@@ -237,8 +237,8 @@ public abstract class BaseTween<T> {
 	/**
 	 * Gets the delay occuring between two iterations.
 	 */
-	public int getRepeatDelay() {
-		return repeatDelayMillis;
+	public float getRepeatDelay() {
+		return repeatDelay;
 	}
 
 	/**
@@ -248,9 +248,9 @@ public abstract class BaseTween<T> {
 	 *
 	 * fullDuration = delay + duration + (repeatDelay + duration) * repeatCnt
 	 */
-	public int getFullDuration() {
+	public float getFullDuration() {
 		if (repeatCnt < 0) return -1;
-		return delayMillis + durationMillis + (repeatDelayMillis + durationMillis) * repeatCnt;
+		return delay + duration + (repeatDelay + duration) * repeatCnt;
 	}
 
 	/**
@@ -314,7 +314,7 @@ public abstract class BaseTween<T> {
 	protected abstract void forceEndValues();
 
 	protected abstract void initializeOverride();
-	protected abstract void computeOverride(int step, int lastStep, int deltaMillis);
+	protected abstract void computeOverride(int step, int lastStep, float delta);
 
 	protected abstract void killTarget(Object target);
 	protected abstract void killTarget(Object target, int tweenType);
@@ -326,14 +326,14 @@ public abstract class BaseTween<T> {
 	// -------------------------------------------------------------------------
 
 	protected void forceToStart() {
-		currentMillis = -delayMillis;
+		currentTime = -delay;
 		step = -1;
 		isIterationStep = false;
 		forceStartValues(0);
 	}
 
-	protected void forceToEnd(int millis) {
-		currentMillis = millis - getFullDuration();
+	protected void forceToEnd(float time) {
+		currentTime = time - getFullDuration();
 		step = repeatCnt*2 + 1;
 		isIterationStep = false;
 		forceEndValues(repeatCnt*2);
@@ -366,14 +366,14 @@ public abstract class BaseTween<T> {
 	 * TweenManager to update objects for you.</b> Slow motion, fast motion and
 	 * backwards play can be easily achieved by tweaking the deltaMillis given
 	 * as parameter.
-	 * @param deltaMillis A delta time, in milliseconds, between now and the
+	 * @param delta A delta time, in milliseconds, between now and the
 	 * last call.
 	 */
-	public void update(int deltaMillis) {
+	public void update(float delta) {
 		if (!isStarted || isPaused) return;
 
 		int lastStep = step;
-		currentMillis += deltaMillis;
+		currentTime += delta;
 
 		initialize();
 
@@ -383,29 +383,29 @@ public abstract class BaseTween<T> {
 			testInnerTransition(lastStep);
 			testLimitTransition(lastStep);
 			testCompletion();
-			if (isIterationStep) compute(lastStep, deltaMillis);
+			if (isIterationStep) compute(lastStep, delta);
 		}
 	}
 
 	private void initialize() {
-		if (!isInitialized && currentMillis >= delayMillis) {
+		if (!isInitialized && currentTime >= delay) {
 			initializeOverride();
 			isInitialized = true;
 			isIterationStep = true;
-			currentMillis -= delayMillis;
+			currentTime -= delay;
 			callCallback(TweenCallback.BEGIN);
 			callCallback(TweenCallback.START);
 		}
 	}
 
 	private void testRelaunch() {
-		if (repeatCnt >= 0 && step > repeatCnt*2 && currentMillis <= 0) {
+		if (repeatCnt >= 0 && step > repeatCnt*2 && currentTime <= 0) {
 			assert step == repeatCnt*2 + 1;
 			isIterationStep = true;
-			currentMillis += durationMillis;
+			currentTime += duration;
 			step = repeatCnt*2;
 
-		} else if (repeatCnt >= 0 && step < 0 && currentMillis >= 0) {
+		} else if (repeatCnt >= 0 && step < 0 && currentTime >= 0) {
 			assert step == -1;
 			isIterationStep = true;
 			step = 0;
@@ -414,27 +414,27 @@ public abstract class BaseTween<T> {
 
 	private void updateStep() {
 		while (isValid(step)) {
-			if (!isIterationStep && currentMillis <= 0) {
+			if (!isIterationStep && currentTime <= 0) {
 				isIterationStep = true;
-				currentMillis += durationMillis;
+				currentTime += duration;
 				step -= 1;
 				callCallback(TweenCallback.BACK_START);
 
-			} else if (!isIterationStep && currentMillis >= repeatDelayMillis) {
+			} else if (!isIterationStep && currentTime >= repeatDelay) {
 				isIterationStep = true;
-				currentMillis -= repeatDelayMillis;
+				currentTime -= repeatDelay;
 				step += 1;
 				callCallback(TweenCallback.START);
 
-			} else if (isIterationStep && currentMillis < 0) {
+			} else if (isIterationStep && currentTime < 0) {
 				isIterationStep = false;
-				currentMillis += isValid(step-1) ? repeatDelayMillis : 0;
+				currentTime += isValid(step-1) ? repeatDelay : 0;
 				step -= 1;
 				callCallback(TweenCallback.BACK_END);
 
-			} else if (isIterationStep && currentMillis > durationMillis) {
+			} else if (isIterationStep && currentTime > duration) {
 				isIterationStep = false;
-				currentMillis -= durationMillis;
+				currentTime -= duration;
 				step += 1;
 				callCallback(TweenCallback.END);
 
@@ -458,14 +458,14 @@ public abstract class BaseTween<T> {
 		isFinished = (repeatCnt >= 0 && step > repeatCnt*2) || (repeatCnt >= 0 && step < 0);
 	}
 
-	private void compute(int lastStep, int deltaMillis) {
-		assert currentMillis >= 0;
-		assert currentMillis <= durationMillis;
+	private void compute(int lastStep, float delta) {
+		assert currentTime >= 0;
+		assert currentTime <= duration;
 		assert isInitialized;
 		assert !isFinished;
 		assert isIterationStep;
 		assert isValid(step);
-		computeOverride(step, lastStep, deltaMillis);
+		computeOverride(step, lastStep, delta);
 	}
 
 	private boolean isValid(int step) {

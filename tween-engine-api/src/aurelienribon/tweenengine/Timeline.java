@@ -225,8 +225,8 @@ public final class Timeline extends BaseTween<Timeline> {
 	public Timeline build() {
 		if (isBuilt) return this;
 
-		delayMillis = 0;
-		durationMillis = 0;
+		delay = 0;
+		duration = 0;
 
 		for (int i=0; i<children.size(); i++) {
 			BaseTween obj = children.get(i);
@@ -236,13 +236,13 @@ public final class Timeline extends BaseTween<Timeline> {
 
 			switch (mode) {
 				case SEQUENCE:
-					int delay = durationMillis;
-					durationMillis += obj.getFullDuration();
-					obj.delayMillis += delay;
+					float tDelay = duration;
+					duration += obj.getFullDuration();
+					obj.delay += tDelay;
 					break;
 
 				case PARALLEL:
-					durationMillis = Math.max(durationMillis, obj.getFullDuration());
+					duration = Math.max(duration, obj.getFullDuration());
 					break;
 			}
 		}
@@ -278,25 +278,25 @@ public final class Timeline extends BaseTween<Timeline> {
 	}
 
 	@Override
-	protected void computeOverride(int step, int lastStep, int deltaMillis) {
-		int millis;
+	protected void computeOverride(int step, int lastStep, float delta) {
+		float time;
 
 		if (step > lastStep) {
 			forceStartValues(step);
-			millis = isYoyo(step) ? -currentMillis : currentMillis;
+			time = isYoyo(step) ? -currentTime : currentTime;
 
 		} else if (step < lastStep) {
 			forceEndValues(step);
-			millis = isYoyo(step) ? durationMillis-currentMillis : currentMillis-durationMillis;
+			time = isYoyo(step) ? duration-currentTime : currentTime-duration;
 
 		} else {
-			millis = isYoyo(step) ? -deltaMillis : deltaMillis;
+			time = isYoyo(step) ? -delta : delta;
 		}
 
-		if (deltaMillis >= 0) {
-			for (int i=0, n=children.size(); i<n; i++) children.get(i).update(millis);
+		if (delta >= 0) {
+			for (int i=0, n=children.size(); i<n; i++) children.get(i).update(time);
 		} else {
-			for (int i=children.size()-1; i>=0; i--) children.get(i).update(millis);
+			for (int i=children.size()-1; i>=0; i--) children.get(i).update(time);
 		}
 	}
 
@@ -316,7 +316,7 @@ public final class Timeline extends BaseTween<Timeline> {
 	protected void forceEndValues() {
 		for (int i=0, n=children.size(); i<n; i++) {
 			BaseTween obj = children.get(i);
-			obj.forceToEnd(durationMillis);
+			obj.forceToEnd(duration);
 		}
 	}
 
