@@ -97,7 +97,7 @@ public class GdxComplexDemo implements ApplicationListener {
 
 		text = "Idle (auto-start in 2 seconds)";
 		Tween.call(new TweenCallback() {
-			@Override public void onEvent(EventType eventType, BaseTween source) {
+			@Override public void onEvent(int type, BaseTween source) {
 				launchAnimation();
 				canControlSpeed = true;
 			}
@@ -138,7 +138,7 @@ public class GdxComplexDemo implements ApplicationListener {
 		font.draw(sb, String.format(Locale.US, "Current speed: %.2f", speed), 5, Gdx.graphics.getHeight() - 20);
 		font.draw(sb, text, 5, 45);
 		font.draw(sb, "Tweens in pool: " + (Tween.getPoolSize() + Timeline.getPoolSize()), 150, 25);
-		font.draw(sb, "Running tweens: " + tweenManager.size(), 5, 25);
+		font.draw(sb, "Running tweens: " + "x", 5, 25);
 		sb.end();
 	}
 
@@ -158,8 +158,8 @@ public class GdxComplexDemo implements ApplicationListener {
 		// The callback (to change the text at the right moments)
 
 		TweenCallback callback = new TweenCallback() {
-			@Override public void onEvent(EventType eventType, BaseTween source) {
-				switch (eventType) {
+			@Override public void onEvent(int type, BaseTween source) {
+				switch (type) {
 					case START: text = "Iteration: " + (++iterationCnt) + " / " + (repeatCnt+1); break;
 					case BACK_START: text = "Iteration: " + (--iterationCnt) + " / " + (repeatCnt+1); break;
 					case COMPLETE: text = "Forwards play complete (click to restart)"; canBeRestarted = true; break;
@@ -175,10 +175,8 @@ public class GdxComplexDemo implements ApplicationListener {
 			.push(buildSequence(sprite2, 2, 200, 1000))
 			.push(buildSequence(sprite3, 3, 400, 600))
 			.push(buildSequence(sprite4, 4, 600, 200))
-			.addCallback(TweenCallback.EventType.START, callback)
-			.addCallback(TweenCallback.EventType.BACK_START, callback)
-			.addCallback(TweenCallback.EventType.COMPLETE, callback)
-			.addCallback(TweenCallback.EventType.BACK_COMPLETE, callback)
+			.setCallback(callback)
+			.setCallbackTriggers(TweenCallback.START | TweenCallback.BACK_START | TweenCallback.COMPLETE | TweenCallback.BACK_COMPLETE)
 			.repeat(repeatCnt, 0)
 			.start(tweenManager);
 	}

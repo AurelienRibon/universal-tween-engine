@@ -1,9 +1,5 @@
 package aurelienribon.tweenengine;
 
-import aurelienribon.tweenengine.TweenCallback.EventType;
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * BaseTween is the base class of Tween and Timeline. It defines the
  * iteration engine used to play animations for any number of times, and in
@@ -87,21 +83,13 @@ public abstract class BaseTween {
 	protected boolean isFinished; // true when all repetitions are done or kill() was called
 	protected boolean isPaused; // true if pause() was called
 
-	// Callbacks
-	private List<TweenCallback> beginCallbacks;
-	private List<TweenCallback> startCallbacks;
-	private List<TweenCallback> endCallbacks;
-	private List<TweenCallback> completeCallbacks;
-	private List<TweenCallback> backStartCallbacks;
-	private List<TweenCallback> backEndCallbacks;
-	private List<TweenCallback> backCompleteCallbacks;
-
 	// Misc
+	private TweenCallback callback;
+	private int callbackTriggers;
 	private Object userData;
 
 	// Package access
 	boolean isAutoRemoveEnabled;
-	boolean isAutoFreeEnabled;
 	boolean isAutoStartEnabled;
 
 	// -------------------------------------------------------------------------
@@ -113,17 +101,11 @@ public abstract class BaseTween {
 		delayMillis = durationMillis = repeatDelayMillis = currentMillis = 0;
 		isStarted = isInitialized = isFinished = isPaused = false;
 
-		if (beginCallbacks != null) beginCallbacks.clear();
-		if (startCallbacks != null) startCallbacks.clear();
-		if (endCallbacks != null) endCallbacks.clear();
-		if (completeCallbacks != null) completeCallbacks.clear();
-		if (backStartCallbacks != null) backStartCallbacks.clear();
-		if (backEndCallbacks != null) backEndCallbacks.clear();
-		if (backCompleteCallbacks != null) backCompleteCallbacks.clear();
-
+		callback = null;
+		callbackTriggers = 0;
 		userData = null;
 
-		isAutoRemoveEnabled = isAutoFreeEnabled = isAutoStartEnabled = true;
+		isAutoRemoveEnabled = isAutoStartEnabled = true;
 	}
 
 	// -------------------------------------------------------------------------
@@ -184,18 +166,30 @@ public abstract class BaseTween {
 	}
 
 	/**
-	 * Adds a callback to the tween or timeline. The moment when the callback is
-	 * triggered depends on its type:
-	 * <br/><br/>
+	 * Sets the callback. By default, it will be fired at the completion of the
+	 * tween or timeline (event COMPLETE). If you want to change this behavior
+	 * and add more triggers, use the {@link setCallbackTriggers} method.
+	 * @see TweenCallback
+	 */
+	public BaseTween setCallback(TweenCallback callback) {
+		this.callback = callback;
+		this.callbackTriggers = TweenCallback.COMPLETE;
+		return this;
+	}
+
+	/**
+	 * Changes the triggers of the callback. The available triggers, listed as
+	 * members of the {@link TweenCallback} interface, are:
+	 * <p/>
 	 *
-	 * <b>BEGIN</b>: at first START, right after the delay (if any)<br/>
+	 * <b>BEGIN</b>: right after the delay (if any)<br/>
 	 * <b>START</b>: at each iteration beginning<br/>
 	 * <b>END</b>: at each iteration ending, before the repeat delay<br/>
-	 * <b>COMPLETE</b>: at last END<br/>
+	 * <b>COMPLETE</b>: at last END event<br/>
 	 * <b>BACK_START</b>: at each backwards iteration beginning, after the repeat delay<br/>
 	 * <b>BACK_END</b>: at each backwards iteration ending<br/>
-	 * <b>BACK_COMPLETE</b>: at last BACK_END
-	 * <br/><br/>
+	 * <b>BACK_COMPLETE</b>: at last BACK_END event
+	 * <p/>
 	 *
 	 * <pre> {@code
 	 * forwards :         BEGIN                                   COMPLETE
@@ -205,37 +199,10 @@ public abstract class BaseTween {
 	 * backwards:         bCOMPLETE
 	 * }</pre>
 	 *
-	 *
-	 * @param callbackType The callback type.
-	 * @param callback A callback.
-	 * @return The current tween or timeline, for chaining instructions.
+	 * @see TweenCallback
 	 */
-	public BaseTween addCallback(EventType callbackType, TweenCallback callback) {
-		List<TweenCallback> callbacks = null;
-
-		switch (callbackType) {
-			case BEGIN: callbacks = beginCallbacks; break;
-			case START: callbacks = startCallbacks; break;
-			case END: callbacks = endCallbacks; break;
-			case COMPLETE: callbacks = completeCallbacks; break;
-			case BACK_START: callbacks = backStartCallbacks; break;
-			case BACK_END: callbacks = backEndCallbacks; break;
-			case BACK_COMPLETE: callbacks = backCompleteCallbacks; break;
-		}
-
-		if (callbacks == null) callbacks = new ArrayList<TweenCallback>(1);
-		callbacks.add(callback);
-
-		switch (callbackType) {
-			case BEGIN: beginCallbacks = callbacks; break;
-			case START: startCallbacks = callbacks; break;
-			case END: endCallbacks = callbacks; break;
-			case COMPLETE: completeCallbacks = callbacks; break;
-			case BACK_START: backStartCallbacks = callbacks; break;
-			case BACK_END: backEndCallbacks = callbacks; break;
-			case BACK_COMPLETE: backCompleteCallbacks = callbacks; break;
-		}
-
+	public BaseTween setCallbackTriggers(int flags) {
+		this.callbackTriggers = flags;
 		return this;
 	}
 
@@ -370,22 +337,8 @@ public abstract class BaseTween {
 		forceEndValues(repeatCnt*2);
 	}
 
-	protected void callCallbacks(EventType type) {
-		List<TweenCallback> callbacks = null;
-
-		switch (type) {
-			case BEGIN: callbacks = beginCallbacks; break;
-			case START: callbacks = startCallbacks; break;
-			case END: callbacks = endCallbacks; break;
-			case COMPLETE: callbacks = completeCallbacks; break;
-			case BACK_START: callbacks = backStartCallbacks; break;
-			case BACK_END: callbacks = backEndCallbacks; break;
-			case BACK_COMPLETE: callbacks = backCompleteCallbacks; break;
-		}
-
-		if (callbacks != null && !callbacks.isEmpty())
-			for (int i=0, n=callbacks.size(); i<n; i++)
-				callbacks.get(i).onEvent(type, this);
+	protected void callCallback(int type) {
+		if (callback != null && (callbackTriggers & type) > 0) callback.onEvent(type, this);
 	}
 
 	// -------------------------------------------------------------------------
@@ -424,8 +377,8 @@ public abstract class BaseTween {
 			isInitialized = true;
 			isComputeIteration = true;
 			currentMillis -= delayMillis;
-			callCallbacks(EventType.BEGIN);
-			callCallbacks(EventType.START);
+			callCallback(TweenCallback.BEGIN);
+			callCallback(TweenCallback.START);
 		}
 	}
 
@@ -449,25 +402,25 @@ public abstract class BaseTween {
 				isComputeIteration = true;
 				currentMillis += durationMillis;
 				iteration -= 1;
-				callCallbacks(EventType.BACK_START);
+				callCallback(TweenCallback.BACK_START);
 
 			} else if (!isComputeIteration && currentMillis >= repeatDelayMillis) {
 				isComputeIteration = true;
 				currentMillis -= repeatDelayMillis;
 				iteration += 1;
-				callCallbacks(EventType.START);
+				callCallback(TweenCallback.START);
 
 			} else if (isComputeIteration && currentMillis < 0) {
 				isComputeIteration = false;
 				currentMillis += isValid(iteration-1) ? repeatDelayMillis : 0;
 				iteration -= 1;
-				callCallbacks(EventType.BACK_END);
+				callCallback(TweenCallback.BACK_END);
 
 			} else if (isComputeIteration && currentMillis > durationMillis) {
 				isComputeIteration = false;
 				currentMillis -= durationMillis;
 				iteration += 1;
-				callCallbacks(EventType.END);
+				callCallback(TweenCallback.END);
 
 			} else break;
 		}
@@ -481,8 +434,8 @@ public abstract class BaseTween {
 
 	private void testLimitTransition(int lastIteration) {
 		if (repeatCnt < 0 || iteration == lastIteration) return;
-		if (iteration > repeatCnt*2) callCallbacks(EventType.COMPLETE);
-		else if (iteration < 0) callCallbacks(EventType.BACK_COMPLETE);
+		if (iteration > repeatCnt*2) callCallback(TweenCallback.COMPLETE);
+		else if (iteration < 0) callCallback(TweenCallback.BACK_COMPLETE);
 	}
 
 	private void testCompletion() {

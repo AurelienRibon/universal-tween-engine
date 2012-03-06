@@ -1,6 +1,5 @@
 package aurelienribon.tweenengine;
 
-import aurelienribon.tweenengine.TweenCallback.EventType;
 import aurelienribon.tweenengine.equations.Linear;
 import java.util.HashMap;
 import java.util.Map;
@@ -293,7 +292,8 @@ public final class Tween extends BaseTween {
 	public static Tween call(TweenCallback callback) {
 		Tween tween = pool.get();
 		tween.setup(null, -1, 0);
-		tween.addCallback(EventType.START, callback);
+		tween.setCallback(callback);
+		tween.setCallbackTriggers(TweenCallback.START);
 		return tween;
 	}
 
@@ -604,8 +604,14 @@ public final class Tween extends BaseTween {
 	}
 
 	@Override
-	public Tween addCallback(EventType callbackType, TweenCallback callback) {
-		super.addCallback(callbackType, callback);
+	public Tween setCallback(TweenCallback callback) {
+		super.setCallback(callback);
+		return this;
+	}
+
+	@Override
+	public Tween setCallbackTriggers(int flags) {
+		super.setCallbackTriggers(flags);
 		return this;
 	}
 

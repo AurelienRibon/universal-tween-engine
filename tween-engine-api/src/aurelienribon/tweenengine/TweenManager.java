@@ -33,19 +33,6 @@ public class TweenManager {
 	}
 
 	/**
-	 * Disables or enables the "auto free" mode of any tween manager for a
-	 * particular tween or timeline. This mode is activated by default.
-	 * Commonly, tweens and timelines are automatically freed and removed
-	 * from the manager once they are finished. If "auto free" is disabled, a
-	 * tween or timeline will be removed from the manager when finished, but not
-	 * freed, allowing you to restart it later even if object pooling is
-	 * enabled.
-	 */
-	public static void setAutoFree(BaseTween object, boolean value) {
-		object.isAutoFreeEnabled = value;
-	}
-
-	/**
 	 * Disables or enables the "auto start" mode of any tween manager for a
 	 * particular tween or timeline. This mode is activated by default. If it
 	 * is not enabled, add a tween or timeline to any manager won't start it
@@ -159,19 +146,18 @@ public class TweenManager {
 	public void update(int deltaMillis) {
 		for (int i=objects.size()-1; i>=0; i--) {
 			BaseTween obj = objects.get(i);
-
 			if (obj.isFinished() && obj.isAutoRemoveEnabled) {
 				objects.remove(i);
-				if (obj.isAutoFreeEnabled) obj.free();
+				obj.free();
 			}
 		}
 
-		if (isPaused) return;
-
-		if (deltaMillis >= 0) {
-			for (int i=0, n=objects.size(); i<n; i++) objects.get(i).update(deltaMillis);
-		} else {
-			for (int i=objects.size()-1; i>=0; i--) objects.get(i).update(deltaMillis);
+		if (!isPaused) {
+			if (deltaMillis >= 0) {
+				for (int i=0, n=objects.size(); i<n; i++) objects.get(i).update(deltaMillis);
+			} else {
+				for (int i=objects.size()-1; i>=0; i--) objects.get(i).update(deltaMillis);
+			}
 		}
 	}
 }
