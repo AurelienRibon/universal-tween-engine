@@ -217,6 +217,10 @@ public final class Timeline extends BaseTween<Timeline> {
 		else return current.children;
 	}
 
+	// -------------------------------------------------------------------------
+	// Overrides
+	// -------------------------------------------------------------------------
+
 	@Override
 	public Timeline build() {
 		if (isBuilt) return this;
@@ -249,21 +253,13 @@ public final class Timeline extends BaseTween<Timeline> {
 
 	@Override
 	public Timeline start() {
-		build();
-		currentMillis = 0;
-		isStarted = true;
+		super.start();
 
 		for (int i=0; i<children.size(); i++) {
 			BaseTween obj = children.get(i);
 			obj.start();
 		}
 
-		return this;
-	}
-
-	@Override
-	public Timeline start(TweenManager manager) {
-		manager.add(this);
 		return this;
 	}
 
@@ -277,28 +273,24 @@ public final class Timeline extends BaseTween<Timeline> {
 		pool.free(this);
 	}
 
-	// -------------------------------------------------------------------------
-	// Update engine
-	// -------------------------------------------------------------------------
-
 	@Override
 	protected void initializeOverride() {
 	}
 
 	@Override
-	protected void computeOverride(int iteration, int lastIteration, int deltaMillis) {
+	protected void computeOverride(int step, int lastStep, int deltaMillis) {
 		int millis;
 
-		if (iteration > lastIteration) {
-			forceStartValues(iteration);
-			millis = isIterationYoyo(iteration) ? -currentMillis : currentMillis;
+		if (step > lastStep) {
+			forceStartValues(step);
+			millis = isStepYoyo(step) ? -currentMillis : currentMillis;
 
-		} else if (iteration < lastIteration) {
-			forceEndValues(iteration);
-			millis = isIterationYoyo(iteration) ? durationMillis-currentMillis : currentMillis-durationMillis;
+		} else if (step < lastStep) {
+			forceEndValues(step);
+			millis = isStepYoyo(step) ? durationMillis-currentMillis : currentMillis-durationMillis;
 
 		} else {
-			millis = isIterationYoyo(iteration) ? -deltaMillis : deltaMillis;
+			millis = isStepYoyo(step) ? -deltaMillis : deltaMillis;
 		}
 
 		if (deltaMillis >= 0) {
@@ -313,18 +305,18 @@ public final class Timeline extends BaseTween<Timeline> {
 	// -------------------------------------------------------------------------
 
 	@Override
-	protected void forceStartValues(int iteration) {
+	protected void forceStartValues(int step) {
 		for (int i=0, n=children.size(); i<n; i++) {
 			BaseTween obj = children.get(i);
-			if (isIterationYoyo(iteration)) obj.forceToEnd(durationMillis); else obj.forceToStart();
+			if (isStepYoyo(step)) obj.forceToEnd(durationMillis); else obj.forceToStart();
 		}
 	}
 
 	@Override
-	protected void forceEndValues(int iteration) {
+	protected void forceEndValues(int step) {
 		for (int i=0, n=children.size(); i<n; i++) {
 			BaseTween obj = children.get(i);
-			if (isIterationYoyo(iteration)) obj.forceToStart(); else obj.forceToEnd(durationMillis);
+			if (isStepYoyo(step)) obj.forceToStart(); else obj.forceToEnd(durationMillis);
 		}
 	}
 

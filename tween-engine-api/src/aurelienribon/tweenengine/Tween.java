@@ -95,7 +95,7 @@ public final class Tween extends BaseTween<Tween> {
 	 * Gets the version number of the library.
 	 */
 	public static String getVersion() {
-		return "6.1.0";
+		return "6.2.0";
 	}
 
 	// -------------------------------------------------------------------------
@@ -478,8 +478,10 @@ public final class Tween extends BaseTween<Tween> {
 	 * @return The current tween, for chaining instructions.
 	 */
 	public Tween target(float... targetValues) {
-		if (targetValues.length > MAX_COMBINED_TWEENS)
+		if (targetValues.length > MAX_COMBINED_TWEENS) {
 			throw new RuntimeException("You cannot set more than " + MAX_COMBINED_TWEENS + " targets.");
+		}
+
 		System.arraycopy(targetValues, 0, this.targetValues, 0, targetValues.length);
 		return this;
 	}
@@ -549,51 +551,16 @@ public final class Tween extends BaseTween<Tween> {
 	 * @return The current tween, for chaining instructions.
 	 */
 	public Tween targetRelative(float... targetValues) {
-		if (targetValues.length > MAX_COMBINED_TWEENS)
+		if (targetValues.length > MAX_COMBINED_TWEENS) {
 			throw new RuntimeException("You cannot set more than " + MAX_COMBINED_TWEENS + " targets.");
-		isRelative = true;
-		for (int i=0; i<targetValues.length; i++)
-			this.targetValues[i] = isInitialized ? targetValues[i] + startValues[i] : targetValues[i];
-		return this;
-	}
-
-	@Override
-	public Tween build() {
-		if (target != null) {
-			accessor = registeredAccessors.get(targetClass);
-
-			if (accessor == null && target instanceof TweenAccessor) {
-				accessor = (TweenAccessor) target;
-			}
-
-			if (accessor != null) combinedTweenCnt = accessor.getValues(target, type, buffer);
-			else throw new RuntimeException("No TweenAccessor was found for the target");
-
-			if (combinedTweenCnt < 0 || combinedTweenCnt > MAX_COMBINED_TWEENS) {
-				throw new RuntimeException("Min combined tweens = 0, max = " + MAX_COMBINED_TWEENS);
-			}
 		}
 
-		return this;
-	}
+		for (int i=0; i<targetValues.length; i++) {
+			this.targetValues[i] = isInitialized ? targetValues[i] + startValues[i] : targetValues[i];
+		}
 
-	@Override
-	public Tween start() {
-		build();
-		currentMillis = 0;
-		isStarted = true;
+		isRelative = true;
 		return this;
-	}
-
-	@Override
-	public Tween start(TweenManager manager) {
-		manager.add(this);
-		return this;
-	}
-
-	@Override
-	public void free() {
-		pool.free(this);
 	}
 
 	// -------------------------------------------------------------------------
@@ -653,20 +620,42 @@ public final class Tween extends BaseTween<Tween> {
 	}
 
 	// -------------------------------------------------------------------------
-	// Update engine
+	// Overrides
 	// -------------------------------------------------------------------------
 
 	@Override
+	public Tween build() {
+		if (target == null) return this;
+
+		accessor = registeredAccessors.get(targetClass);
+		if (accessor == null && target instanceof TweenAccessor) accessor = (TweenAccessor) target;
+		if (accessor != null) combinedTweenCnt = accessor.getValues(target, type, buffer);
+		else throw new RuntimeException("No TweenAccessor was found for the target");
+
+		if (combinedTweenCnt < 0 || combinedTweenCnt > MAX_COMBINED_TWEENS) {
+			throw new RuntimeException("Min combined tweens = 0, max = " + MAX_COMBINED_TWEENS);
+		}
+
+		return this;
+	}
+
+	@Override
+	public void free() {
+		pool.free(this);
+	}
+
+	@Override
 	protected void initializeOverride() {
-		if (target != null) {
-			accessor.getValues(target, type, startValues);
-			for (int i=0; i<combinedTweenCnt; i++)
-				targetValues[i] += isRelative ? startValues[i] : 0;
+		if (target == null) return;
+
+		accessor.getValues(target, type, startValues);
+		for (int i=0; i<combinedTweenCnt; i++) {
+			targetValues[i] += isRelative ? startValues[i] : 0;
 		}
 	}
 
 	@Override
-	protected void computeOverride(int iteration, int lastIteration, int deltaMillis) {
+	protected void computeOverride(int step, int lastStep, int deltaMillis) {
 		if (target == null || equation == null) return;
 
 		if (durationMillis == 0) {
@@ -677,28 +666,24 @@ public final class Tween extends BaseTween<Tween> {
 		for (int i=0; i<combinedTweenCnt; i++) {
 			float startValue = !isFrom ? startValues[i] : targetValues[i];
 			float deltaValue = (targetValues[i] - startValues[i]) * (!isFrom ? +1 : -1);
-			int millis = isIterationYoyo(iteration) ? durationMillis - currentMillis : currentMillis;
+			int millis = isStepYoyo(step) ? durationMillis - currentMillis : currentMillis;
 			buffer[i] = equation.compute(millis, startValue, deltaValue, durationMillis);
 		}
 
 		accessor.setValues(target, type, buffer);
 	}
 
-	// -------------------------------------------------------------------------
-	// BaseTween impl.
-	// -------------------------------------------------------------------------
-
 	@Override
-	protected void forceStartValues(int iteration) {
+	protected void forceStartValues(int step) {
 		if (target == null) return;
-		boolean swapStartAndTarget = isIterationYoyo(iteration) ? !isFrom : isFrom;
+		boolean swapStartAndTarget = isStepYoyo(step) ? !isFrom : isFrom;
 		accessor.setValues(target, type, swapStartAndTarget ? targetValues : startValues);
 	}
 
 	@Override
-	protected void forceEndValues(int iteration) {
+	protected void forceEndValues(int step) {
 		if (target == null) return;
-		boolean swapStartAndTarget = isIterationYoyo(iteration) ? !isFrom : isFrom;
+		boolean swapStartAndTarget = isStepYoyo(step) ? !isFrom : isFrom;
 		accessor.setValues(target, type, swapStartAndTarget ? startValues : targetValues);
 	}
 

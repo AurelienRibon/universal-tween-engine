@@ -16,62 +16,11 @@ package aurelienribon.tweenengine;
  */
 public abstract class BaseTween<T> {
 
-	// -------------------------------------------------------------------------
-	// Abstract stuff
-	// -------------------------------------------------------------------------
-
-	/**
-	 * Builds and validate the object. Only needed if you want to finalize a
-	 * tween or timeline without starting it, since a call to ".start()" also
-	 * calls this method.
-	 */
-	public abstract BaseTween build();
-
-	/**
-	 * Starts or restarts the object unmanaged. You will need to take care of
-	 * its life-cycle. If you want the tween to be managed for you, use a
-	 * {@link TweenManager}.
-	 * @return The current object, for chaining instructions.
-	 */
-	public abstract BaseTween start();
-
-	/**
-	 * Convenience method to add an object to a manager. Its life-cycle will be
-	 * handled for you. Relax and enjoy the animation. By default, the object
-	 * will be automatically started, but it may no be the case if you called
-	 * {@link TweenManager.setAutoStart} with a false param on your object
-	 * before.
-	 * @return The current object, for chaining instructions.
-	 */
-	public abstract BaseTween start(TweenManager manager);
-
-	/**
-	 * If you want to manually manage your tweens and timelines (without using a
-	 * TweenManager), and you enabled object pooling, then you need to call
-	 * this method on your tweens and timelines once they are finished (see
-	 * <i>isFinished()</i> method).
-	 */
-	public abstract void free();
-
-	protected abstract void initializeOverride();
-	protected abstract void computeOverride(int iteration, int lastIteration, int deltaMillis);
-	protected abstract void forceStartValues(int iteration);
-	protected abstract void forceEndValues(int iteration);
-
-	protected abstract void killTarget(Object target);
-	protected abstract void killTarget(Object target, int tweenType);
-	protected abstract boolean containsTarget(Object target);
-	protected abstract boolean containsTarget(Object target, int tweenType);
-
-	// -------------------------------------------------------------------------
-	// Attributes
-	// -------------------------------------------------------------------------
-
 	// General
-	private boolean isYoyo;
-	private boolean isComputeIteration;
-	private int iteration;
+	private int step;
 	private int repeatCnt;
+	private boolean isIterationStep;
+	private boolean isYoyo;
 
 	// Timings
 	protected int delayMillis;
@@ -95,8 +44,8 @@ public abstract class BaseTween<T> {
 	// -------------------------------------------------------------------------
 
 	protected void reset() {
-		isYoyo = isComputeIteration = false;
-		iteration = repeatCnt = 0;
+		step = repeatCnt = 0;
+		isIterationStep = isYoyo = false;
 
 		delayMillis = durationMillis = repeatDelayMillis = currentMillis = 0;
 		isStarted = isInitialized = isFinished = isPaused = false;
@@ -113,11 +62,53 @@ public abstract class BaseTween<T> {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Kills the tween or timeline. If you're using a TweenManager, this object
+	 * Builds and validates the object. Only needed if you want to finalize a
+	 * tween or timeline without starting it, since a call to ".start()" also
+	 * calls this method.
+	 * @return The current object, for chaining instructions.
+	 */
+	public T build() {
+		return (T) this;
+	}
+
+	/**
+	 * Starts or restarts the object unmanaged. You will need to take care of
+	 * its life-cycle. If you want the tween to be managed for you, use a
+	 * {@link TweenManager}.
+	 * @return The current object, for chaining instructions.
+	 */
+	public T start() {
+		build();
+		currentMillis = 0;
+		isStarted = true;
+		return (T) this;
+	}
+
+	/**
+	 * Convenience method to add an object to a manager. Its life-cycle will be
+	 * handled for you. Relax and enjoy the animation.
+	 * @return The current object, for chaining instructions.
+	 */
+	public T start(TweenManager manager) {
+		manager.add(this);
+		return (T) this;
+	}
+
+	/**
+	 * Kills the tween or timeline. If you are using a TweenManager, this object
 	 * will be removed automatically.
 	 */
 	public void kill() {
 		isFinished = true;
+	}
+
+	/**
+	 * If you want to manually manage your tweens and timelines (without using a
+	 * TweenManager), and you enabled object pooling, then you need to call
+	 * this method on your tweens and timelines once they are finished (see
+	 * <i>isFinished()</i> method).
+	 */
+	public void free() {
 	}
 
 	/**
@@ -153,7 +144,7 @@ public abstract class BaseTween<T> {
 	 * Repeats the tween or timeline for a given number of times.
 	 * Every two iterations, it will be played backwards.
 	 * @param count The number of repetitions. For infinite repetition,
-	 * use Tween.INFINITY, or a negative number.
+	 * use Tween.INFINITY, or '-1'.
 	 * @param millis A delay before each repetition.
 	 * @return The current tween or timeline, for chaining instructions.
 	 */
@@ -270,7 +261,7 @@ public abstract class BaseTween<T> {
 	}
 
 	/**
-	 * Returns the id of the current iteration. Values are as follows:<br/>
+	 * Returns the id of the current step. Values are as follows:<br/>
 	 * <ul>
 	 * <li>even numbers mean that an iteration is playing,<br/>
 	 * <li>odd numbers mean that we are between two iterations,<br/>
@@ -278,9 +269,9 @@ public abstract class BaseTween<T> {
 	 * <li>-1 means that we are before the first iteration,<br/>
 	 * <li>repeatCount*2 + 1 means that we are after the last iteration
 	 */
-	public int getState() {
+	public int getStep() {
 		if (!isInitialized) return -2;
-		return iteration;
+		return step;
 	}
 
 	/**
@@ -316,24 +307,39 @@ public abstract class BaseTween<T> {
 	}
 
 	// -------------------------------------------------------------------------
+	// Abstract API
+	// -------------------------------------------------------------------------
+
+	protected abstract void forceStartValues(int step);
+	protected abstract void forceEndValues(int step);
+
+	protected abstract void initializeOverride();
+	protected abstract void computeOverride(int step, int lastStep, int deltaMillis);
+
+	protected abstract void killTarget(Object target);
+	protected abstract void killTarget(Object target, int tweenType);
+	protected abstract boolean containsTarget(Object target);
+	protected abstract boolean containsTarget(Object target, int tweenType);
+
+	// -------------------------------------------------------------------------
 	// Protected API
 	// -------------------------------------------------------------------------
 
-	protected boolean isIterationYoyo(int iteration) {
-		return isYoyo && Math.abs(iteration%4) == 2;
+	protected boolean isStepYoyo(int step) {
+		return isYoyo && Math.abs(step%4) == 2;
 	}
 
 	protected void forceToStart() {
 		currentMillis = -delayMillis;
-		iteration = -1;
-		isComputeIteration = false;
+		step = -1;
+		isIterationStep = false;
 		forceStartValues(0);
 	}
 
 	protected void forceToEnd(int millis) {
 		currentMillis = millis - getFullDuration();
-		iteration = repeatCnt*2 + 1;
-		isComputeIteration = false;
+		step = repeatCnt*2 + 1;
+		isIterationStep = false;
 		forceEndValues(repeatCnt*2);
 	}
 
@@ -356,18 +362,18 @@ public abstract class BaseTween<T> {
 	public void update(int deltaMillis) {
 		if (!isStarted || isPaused) return;
 
-		int lastIteration = iteration;
+		int lastStep = step;
 		currentMillis += deltaMillis;
 
 		initialize();
 
 		if (isInitialized) {
 			testRelaunch();
-			updateIteration();
-			testInnerTransition(lastIteration);
-			testLimitTransition(lastIteration);
+			updateStep();
+			testInnerTransition(lastStep);
+			testLimitTransition(lastStep);
 			testCompletion();
-			if (isComputeIteration) compute(lastIteration, deltaMillis);
+			if (isIterationStep) compute(lastStep, deltaMillis);
 		}
 	}
 
@@ -375,7 +381,7 @@ public abstract class BaseTween<T> {
 		if (!isInitialized && currentMillis >= delayMillis) {
 			initializeOverride();
 			isInitialized = true;
-			isComputeIteration = true;
+			isIterationStep = true;
 			currentMillis -= delayMillis;
 			callCallback(TweenCallback.BEGIN);
 			callCallback(TweenCallback.START);
@@ -383,76 +389,76 @@ public abstract class BaseTween<T> {
 	}
 
 	private void testRelaunch() {
-		if (repeatCnt >= 0 && iteration > repeatCnt*2 && currentMillis <= 0) {
-			assert iteration == repeatCnt*2 + 1;
-			isComputeIteration = true;
+		if (repeatCnt >= 0 && step > repeatCnt*2 && currentMillis <= 0) {
+			assert step == repeatCnt*2 + 1;
+			isIterationStep = true;
 			currentMillis += durationMillis;
-			iteration = repeatCnt*2;
+			step = repeatCnt*2;
 
-		} else if (repeatCnt >= 0 && iteration < 0 && currentMillis >= 0) {
-			assert iteration == -1;
-			isComputeIteration = true;
-			iteration = 0;
+		} else if (repeatCnt >= 0 && step < 0 && currentMillis >= 0) {
+			assert step == -1;
+			isIterationStep = true;
+			step = 0;
 		}
 	}
 
-	private void updateIteration() {
-		while (isValid(iteration)) {
-			if (!isComputeIteration && currentMillis <= 0) {
-				isComputeIteration = true;
+	private void updateStep() {
+		while (isValid(step)) {
+			if (!isIterationStep && currentMillis <= 0) {
+				isIterationStep = true;
 				currentMillis += durationMillis;
-				iteration -= 1;
+				step -= 1;
 				callCallback(TweenCallback.BACK_START);
 
-			} else if (!isComputeIteration && currentMillis >= repeatDelayMillis) {
-				isComputeIteration = true;
+			} else if (!isIterationStep && currentMillis >= repeatDelayMillis) {
+				isIterationStep = true;
 				currentMillis -= repeatDelayMillis;
-				iteration += 1;
+				step += 1;
 				callCallback(TweenCallback.START);
 
-			} else if (isComputeIteration && currentMillis < 0) {
-				isComputeIteration = false;
-				currentMillis += isValid(iteration-1) ? repeatDelayMillis : 0;
-				iteration -= 1;
+			} else if (isIterationStep && currentMillis < 0) {
+				isIterationStep = false;
+				currentMillis += isValid(step-1) ? repeatDelayMillis : 0;
+				step -= 1;
 				callCallback(TweenCallback.BACK_END);
 
-			} else if (isComputeIteration && currentMillis > durationMillis) {
-				isComputeIteration = false;
+			} else if (isIterationStep && currentMillis > durationMillis) {
+				isIterationStep = false;
 				currentMillis -= durationMillis;
-				iteration += 1;
+				step += 1;
 				callCallback(TweenCallback.END);
 
 			} else break;
 		}
 	}
 
-	private void testInnerTransition(int lastIteration) {
-		if (isComputeIteration) return;
-		if (iteration > lastIteration) forceEndValues(iteration-1);
-		else if (iteration < lastIteration) forceStartValues(iteration+1);
+	private void testInnerTransition(int lastStep) {
+		if (isIterationStep) return;
+		if (step > lastStep) forceEndValues(step-1);
+		else if (step < lastStep) forceStartValues(step+1);
 	}
 
-	private void testLimitTransition(int lastIteration) {
-		if (repeatCnt < 0 || iteration == lastIteration) return;
-		if (iteration > repeatCnt*2) callCallback(TweenCallback.COMPLETE);
-		else if (iteration < 0) callCallback(TweenCallback.BACK_COMPLETE);
+	private void testLimitTransition(int lastStep) {
+		if (repeatCnt < 0 || step == lastStep) return;
+		if (step > repeatCnt*2) callCallback(TweenCallback.COMPLETE);
+		else if (step < 0) callCallback(TweenCallback.BACK_COMPLETE);
 	}
 
 	private void testCompletion() {
-		isFinished = (repeatCnt >= 0 && iteration > repeatCnt*2) || (repeatCnt >= 0 && iteration < 0);
+		isFinished = (repeatCnt >= 0 && step > repeatCnt*2) || (repeatCnt >= 0 && step < 0);
 	}
 
-	private void compute(int lastIteration, int deltaMillis) {
+	private void compute(int lastStep, int deltaMillis) {
 		assert currentMillis >= 0;
 		assert currentMillis <= durationMillis;
 		assert isInitialized;
 		assert !isFinished;
-		assert isComputeIteration;
-		assert isValid(iteration);
-		computeOverride(iteration, lastIteration, deltaMillis);
+		assert isIterationStep;
+		assert isValid(step);
+		computeOverride(step, lastStep, deltaMillis);
 	}
 
-	private boolean isValid(int iteration) {
-		return (iteration >= 0 && iteration <= repeatCnt*2) || repeatCnt < 0;
+	private boolean isValid(int step) {
+		return (step >= 0 && step <= repeatCnt*2) || repeatCnt < 0;
 	}
 }
