@@ -7,17 +7,17 @@ import java.util.List;
 /**
  * A Timeline can be used to create complex animations made of sequences and
  * parallel sets of Tweens.
- * <br/><br/>
+ * <p/>
  *
  * The following example will create an animation sequence composed of 5 parts:
- * <br/><br/>
+ * <p/>
  *
  * 1. First, opacity and scale are set to 0 (with Tween.set() calls).<br/>
  * 2. Then, opacity and scale are animated in parallel.<br/>
  * 3. Then, the animation is paused for 1s.<br/>
  * 4. Then, position is animated to x=100.<br/>
  * 5. Then, rotation is animated to 360°.
- * <br/><br/>
+ * <p/>
  *
  * This animation will be repeated 5 times, with a 500ms delay between each
  * iteration:
@@ -28,13 +28,13 @@ import java.util.List;
  *     .push(Tween.set(myObject, OPACITY).target(0))
  *     .push(Tween.set(myObject, SCALE).target(0, 0))
  *     .beginParallel()
- *          .push(Tween.to(myObject, OPACITY, 500).target(1).ease(Quad.INOUT))
- *          .push(Tween.to(myObject, SCALE, 500).target(1, 1).ease(Quad.INOUT))
+ *          .push(Tween.to(myObject, OPACITY, 0.5f).target(1).ease(Quad.INOUT))
+ *          .push(Tween.to(myObject, SCALE, 0.5f).target(1, 1).ease(Quad.INOUT))
  *     .end()
- *     .pushPause(1000)
- *     .push(Tween.to(myObject, POSITION_X, 500).target(100).ease(Quad.INOUT))
- *     .push(Tween.to(myObject, ROTATION, 500).target(360).ease(Quad.INOUT))
- *     .repeat(5, 500)
+ *     .pushPause(1.0f)
+ *     .push(Tween.to(myObject, POSITION_X, 0.5f).target(100).ease(Quad.INOUT))
+ *     .push(Tween.to(myObject, ROTATION, 0.5f).target(360).ease(Quad.INOUT))
+ *     .repeat(5, 0.5f)
  *     .start(myManager);
  * }</pre>
  *
@@ -136,6 +136,7 @@ public final class Timeline extends BaseTween<Timeline> {
 
 	/**
 	 * Adds a Tween to the current timeline.
+	 *
 	 * @return The current timeline, for chaining instructions.
 	 */
 	public Timeline push(Tween tween) {
@@ -146,6 +147,7 @@ public final class Timeline extends BaseTween<Timeline> {
 
 	/**
 	 * Nests a Timeline in the current one.
+	 *
 	 * @return The current timeline, for chaining instructions.
 	 */
 	public Timeline push(Timeline timeline) {
@@ -157,19 +159,22 @@ public final class Timeline extends BaseTween<Timeline> {
 	}
 
 	/**
-	 * Adds a pause to the timeline. The millis may be negative if you want to
+	 * Adds a pause to the timeline. The pause may be negative if you want to
 	 * overlap the preceding and following children.
+	 *
+	 * @param time A positive or negative duration.
 	 * @return The current timeline, for chaining instructions.
 	 */
-	public Timeline pushPause(int millis) {
+	public Timeline pushPause(float time) {
 		if (isBuilt) throw new RuntimeException("You can't push anything to a timeline once it is started");
-		current.children.add(Tween.mark().delay(millis));
+		current.children.add(Tween.mark().delay(time));
 		return this;
 	}
 
 	/**
-	 * Starts a nested timeline with a 'sequence' behavior. Don't forget to call
-	 * <i>end()</i> to close this nested timeline.
+	 * Starts a nested timeline with a 'sequence' behavior. Don't forget to
+	 * call {@link end()} to close this nested timeline.
+	 *
 	 * @return The current timeline, for chaining instructions.
 	 */
 	public Timeline beginSequence() {
@@ -183,8 +188,9 @@ public final class Timeline extends BaseTween<Timeline> {
 	}
 
 	/**
-	 * Starts a nested timeline with a 'parallel' behavior. Don't forget to call
-	 * <i>end()</i> to close this nested timeline.
+	 * Starts a nested timeline with a 'parallel' behavior. Don't forget to
+	 * call {@link end()} to close this nested timeline.
+	 *
 	 * @return The current timeline, for chaining instructions.
 	 */
 	public Timeline beginParallel() {
@@ -199,6 +205,7 @@ public final class Timeline extends BaseTween<Timeline> {
 
 	/**
 	 * Closes the last nested timeline.
+	 *
 	 * @return The current timeline, for chaining instructions.
 	 */
 	public Timeline end() {

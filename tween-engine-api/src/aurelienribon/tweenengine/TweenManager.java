@@ -6,7 +6,7 @@ import java.util.ArrayList;
  * A TweenManager updates all your tweens and timelines at once.
  * Its main interest is that it handles the tween/timeline life-cycles for you,
  * as well as the pooling constraints (if object pooling is enabled).
- * <br/><br/>
+ * <p/>
  *
  * Just give it a bunch of tweens or timelines and call update() periodically,
  * you don't need to care for anything else! Relax and enjoy your animations.
@@ -36,7 +36,7 @@ public class TweenManager {
 	 * Disables or enables the "auto start" mode of any tween manager for a
 	 * particular tween or timeline. This mode is activated by default. If it
 	 * is not enabled, add a tween or timeline to any manager won't start it
-	 * automatically, and you'll need to call "start()" manually on your object.
+	 * automatically, and you'll need to call .start() manually on your object.
 	 */
 	public static void setAutoStart(BaseTween object, boolean value) {
 		object.isAutoStartEnabled = value;
@@ -51,6 +51,7 @@ public class TweenManager {
 
 	/**
 	 * Adds a tween or timeline to the manager and starts or restarts it.
+	 *
 	 * @return The manager, for instruction chaining.
 	 */
 	public TweenManager add(BaseTween object) {
@@ -131,7 +132,7 @@ public class TweenManager {
 	}
 
 	/**
-	 * Resumes the manager. Has no effect is it was no already paused.
+	 * Resumes the manager, if paused.
 	 */
 	public void resume() {
 		isPaused = false;
@@ -143,7 +144,7 @@ public class TweenManager {
 	 * manager. Slow motion, fast motion and backwards play can be easily
 	 * achieved by tweaking the deltaMillis given as parameter.
 	 */
-	public void update(int deltaMillis) {
+	public void update(float delta) {
 		for (int i=objects.size()-1; i>=0; i--) {
 			BaseTween obj = objects.get(i);
 			if (obj.isFinished() && obj.isAutoRemoveEnabled) {
@@ -153,10 +154,10 @@ public class TweenManager {
 		}
 
 		if (!isPaused) {
-			if (deltaMillis >= 0) {
-				for (int i=0, n=objects.size(); i<n; i++) objects.get(i).update(deltaMillis);
+			if (delta >= 0) {
+				for (int i=0, n=objects.size(); i<n; i++) objects.get(i).update(delta);
 			} else {
-				for (int i=objects.size()-1; i>=0; i--) objects.get(i).update(deltaMillis);
+				for (int i=objects.size()-1; i>=0; i--) objects.get(i).update(delta);
 			}
 		}
 	}

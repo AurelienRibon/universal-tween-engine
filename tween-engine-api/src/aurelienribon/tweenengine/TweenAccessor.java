@@ -4,14 +4,14 @@ package aurelienribon.tweenengine;
  * The TweenAccessor interface lets you interpolate any attribute from any
  * object. Just implement it as you want and register it to the engine by
  * calling {@link Tween#registerAccessor}.
- * <br/><br/>
+ * <p/>
  *
  * <h2>Example</h2>
- * 
+ *
  * The following code snippet presents an example of implementation for tweening
  * a Particle class. This Particle class is supposed to only define a position
  * with an "x" and an "y" fields, and their associated getters and setters.
- * <br/><br/>
+ * <p/>
  *
  * <pre> {@code
  * public class ParticleAccessor implements TweenAccessor<Particle> {
@@ -30,7 +30,7 @@ package aurelienribon.tweenengine;
  *             default: assert false; return 0;
  *         }
  *     }
- *     
+ *
  *     public void setValues(Particle target, int tweenType, float[] newValues) {
  *         switch (tweenType) {
  *             case X: target.setX(newValues[0]); break;
@@ -47,14 +47,14 @@ package aurelienribon.tweenengine;
  *
  * Once done, you only need to register this TweenAccessor once to be able to
  * use it for every Particle objects in your application:
- * <br/><br/>
+ * <p/>
  *
  * <pre> {@code
  * Tween.registerAccessor(Particle.class, new ParticleAccessor());
  * }</pre>
  *
  * And that's all, the Tween Engine can no work with all your particles!
- * 
+ *
  * @author Aurelien Ribon | http://www.aurelienribon.com/
  */
 public interface TweenAccessor<T> {
@@ -62,6 +62,7 @@ public interface TweenAccessor<T> {
 	 * Gets one or many values from the target object associated to the
 	 * given tween type. It is used by the Tween Engine to determine starting
 	 * values.
+	 *
 	 * @param target The target object of the tween.
 	 * @param tweenType An integer representing the tween type.
 	 * @param returnValues An array which should be modified by this method.
@@ -72,6 +73,7 @@ public interface TweenAccessor<T> {
 	/**
 	 * This method is called by the Tween Engine each time a running tween
 	 * associated with the current target object has been updated.
+	 *
 	 * @param target The target object of the tween.
 	 * @param tweenType An integer representing the tween type.
 	 * @param newValues The new values determined by the Tween Engine.
