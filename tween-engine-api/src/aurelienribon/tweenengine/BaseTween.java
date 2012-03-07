@@ -473,7 +473,7 @@ public abstract class BaseTween<T> {
 	}
 
 	private void testCompletion() {
-		isFinished = (repeatCnt >= 0 && step > repeatCnt*2) || (repeatCnt >= 0 && step < 0);
+		isFinished = repeatCnt >= 0 && (step > repeatCnt*2 || step < 0);
 	}
 
 	private void compute(int lastStep, float delta) {

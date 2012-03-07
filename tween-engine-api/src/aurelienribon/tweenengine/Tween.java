@@ -745,7 +745,7 @@ public final class Tween extends BaseTween<Tween> {
 				deltaValue = targetValues[i] - startValues[i];
 				buffer[i] = startValue + val * deltaValue;
 			}
-			
+
 		} else {
 			int pathId = (int) Math.floor((waypointsCnt+1) * val);
 			pathId = Math.max(pathId, 0);
@@ -754,10 +754,7 @@ public final class Tween extends BaseTween<Tween> {
 			val = val * (waypointsCnt+1) - pathId;
 
 			for (int i=0; i<combinedAttrsCnt; i++) {
-				if (waypointsCnt == 0) {
-					startValue = startValues[i];
-					deltaValue = targetValues[i] - startValues[i];
-				} else if (pathId == 0) {
+				if (pathId == 0) {
 					startValue = startValues[i];
 					deltaValue = waypoints[i] - startValue;
 				} else if (pathId == waypointsCnt) {
