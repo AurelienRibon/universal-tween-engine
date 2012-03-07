@@ -688,11 +688,13 @@ public final class Tween extends BaseTween<Tween> {
 			return;
 		}
 
+		float time = isYoyo(step) ? duration - currentTime : currentTime;
+		float val = equation.compute(time, 0, 1, duration);
+
 		for (int i=0; i<combinedTweenCnt; i++) {
 			float startValue = !isFrom ? startValues[i] : targetValues[i];
 			float deltaValue = (targetValues[i] - startValues[i]) * (!isFrom ? +1 : -1);
-			float time = isYoyo(step) ? duration - currentTime : currentTime;
-			buffer[i] = equation.compute(time, startValue, deltaValue, duration);
+			buffer[i] = startValue + val * deltaValue;
 		}
 
 		accessor.setValues(target, type, buffer);
