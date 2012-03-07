@@ -2,6 +2,7 @@
 import aurelienribon.tweenengine.tests.GdxComplexDemo;
 import aurelienribon.tweenengine.tests.GdxSimpleTimeline;
 import aurelienribon.tweenengine.tests.GdxSimpleTween;
+import aurelienribon.tweenengine.tests.GdxTweenWaypoints;
 import aurelienribon.tweenengine.tests.SwingSimpleTween;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
@@ -15,14 +16,14 @@ public abstract class Launcher {
 				// Test selection
 				// -------------------------------------------------------------
 
-				String[] tests = null;
-				tests = new String[] {
+				String[] tests = new String[] {
 					"Simple tween (LibGDX)",
 					"Simple tween (Swing)",
 					"Simple timeline (LibGDX)",
-					"Complex demo (libGDX)"
+					"Complex demo (LibGDX)",
+					"Tween with waypoints (LibGDX)"
 				};
-				
+
 				String testResult = (String) JOptionPane.showInputDialog(null,
 					"Choose your test", "Initialization",
 					JOptionPane.PLAIN_MESSAGE, null, tests, tests[0]);
@@ -36,6 +37,7 @@ public abstract class Launcher {
 					else if (testResult.equals(tests[1])) SwingSimpleTween.start();
 					else if (testResult.equals(tests[2])) GdxSimpleTimeline.start();
 					else if (testResult.equals(tests[3])) GdxComplexDemo.start();
+					else if (testResult.equals(tests[4])) GdxTweenWaypoints.start();
 				}
 			}
 		});
