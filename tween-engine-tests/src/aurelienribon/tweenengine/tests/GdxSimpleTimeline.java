@@ -68,6 +68,7 @@ public class GdxSimpleTimeline implements ApplicationListener {
 			.push(Tween.to(sprite1, SpriteAccessor.POSITION_XY, 700).target(-1, -1).ease(Quad.IN))
 			.push(Tween.to(sprite1, SpriteAccessor.ROTATION, 500).target(360).ease(Quad.INOUT))
 			.repeatYoyo(1, 200)
+			.delay(1000)
 			.start(tweenManager);
 	}
 

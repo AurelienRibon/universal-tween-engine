@@ -98,6 +98,17 @@ public abstract class BaseTween<T> {
 	}
 
 	/**
+	 * Adds a delay to the tween or timeline.
+	 *
+	 * @param delay A duration.
+	 * @return The current tween, for chaining instructions.
+	 */
+	public T delay(float delay) {
+		this.delay += delay;
+		return (T) this;
+	}
+
+	/**
 	 * Kills the tween or timeline. If you are using a TweenManager, this object
 	 * will be removed automatically.
 	 */

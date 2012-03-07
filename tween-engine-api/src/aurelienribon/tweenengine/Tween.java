@@ -381,17 +381,6 @@ public final class Tween extends BaseTween<Tween> {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Adds a delay to the tween.
-	 *
-	 * @param delay A duration.
-	 * @return The current tween, for chaining instructions.
-	 */
-	public Tween delay(float delay) {
-		this.delay += delay;
-		return this;
-	}
-
-	/**
 	 * Sets the easing equation of the tween. Existing equations are located in
 	 * <i>aurelienribon.tweenengine.equations</i> package, but you can of course
 	 * implement your owns, see {@link TweenEquation}.

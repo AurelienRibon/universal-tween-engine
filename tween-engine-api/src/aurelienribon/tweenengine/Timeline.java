@@ -232,7 +232,6 @@ public final class Timeline extends BaseTween<Timeline> {
 	public Timeline build() {
 		if (isBuilt) return this;
 
-		delay = 0;
 		duration = 0;
 
 		for (int i=0; i<children.size(); i++) {
