@@ -82,14 +82,22 @@ public final class Tween extends BaseTween<Tween> {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Used as parameter in <i>repeat()</i> and <i>repeatYoyo()</i> methods.
+	 * Used as parameter in {@link #repeat(int, float)} and
+	 * {@link #repeatYoyo(int, float)} methods.
 	 */
 	public static final int INFINITY = -1;
 
+	private static final int COMBINED_ATTRS_MAX = 20;
+	private static int combinedAttributesLimit = 3;
+
 	/**
-	 * The maximum number of attributes that can be animated in a single tween.
+	 * Changes the limit for combined attributes. Defaults to 3 to reduce
+	 * memory footprint.
 	 */
-	public static final int MAX_COMBINED_TWEENS = 10;
+	public static void setCombinedAttributesLimit(int limit) {
+		if (limit > COMBINED_ATTRS_MAX) throw new RuntimeException("Max value for combined attributes limit is " + COMBINED_ATTRS_MAX);
+		Tween.combinedAttributesLimit = limit;
+	}
 
 	/**
 	 * Gets the version number of the library.
@@ -130,7 +138,7 @@ public final class Tween extends BaseTween<Tween> {
 	// -------------------------------------------------------------------------
 
 	private static final Map<Class, TweenAccessor> registeredAccessors = new HashMap<Class, TweenAccessor>();
-	private static final float[] buffer = new float[MAX_COMBINED_TWEENS];
+	private static final float[] buffer = new float[COMBINED_ATTRS_MAX];
 
 	/**
 	 * Registers an accessor with the class of an object. This accessor will be
@@ -328,11 +336,11 @@ public final class Tween extends BaseTween<Tween> {
 	// General
 	private boolean isFrom;
 	private boolean isRelative;
-	private int combinedTweenCnt;
+	private int combinedAttrsCnt;
 
 	// Values
-	private final float[] startValues = new float[MAX_COMBINED_TWEENS];
-	private final float[] targetValues = new float[MAX_COMBINED_TWEENS];
+	private final float[] startValues = new float[combinedAttributesLimit];
+	private final float[] targetValues = new float[combinedAttributesLimit];
 
 	// -------------------------------------------------------------------------
 	// Setup
@@ -353,7 +361,7 @@ public final class Tween extends BaseTween<Tween> {
 		equation = null;
 
 		isFrom = isRelative = false;
-		combinedTweenCnt = 0;
+		combinedAttrsCnt = 0;
 	}
 
 	private void setup(Object target, int tweenType, float duration) {
@@ -495,8 +503,8 @@ public final class Tween extends BaseTween<Tween> {
 	 * @return The current tween, for chaining instructions.
 	 */
 	public Tween target(float... targetValues) {
-		if (targetValues.length > MAX_COMBINED_TWEENS) {
-			throw new RuntimeException("You cannot set more than " + MAX_COMBINED_TWEENS + " targets.");
+		if (targetValues.length > combinedAttributesLimit) {
+			throw new RuntimeException("You cannot set more than " + combinedAttributesLimit + " targets.");
 		}
 
 		System.arraycopy(targetValues, 0, this.targetValues, 0, targetValues.length);
@@ -576,8 +584,8 @@ public final class Tween extends BaseTween<Tween> {
 	 * @return The current tween, for chaining instructions.
 	 */
 	public Tween targetRelative(float... targetValues) {
-		if (targetValues.length > MAX_COMBINED_TWEENS) {
-			throw new RuntimeException("You cannot set more than " + MAX_COMBINED_TWEENS + " targets.");
+		if (targetValues.length > combinedAttributesLimit) {
+			throw new RuntimeException("You cannot set more than " + combinedAttributesLimit + " targets.");
 		}
 
 		for (int i=0; i<targetValues.length; i++) {
@@ -626,8 +634,8 @@ public final class Tween extends BaseTween<Tween> {
 	/**
 	 * Gets the number of combined animations.
 	 */
-	public int getCombinedTweenCount() {
-		return combinedTweenCnt;
+	public int getCombinedAttributesCount() {
+		return combinedAttrsCnt;
 	}
 
 	/**
@@ -654,11 +662,11 @@ public final class Tween extends BaseTween<Tween> {
 
 		accessor = registeredAccessors.get(targetClass);
 		if (accessor == null && target instanceof TweenAccessor) accessor = (TweenAccessor) target;
-		if (accessor != null) combinedTweenCnt = accessor.getValues(target, type, buffer);
+		if (accessor != null) combinedAttrsCnt = accessor.getValues(target, type, buffer);
 		else throw new RuntimeException("No TweenAccessor was found for the target");
 
-		if (combinedTweenCnt < 0 || combinedTweenCnt > MAX_COMBINED_TWEENS) {
-			throw new RuntimeException("Min combined tweens = 0, max = " + MAX_COMBINED_TWEENS);
+		if (combinedAttrsCnt < 0 || combinedAttrsCnt > combinedAttributesLimit) {
+			throw new RuntimeException("Min combined attributes = 0, max = " + combinedAttributesLimit);
 		}
 
 		return this;
@@ -674,7 +682,7 @@ public final class Tween extends BaseTween<Tween> {
 		if (target == null) return;
 
 		accessor.getValues(target, type, startValues);
-		for (int i=0; i<combinedTweenCnt; i++) {
+		for (int i=0; i<combinedAttrsCnt; i++) {
 			targetValues[i] += isRelative ? startValues[i] : 0;
 		}
 	}
@@ -691,7 +699,7 @@ public final class Tween extends BaseTween<Tween> {
 		float time = isYoyo(step) ? duration - currentTime : currentTime;
 		float val = equation.compute(time, 0, 1, duration);
 
-		for (int i=0; i<combinedTweenCnt; i++) {
+		for (int i=0; i<combinedAttrsCnt; i++) {
 			float startValue = !isFrom ? startValues[i] : targetValues[i];
 			float deltaValue = (targetValues[i] - startValues[i]) * (!isFrom ? +1 : -1);
 			buffer[i] = startValue + val * deltaValue;
