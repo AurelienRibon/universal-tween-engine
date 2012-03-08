@@ -631,6 +631,9 @@ public final class Tween extends BaseTween<Tween> {
 	 * use a smooth catmull-rom spline to navigate between the waypoints, but
 	 * you can change this behavior by using the {@link #path(TweenPath)}
 	 * method.
+	 * <p/>
+	 * Note that if you want waypoints relative to the start values, use one of
+	 * the .targetRelative() methods to define your target.
 	 *
 	 * @param targetValue1 The 1st target of this waypoint.
 	 * @param targetValue2 The 2nd target of this waypoint.
@@ -650,6 +653,9 @@ public final class Tween extends BaseTween<Tween> {
 	 * use a smooth catmull-rom spline to navigate between the waypoints, but
 	 * you can change this behavior by using the {@link #path(TweenPath)}
 	 * method.
+	 * <p/>
+	 * Note that if you want waypoints relative to the start values, use one of
+	 * the .targetRelative() methods to define your target.
 	 *
 	 * @param targetValue1 The 1st target of this waypoint.
 	 * @param targetValue2 The 2nd target of this waypoint.
@@ -671,6 +677,9 @@ public final class Tween extends BaseTween<Tween> {
 	 * use a smooth catmull-rom spline to navigate between the waypoints, but
 	 * you can change this behavior by using the {@link #path(TweenPath)}
 	 * method.
+	 * <p/>
+	 * Note that if you want waypoints relative to the start values, use one of
+	 * the .targetRelative() methods to define your target.
 	 *
 	 * @param targetValues The targets of this waypoint.
 	 * @return The current tween, for chaining instructions.
@@ -782,6 +791,10 @@ public final class Tween extends BaseTween<Tween> {
 		accessor.getValues(target, type, startValues);
 		for (int i=0; i<combinedAttrsCnt; i++) {
 			targetValues[i] += isRelative ? startValues[i] : 0;
+
+			for (int ii=0; ii<waypointsCnt; ii++) {
+				waypoints[ii*combinedAttrsCnt+i] += isRelative ? startValues[i] : 0;
+			}
 
 			if (isFrom) {
 				float tmp = startValues[i];
