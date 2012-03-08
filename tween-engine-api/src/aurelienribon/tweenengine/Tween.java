@@ -87,17 +87,19 @@ public final class Tween extends BaseTween<Tween> {
 	 */
 	public static final int INFINITY = -1;
 
-	private static final int COMBINED_ATTRS_MAX = 20;
 	private static int combinedAttrsLimit = 3;
 	private static int waypointsLimit = 0;
+	private static float[] accessorBuffer = new float[3];
+	private static float[] pathBuffer = new float[(2+0)*3];
 
 	/**
 	 * Changes the limit for combined attributes. Defaults to 3 to reduce
 	 * memory footprint.
 	 */
 	public static void setCombinedAttributesLimit(int limit) {
-		if (limit > COMBINED_ATTRS_MAX) throw new RuntimeException("Max value for combined attributes limit is " + COMBINED_ATTRS_MAX);
 		Tween.combinedAttrsLimit = limit;
+		accessorBuffer = new float[combinedAttrsLimit];
+		pathBuffer = new float[(2+waypointsLimit)*combinedAttrsLimit];
 	}
 
 	/**
@@ -106,6 +108,7 @@ public final class Tween extends BaseTween<Tween> {
 	 */
 	public static void setWaypointsLimit(int limit) {
 		Tween.waypointsLimit = limit;
+		pathBuffer = new float[(2+waypointsLimit)*combinedAttrsLimit];
 	}
 
 	/**
@@ -147,7 +150,6 @@ public final class Tween extends BaseTween<Tween> {
 	// -------------------------------------------------------------------------
 
 	private static final Map<Class, TweenAccessor> registeredAccessors = new HashMap<Class, TweenAccessor>();
-	private static final float[] buffer = new float[COMBINED_ATTRS_MAX];
 
 	/**
 	 * Registers an accessor with the class of an object. This accessor will be
@@ -210,6 +212,7 @@ public final class Tween extends BaseTween<Tween> {
 		Tween tween = pool.get();
 		tween.setup(target, tweenType, duration);
 		tween.ease(Linear.INOUT);
+		tween.path(TweenPaths.linear);
 		return tween;
 	}
 
@@ -247,6 +250,7 @@ public final class Tween extends BaseTween<Tween> {
 		Tween tween = pool.get();
 		tween.setup(target, tweenType, duration);
 		tween.ease(Linear.INOUT);
+		tween.path(TweenPaths.linear);
 		tween.isFrom = true;
 		return tween;
 	}
@@ -341,6 +345,7 @@ public final class Tween extends BaseTween<Tween> {
 	private TweenAccessor accessor;
 	private int type;
 	private TweenEquation equation;
+	private TweenPath path;
 
 	// General
 	private boolean isFrom;
@@ -370,6 +375,7 @@ public final class Tween extends BaseTween<Tween> {
 		accessor = null;
 		type = -1;
 		equation = null;
+		path = null;
 
 		isFrom = isRelative = false;
 		combinedAttrsCnt = waypointsCnt = 0;
@@ -632,6 +638,11 @@ public final class Tween extends BaseTween<Tween> {
 		return this;
 	}
 
+	public Tween path(TweenPath path) {
+		this.path = path;
+		return this;
+	}
+
 	// -------------------------------------------------------------------------
 	// Getters
 	// -------------------------------------------------------------------------
@@ -698,7 +709,7 @@ public final class Tween extends BaseTween<Tween> {
 
 		accessor = registeredAccessors.get(targetClass);
 		if (accessor == null && target instanceof TweenAccessor) accessor = (TweenAccessor) target;
-		if (accessor != null) combinedAttrsCnt = accessor.getValues(target, type, buffer);
+		if (accessor != null) combinedAttrsCnt = accessor.getValues(target, type, accessorBuffer);
 		else throw new RuntimeException("No TweenAccessor was found for the target");
 
 		if (combinedAttrsCnt > combinedAttrsLimit) throwCombinedAttrsLimitReached();
@@ -735,41 +746,26 @@ public final class Tween extends BaseTween<Tween> {
 		}
 
 		float time = isYoyo(step) ? duration - currentTime : currentTime;
-		float val = equation.compute(time, 0, 1, duration);
+		float t = equation.compute(time, 0, 1, duration);
 
-		float startValue, deltaValue;
-
-		if (waypointsCnt == 0) {
+		if (waypointsCnt == 0 || path == null) {
 			for (int i=0; i<combinedAttrsCnt; i++) {
-				startValue = startValues[i];
-				deltaValue = targetValues[i] - startValues[i];
-				buffer[i] = startValue + val * deltaValue;
+				accessorBuffer[i] = startValues[i] + t * (targetValues[i] - startValues[i]);
 			}
 
 		} else {
-			int pathId = (int) Math.floor((waypointsCnt+1) * val);
-			pathId = Math.max(pathId, 0);
-			pathId = Math.min(pathId, waypointsCnt);
-
-			val = val * (waypointsCnt+1) - pathId;
-
 			for (int i=0; i<combinedAttrsCnt; i++) {
-				if (pathId == 0) {
-					startValue = startValues[i];
-					deltaValue = waypoints[i] - startValue;
-				} else if (pathId == waypointsCnt) {
-					startValue = waypoints[(waypointsCnt-1)*combinedAttrsCnt+i];
-					deltaValue = targetValues[i] - startValue;
-				} else {
-					startValue = waypoints[(pathId-1)*combinedAttrsCnt+i];
-					deltaValue = waypoints[pathId*combinedAttrsCnt+i] - startValue;
+				pathBuffer[0] = startValues[i];
+				pathBuffer[1+waypointsCnt] = targetValues[i];
+				for (int ii=0; ii<waypointsCnt; ii++) {
+					pathBuffer[ii+1] = waypoints[ii*combinedAttrsCnt+i];
 				}
 
-				buffer[i] = startValue + val * deltaValue;
+				accessorBuffer[i] = path.compute(t, pathBuffer, waypointsCnt+2);
 			}
 		}
 
-		accessor.setValues(target, type, buffer);
+		accessor.setValues(target, type, accessorBuffer);
 	}
 
 	@Override
