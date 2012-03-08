@@ -3,7 +3,9 @@ package aurelienribon.tweenengine.tests;
 import aurelienribon.tweenaccessors.gdx.SpriteAccessor;
 import aurelienribon.tweenengine.Tween;
 import aurelienribon.tweenengine.TweenManager;
-import aurelienribon.tweenengine.equations.Back;
+import aurelienribon.tweenengine.TweenPath;
+import aurelienribon.tweenengine.TweenPaths;
+import aurelienribon.tweenengine.equations.Quad;
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
@@ -60,10 +62,11 @@ public class GdxTweenWaypoints implements ApplicationListener {
 		// Let's make our sprite move !
 
 		Tween.to(sprite, SpriteAccessor.POSITION_XY, 2.0f)
-			.ease(Back.INOUT)
-			.waypoint(0, 2)
-			.waypoint(0, 0)
-			.target(2, 0)
+			.waypoint(2, 2)
+			.waypoint(2, -2)
+			.target(0, 0)
+			.ease(Quad.INOUT)
+			.path(TweenPaths.catmullRom)
 			.repeatYoyo(-1, 0.2f)
 			.delay(0.5f)
 			.start(tweenManager);

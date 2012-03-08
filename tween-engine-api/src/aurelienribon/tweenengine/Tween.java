@@ -728,6 +728,7 @@ public final class Tween extends BaseTween<Tween> {
 		accessor.getValues(target, type, startValues);
 		for (int i=0; i<combinedAttrsCnt; i++) {
 			targetValues[i] += isRelative ? startValues[i] : 0;
+
 			if (isFrom) {
 				float tmp = startValues[i];
 				startValues[i] = targetValues[i];
