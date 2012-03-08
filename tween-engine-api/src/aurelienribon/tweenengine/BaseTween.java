@@ -117,10 +117,9 @@ public abstract class BaseTween<T> {
 	}
 
 	/**
-	 * If you want to manually manage your tweens and timelines (without using a
-	 * TweenManager), and you enabled object pooling, then you need to call
-	 * this method on your tweens and timelines once they are finished (see
-	 * <i>isFinished()</i> method).
+	 * Stops and resets the tween or timeline, and sends it to its pool, for
++	 * later reuse. Note that if you use a {@link TweenManager}, this method
++	 * is automatically called once the animation is finished.
 	 */
 	public void free() {
 	}

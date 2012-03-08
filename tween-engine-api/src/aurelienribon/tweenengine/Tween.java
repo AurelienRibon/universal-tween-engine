@@ -1,6 +1,7 @@
 package aurelienribon.tweenengine;
 
 import aurelienribon.tweenengine.equations.Linear;
+import aurelienribon.tweenengine.equations.Quad;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -211,8 +212,8 @@ public final class Tween extends BaseTween<Tween> {
 	public static Tween to(Object target, int tweenType, float duration) {
 		Tween tween = pool.get();
 		tween.setup(target, tweenType, duration);
-		tween.ease(Linear.INOUT);
-		tween.path(TweenPaths.linear);
+		tween.ease(Quad.INOUT);
+		tween.path(TweenPaths.catmullRom);
 		return tween;
 	}
 
@@ -249,8 +250,8 @@ public final class Tween extends BaseTween<Tween> {
 	public static Tween from(Object target, int tweenType, float duration) {
 		Tween tween = pool.get();
 		tween.setup(target, tweenType, duration);
-		tween.ease(Linear.INOUT);
-		tween.path(TweenPaths.linear);
+		tween.ease(Quad.INOUT);
+		tween.path(TweenPaths.catmullRom);
 		tween.isFrom = true;
 		return tween;
 	}
@@ -607,6 +608,16 @@ public final class Tween extends BaseTween<Tween> {
 		return this;
 	}
 
+	/**
+	 * Adds a waypoint to the path. The default path runs from the start values
+	 * to the end values linearly. If you add waypoints, the default path will
+	 * use a smooth catmull-rom spline to navigate between the waypoints, but
+	 * you can change this behavior by using the {@link #path(TweenPath)}
+	 * method.
+	 *
+	 * @param targetValue The target of this waypoint.
+	 * @return The current tween, for chaining instructions.
+	 */
 	public Tween waypoint(float targetValue) {
 		if (waypointsCnt == waypointsLimit) throwWaypointsLimitReached();
 		waypoints[waypointsCnt] = targetValue;
@@ -614,6 +625,17 @@ public final class Tween extends BaseTween<Tween> {
 		return this;
 	}
 
+	/**
+	 * Adds a waypoint to the path. The default path runs from the start values
+	 * to the end values linearly. If you add waypoints, the default path will
+	 * use a smooth catmull-rom spline to navigate between the waypoints, but
+	 * you can change this behavior by using the {@link #path(TweenPath)}
+	 * method.
+	 *
+	 * @param targetValue1 The 1st target of this waypoint.
+	 * @param targetValue2 The 2nd target of this waypoint.
+	 * @return The current tween, for chaining instructions.
+	 */
 	public Tween waypoint(float targetValue1, float targetValue2) {
 		if (waypointsCnt == waypointsLimit) throwWaypointsLimitReached();
 		waypoints[waypointsCnt*2] = targetValue1;
@@ -622,6 +644,18 @@ public final class Tween extends BaseTween<Tween> {
 		return this;
 	}
 
+	/**
+	 * Adds a waypoint to the path. The default path runs from the start values
+	 * to the end values linearly. If you add waypoints, the default path will
+	 * use a smooth catmull-rom spline to navigate between the waypoints, but
+	 * you can change this behavior by using the {@link #path(TweenPath)}
+	 * method.
+	 *
+	 * @param targetValue1 The 1st target of this waypoint.
+	 * @param targetValue2 The 2nd target of this waypoint.
+	 * @param targetValue3 The 3rd target of this waypoint.
+	 * @return The current tween, for chaining instructions.
+	 */
 	public Tween waypoint(float targetValue1, float targetValue2, float targetValue3) {
 		if (waypointsCnt == waypointsLimit) throwWaypointsLimitReached();
 		waypoints[waypointsCnt*3] = targetValue1;
@@ -631,6 +665,16 @@ public final class Tween extends BaseTween<Tween> {
 		return this;
 	}
 
+	/**
+	 * Adds a waypoint to the path. The default path runs from the start values
+	 * to the end values linearly. If you add waypoints, the default path will
+	 * use a smooth catmull-rom spline to navigate between the waypoints, but
+	 * you can change this behavior by using the {@link #path(TweenPath)}
+	 * method.
+	 *
+	 * @param targetValues The targets of this waypoint.
+	 * @return The current tween, for chaining instructions.
+	 */
 	public Tween waypoint(float... targetValues) {
 		if (waypointsCnt == waypointsLimit) throwWaypointsLimitReached();
 		System.arraycopy(targetValues, 0, waypoints, waypointsCnt*targetValues.length, targetValues.length);
@@ -638,6 +682,16 @@ public final class Tween extends BaseTween<Tween> {
 		return this;
 	}
 
+	/**
+	 * Sets the algorithm that will be used to navigate through the waypoints,
+	 * from the start values to the end values. Default is a catmull-rom spline,
+	 * but you can find other paths in the {@link TweenPaths} class.
+	 *
+	 * @param path A TweenPath implementation.
+	 * @return The current tween, for chaining instructions.
+	 * @see TweenPath
+	 * @see TweenPaths
+	 */
 	public Tween path(TweenPath path) {
 		this.path = path;
 		return this;
