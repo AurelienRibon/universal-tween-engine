@@ -1,6 +1,5 @@
 package aurelienribon.tweenengine;
 
-import aurelienribon.tweenengine.equations.Linear;
 import aurelienribon.tweenengine.equations.Quad;
 import java.util.HashMap;
 import java.util.Map;
@@ -789,6 +788,7 @@ public final class Tween extends BaseTween<Tween> {
 		if (target == null) return;
 
 		accessor.getValues(target, type, startValues);
+
 		for (int i=0; i<combinedAttrsCnt; i++) {
 			targetValues[i] += isRelative ? startValues[i] : 0;
 

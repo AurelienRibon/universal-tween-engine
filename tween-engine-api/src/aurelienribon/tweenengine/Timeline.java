@@ -312,7 +312,7 @@ public final class Timeline extends BaseTween<Timeline> {
 
 	@Override
 	protected void forceStartValues() {
-		for (int i=0, n=children.size(); i<n; i++) {
+		for (int i=children.size()-1; i>=0; i--) {
 			BaseTween obj = children.get(i);
 			obj.forceToStart();
 		}
