@@ -1,4 +1,4 @@
-package aurelienribon.launcher;
+package aurelienribon.tweenengine.demo;
 
 import aurelienribon.accessors.SpriteAccessor;
 import aurelienribon.tweenengine.BaseTween;
@@ -31,15 +31,13 @@ public class Launcher {
 	private static final float TILES_PADDING = 0.04f;
 
 	private final List<Tile> tiles = new ArrayList<Tile>();
-	private final TextureAtlas atlas = new TextureAtlas(Gdx.files.internal("data/launcher/pack"));
 	private final TweenManager tweenManager = new TweenManager();
 	private final OrthographicCamera camera = new OrthographicCamera();
 	private final SpriteBatch batch = new SpriteBatch();
 	private final BitmapFont tileFont = new BitmapFont();
 	private final BitmapFont infoFont = new BitmapFont();
-	private final Sprite veil = atlas.createSprite("white");
 	private final TextureRegion backgroundTexture;
-	private final TextureRegion tileTexture;
+	private final Sprite veil;
 	private final float tileW, tileH;
 	private Tile selectedTile;
 
@@ -55,13 +53,12 @@ public class Launcher {
 		tileFont.setScale(0.0025f);
 		tileFont.setUseIntegerPositions(false);
 
+		TextureAtlas atlas = Assets.inst().get("data/launcher/pack", TextureAtlas.class);
 		backgroundTexture = atlas.findRegion("background");
-		tileTexture = atlas.findRegion("white");
-
+		veil = atlas.createSprite("white");
 		veil.setSize(wpw, wph);
 		veil.setPosition(-wpw/2, -wph/2);
-		Tween.set(veil, SpriteAccessor.OPACITY).target(1).start(tweenManager);
-		Tween.to(veil, SpriteAccessor.OPACITY, 0.7f).target(0).start(tweenManager);
+		Tween.to(veil, SpriteAccessor.OPACITY, 0.7f).target(0).setCallback(veilEndCallback).start(tweenManager);
 
 		Gdx.input.setInputProcessor(launcherInputProcessor);
 
@@ -71,9 +68,7 @@ public class Launcher {
 		float tileY = wph/2 - tileH - TILES_PADDING;
 
 		for (int i=0; i<tests.length; i++) {
-			Tile tile = new Tile(tileX, tileY, tileW, tileH, tests[i], atlas, camera, tweenManager);
-			tile.enter(i * 0.05f + 0.2f);
-			tiles.add(tile);
+			tiles.add(new Tile(tileX, tileY, tileW, tileH, tests[i], atlas, camera, tweenManager));
 
 			tileX += tileW + TILES_PADDING;
 			if (i > 0 && i%TILES_PER_LINE == TILES_PER_LINE-1) {
@@ -85,7 +80,6 @@ public class Launcher {
 
 	public void dispose() {
 		tweenManager.killAll();
-		atlas.dispose();
 		batch.dispose();
 		tileFont.dispose();
 		infoFont.dispose();
@@ -135,6 +129,15 @@ public class Launcher {
 	// -------------------------------------------------------------------------
 	// Callbacks
 	// -------------------------------------------------------------------------
+
+	private final TweenCallback veilEndCallback = new TweenCallback() {
+		@Override
+		public void onEvent(int type, BaseTween source) {
+			for (int i=0; i<tiles.size(); i++) {
+				tiles.get(i).enter(i * 0.1f);
+			}
+		}
+	};
 
 	private final TweenCallback maximizeCallback = new TweenCallback() {
 		@Override

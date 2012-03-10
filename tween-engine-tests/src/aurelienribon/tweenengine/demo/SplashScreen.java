@@ -18,6 +18,7 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector3;
 
 /**
@@ -26,23 +27,33 @@ import com.badlogic.gdx.math.Vector3;
 public class SplashScreen {
 	private static final int PX_PER_METER = 400;
 
-	private final TextureAtlas atlas = new TextureAtlas(Gdx.files.internal("data/splash/pack"));
 	private final OrthographicCamera camera = new OrthographicCamera();
 	private final SpriteBatch batch = new SpriteBatch();
 	private final TweenManager tweenManager = new TweenManager();
-
 	private final TweenCallback callback;
-	private final Sprite universal = atlas.createSprite("universal");
-	private final Sprite tween = atlas.createSprite("tween");
-	private final Sprite engine = atlas.createSprite("engine");
-	private final Sprite logo = atlas.createSprite("logo");
-	private final Sprite strip = atlas.createSprite("white");
-	private final Sprite powered = atlas.createSprite("powered");
-	private final Sprite gdx = atlas.createSprite("gdxblur");
-	private final Sprite veil = atlas.createSprite("white");
+	private final Sprite universal;
+	private final Sprite tween;
+	private final Sprite engine;
+	private final Sprite logo;
+	private final Sprite strip;
+	private final Sprite powered;
+	private final Sprite gdx;
+	private final Sprite veil;
+	private final TextureRegion gdxTex;
 
 	public SplashScreen(TweenCallback callback) {
 		this.callback = callback;
+
+		TextureAtlas atlas = Assets.inst().get("data/splash/pack", TextureAtlas.class);
+		universal = atlas.createSprite("universal");
+		tween = atlas.createSprite("tween");
+		engine = atlas.createSprite("engine");
+		logo = atlas.createSprite("logo");
+		strip = atlas.createSprite("white");
+		powered = atlas.createSprite("powered");
+		gdx = atlas.createSprite("gdxblur");
+		veil = atlas.createSprite("white");
+		gdxTex = atlas.findRegion("gdx");
 
 		float wpw = 1f;
 		float wph = wpw * Gdx.graphics.getHeight() / Gdx.graphics.getWidth();
@@ -125,14 +136,13 @@ public class SplashScreen {
 
 	public void dispose() {
 		tweenManager.killAll();
-		atlas.dispose();
 		batch.dispose();
 	}
 
 	public void render() {
 		tweenManager.update(Gdx.graphics.getDeltaTime());
 
-		if (gdx.getRotation() > 360*15-20) gdx.setRegion(atlas.findRegion("gdx"));
+		if (gdx.getRotation() > 360*15-20) gdx.setRegion(gdxTex);
 
 		GL10 gl = Gdx.gl10;
 		gl.glClearColor(0, 0, 0, 1);

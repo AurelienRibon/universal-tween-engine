@@ -1,9 +1,9 @@
 package aurelienribon.tweenengine.demo.tests;
 
 import aurelienribon.accessors.SpriteAccessor;
-import aurelienribon.launcher.Test;
 import aurelienribon.tweenengine.Tween;
 import aurelienribon.tweenengine.TweenManager;
+import aurelienribon.tweenengine.demo.Test;
 import aurelienribon.tweenengine.equations.Cubic;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;

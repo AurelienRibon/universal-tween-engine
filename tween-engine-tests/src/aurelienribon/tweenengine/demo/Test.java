@@ -1,4 +1,4 @@
-package aurelienribon.launcher;
+package aurelienribon.tweenengine.demo;
 
 import aurelienribon.accessors.SpriteAccessor;
 import aurelienribon.tweenengine.Tween;
@@ -22,15 +22,21 @@ import java.util.Random;
  */
 public abstract class Test {
 	private final TweenManager tweenManager = new TweenManager();
-	private final TextureAtlas atlas = new TextureAtlas(Gdx.files.internal("data/test/pack"));
-	private final Texture backgroundTex = new Texture(Gdx.files.internal("data/test/background.png"));
-	private final Sprite veil = atlas.createSprite("white");
+	private final TextureAtlas atlas;
+	private final Texture backgroundTex;
+	private final Sprite veil;
 
 	protected final OrthographicCamera camera = new OrthographicCamera();
 	protected final SpriteBatch batch = new SpriteBatch();
 	protected final BitmapFont font = new BitmapFont();
 	protected final Random rand = new Random();
 	protected Sprite[] sprites;
+
+	public Test() {
+		atlas = Assets.inst().get("data/test/pack", TextureAtlas.class);
+		backgroundTex = Assets.inst().get("data/test/background.png", Texture.class);
+		veil = atlas.createSprite("white");
+	}
 
 	// -------------------------------------------------------------------------
 	// Abstract API

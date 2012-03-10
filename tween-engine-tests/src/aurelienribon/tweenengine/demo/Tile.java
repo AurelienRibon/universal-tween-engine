@@ -1,4 +1,4 @@
-package aurelienribon.launcher;
+package aurelienribon.tweenengine.demo;
 
 import aurelienribon.accessors.SpriteAccessor;
 import aurelienribon.tweenengine.Timeline;
@@ -39,7 +39,7 @@ public class Tile {
 
 		sprite.setSize(w, h);
 		sprite.setOrigin(w/2, h/2);
-		sprite.setPosition(x, y);
+		sprite.setPosition(x + camera.viewportWidth, y);
 
 		veil.setSize(w, h);
 		veil.setOrigin(w/2, h/2);
@@ -60,8 +60,6 @@ public class Tile {
 	}
 
 	public void enter(float delay) {
-		sprite.setPosition(x + camera.viewportWidth, y);
-
 		Tween.to(sprite, SpriteAccessor.POS_XY, 1.0f)
 			.target(x, y)
 			.ease(Cubic.INOUT)

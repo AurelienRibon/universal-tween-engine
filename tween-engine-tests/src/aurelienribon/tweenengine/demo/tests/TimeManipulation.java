@@ -1,12 +1,12 @@
 package aurelienribon.tweenengine.demo.tests;
 
 import aurelienribon.accessors.SpriteAccessor;
-import aurelienribon.launcher.Test;
 import aurelienribon.tweenengine.BaseTween;
 import aurelienribon.tweenengine.Timeline;
 import aurelienribon.tweenengine.Tween;
 import aurelienribon.tweenengine.TweenCallback;
 import aurelienribon.tweenengine.TweenManager;
+import aurelienribon.tweenengine.demo.Test;
 import aurelienribon.tweenengine.equations.Back;
 import aurelienribon.tweenengine.equations.Cubic;
 import aurelienribon.tweenengine.equations.Quad;
