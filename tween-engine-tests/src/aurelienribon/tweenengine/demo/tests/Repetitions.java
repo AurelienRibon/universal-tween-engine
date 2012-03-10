@@ -40,17 +40,17 @@ public class Repetitions extends Test {
 		center(sprites[0], -3, +1);
 		center(sprites[1], -3, -1);
 
-		Tween.to(sprites[0], SpriteAccessor.CPOS_XY, 1.5f)
+		Tween.to(sprites[0], SpriteAccessor.CPOS_XY, 0.7f)
 			.ease(Cubic.INOUT)
 			.target(3, 1)
-			.repeat(-1, 0.5f)
+			.repeat(-1, 0.3f)
 			.delay(0.5f)
 			.start(tweenManager);
 
-		Tween.to(sprites[1], SpriteAccessor.CPOS_XY, 1.5f)
+		Tween.to(sprites[1], SpriteAccessor.CPOS_XY, 0.7f)
 			.ease(Cubic.INOUT)
 			.target(3, -1)
-			.repeatYoyo(-1, 0.5f)
+			.repeatYoyo(-1, 0.3f)
 			.delay(0.5f)
 			.start(tweenManager);
 	}

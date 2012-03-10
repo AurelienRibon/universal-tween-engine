@@ -40,7 +40,7 @@ public class Waypoints extends Test {
 		createSprites(1);
 		center(sprites[0], 0, 0);
 
-		Tween.to(sprites[0], SpriteAccessor.CPOS_XY, 4.0f)
+		Tween.to(sprites[0], SpriteAccessor.CPOS_XY, 3.0f)
 			.waypoint(2, 2)
 			.waypoint(2, -2)
 			.waypoint(-2, 2)

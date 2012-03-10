@@ -105,6 +105,16 @@ public abstract class Test {
 			veil.draw(batch);
 			batch.end();
 		}
+
+		if (getInfo() != null) {
+			BitmapFont.TextBounds bs = font.getMultiLineBounds(getInfo());
+
+			batch.getProjectionMatrix().setToOrtho2D(0, 0, w, h);
+			batch.begin();
+			font.setColor(Color.GRAY);
+			font.drawMultiLine(batch, getInfo(), 10, bs.height + 10);
+			batch.end();
+		}
 	}
 
 	// -------------------------------------------------------------------------

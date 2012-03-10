@@ -5,6 +5,8 @@ import aurelienribon.tweenengine.BaseTween;
 import aurelienribon.tweenengine.Tween;
 import aurelienribon.tweenengine.TweenCallback;
 import aurelienribon.tweenengine.TweenManager;
+import aurelienribon.tweenengine.equations.Cubic;
+import aurelienribon.tweenengine.equations.Quart;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.InputAdapter;
@@ -14,11 +16,9 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
-import com.badlogic.gdx.graphics.g2d.BitmapFont.TextBounds;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector3;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,15 +35,19 @@ public class Launcher {
 	private final OrthographicCamera camera = new OrthographicCamera();
 	private final SpriteBatch batch = new SpriteBatch();
 	private final BitmapFont tileFont = new BitmapFont();
-	private final BitmapFont infoFont = new BitmapFont();
-	private final TextureRegion backgroundTexture;
+	private final Sprite background;
+	private final Sprite title;
+	private final Sprite titleLeft;
+	private final Sprite titleRight;
 	private final Sprite veil;
-	private final float tileW, tileH;
+	private final float tileW, tileH, titleH;
 	private Tile selectedTile;
 
 	public Launcher(Test[] tests) {
+		int w = Gdx.graphics.getWidth();
+		int h = Gdx.graphics.getHeight();
 		float wpw = 2;
-		float wph = wpw * Gdx.graphics.getHeight() / Gdx.graphics.getWidth();
+		float wph = wpw * h / w;
 
 		camera.viewportWidth = wpw;
 		camera.viewportHeight = wph;
@@ -54,8 +58,21 @@ public class Launcher {
 		tileFont.setUseIntegerPositions(false);
 
 		TextureAtlas atlas = Assets.inst().get("data/launcher/pack", TextureAtlas.class);
-		backgroundTexture = atlas.findRegion("background");
+		background = atlas.createSprite("background");
+		title = atlas.createSprite("title");
+		titleLeft = atlas.createSprite("title-left");
+		titleRight = atlas.createSprite("title-right");
 		veil = atlas.createSprite("white");
+
+		background.setSize(w, h);
+		background.setPosition(0, 0);
+
+		titleLeft.setPosition(0, h);
+		titleRight.setPosition(w-titleRight.getWidth(), h);
+		title.setSize(w, titleLeft.getHeight());
+		title.setPosition(0, h);
+		titleH = titleLeft.getHeight() * wph / h;
+
 		veil.setSize(wpw, wph);
 		veil.setPosition(-wpw/2, -wph/2);
 		Tween.to(veil, SpriteAccessor.OPACITY, 0.7f).target(0).setCallback(veilEndCallback).start(tweenManager);
@@ -65,7 +82,7 @@ public class Launcher {
 		tileW = (wpw-TILES_PADDING)/TILES_PER_LINE - TILES_PADDING;
 		tileH = tileW * 150 / 250;
 		float tileX = -wpw/2 + TILES_PADDING;
-		float tileY = wph/2 - tileH - TILES_PADDING;
+		float tileY = wph/2 - tileH - TILES_PADDING - titleH;
 
 		for (int i=0; i<tests.length; i++) {
 			tiles.add(new Tile(tileX, tileY, tileW, tileH, tests[i], atlas, camera, tweenManager));
@@ -82,7 +99,6 @@ public class Launcher {
 		tweenManager.killAll();
 		batch.dispose();
 		tileFont.dispose();
-		infoFont.dispose();
 	}
 
 	public void render() {
@@ -101,7 +117,7 @@ public class Launcher {
 			batch.getProjectionMatrix().setToOrtho2D(0, 0, w, h);
 			batch.begin();
 			batch.disableBlending();
-			batch.draw(backgroundTexture, 0, 0, w, h);
+			background.draw(batch);
 			batch.end();
 
 			batch.setProjectionMatrix(camera.combined);
@@ -111,19 +127,31 @@ public class Launcher {
 			if (veil.getColor().a > 0.1f) veil.draw(batch);
 			batch.end();
 
+			batch.getProjectionMatrix().setToOrtho2D(0, 0, w, h);
+			batch.begin();
+			batch.disableBlending();
+			title.draw(batch);
+			titleLeft.draw(batch);
+			titleRight.draw(batch);
+			batch.end();
+
 		} else {
 			selectedTile.getTest().render();
-
-			if (selectedTile.getTest().getInfo() != null) {
-				TextBounds bs = infoFont.getMultiLineBounds(selectedTile.getTest().getInfo());
-
-				batch.getProjectionMatrix().setToOrtho2D(0, 0, w, h);
-				batch.begin();
-				infoFont.setColor(Color.GRAY);
-				infoFont.drawMultiLine(batch, selectedTile.getTest().getInfo(), 10, bs.height + 10);
-				batch.end();
-			}
 		}
+	}
+
+	private void showTitle(float delay) {
+		float dy = -title.getHeight();
+		Tween.to(title, SpriteAccessor.POS_XY, 0.5f).targetRelative(0, dy).delay(delay).ease(Quart.OUT).start(tweenManager);
+		Tween.to(titleLeft, SpriteAccessor.POS_XY, 0.5f).targetRelative(0, dy).delay(delay).ease(Quart.OUT).start(tweenManager);
+		Tween.to(titleRight, SpriteAccessor.POS_XY, 0.5f).targetRelative(0, dy).delay(delay).ease(Quart.OUT).start(tweenManager);
+	}
+
+	private void hideTitle(float delay) {
+		float dy = title.getHeight();
+		Tween.to(title, SpriteAccessor.POS_XY, 0.3f).targetRelative(0, dy).delay(delay).ease(Cubic.IN).start(tweenManager);
+		Tween.to(titleLeft, SpriteAccessor.POS_XY, 0.3f).targetRelative(0, dy).delay(delay).ease(Cubic.IN).start(tweenManager);
+		Tween.to(titleRight, SpriteAccessor.POS_XY, 0.3f).targetRelative(0, dy).delay(delay).ease(Cubic.IN).start(tweenManager);
 	}
 
 	// -------------------------------------------------------------------------
@@ -133,8 +161,9 @@ public class Launcher {
 	private final TweenCallback veilEndCallback = new TweenCallback() {
 		@Override
 		public void onEvent(int type, BaseTween source) {
+			showTitle(0);
 			for (int i=0; i<tiles.size(); i++) {
-				tiles.get(i).enter(i * 0.1f);
+				tiles.get(i).enter(i * 0.1f + 0.3f);
 			}
 		}
 	};
@@ -213,6 +242,7 @@ public class Launcher {
 					tiles.add(tile);
 					tile.maximize(maximizeCallback);
 					Gdx.input.setInputProcessor(null);
+					hideTitle(0.4f);
 				}
 			}
 
@@ -234,8 +264,12 @@ public class Launcher {
 		}
 
 		private void trimCamera() {
-			camera.position.y = Math.max(camera.position.y, -(tiles.size()/TILES_PER_LINE)*(tileH + TILES_PADDING) + camera.viewportHeight/2);
-			camera.position.y = Math.min(camera.position.y, 0);
+			int linesCntMinusOne = Math.max(tiles.size()-1, 0) / TILES_PER_LINE;
+			float min = -linesCntMinusOne * (tileH + TILES_PADDING) + camera.viewportHeight/2;
+			float max = 0;
+
+			camera.position.y = Math.max(camera.position.y, min);
+			camera.position.y = Math.min(camera.position.y, max);
 		}
 	};
 
@@ -247,6 +281,7 @@ public class Launcher {
 				selectedTile.minimize(minimizeCallback);
 				selectedTile = null;
 				Gdx.input.setInputProcessor(null);
+				showTitle(0.2f);
 			}
 
 			return false;

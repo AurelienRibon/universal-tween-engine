@@ -38,8 +38,34 @@ tile-hourglass
   orig: 250, 150
   offset: 0, 0
   index: -1
+title-right
+  rotate: false
+  xy: 254, 306
+  size: 174, 55
+  orig: 174, 55
+  offset: 0, 0
+  index: -1
+title
+  rotate: false
+  xy: 2, 458
+  size: 16, 16
+  orig: 16, 16
+  offset: 0, 0
+  index: -1
 
 launcher2.png
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+title-left
+  rotate: false
+  xy: 2, 2
+  size: 354, 55
+  orig: 354, 55
+  offset: 0, 0
+  index: -1
+
+launcher3.png
 format: RGBA8888
 filter: Nearest,Nearest
 repeat: none
