@@ -66,12 +66,12 @@ public class Launcher {
 		Gdx.input.setInputProcessor(launcherInputProcessor);
 
 		tileW = (wpw-TILES_PADDING)/TILES_PER_LINE - TILES_PADDING;
-		tileH = tileW * 0.6f;
+		tileH = tileW * 150 / 250;
 		float tileX = -wpw/2 + TILES_PADDING;
 		float tileY = wph/2 - tileH - TILES_PADDING;
 
 		for (int i=0; i<tests.length; i++) {
-			Tile tile = new Tile(tileX, tileY, tileW, tileH, tests[i], tileTexture, camera, tweenManager);
+			Tile tile = new Tile(tileX, tileY, tileW, tileH, tests[i], atlas, camera, tweenManager);
 			tile.enter(i * 0.05f + 0.2f);
 			tiles.add(tile);
 

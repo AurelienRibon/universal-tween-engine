@@ -38,6 +38,7 @@ public abstract class Test {
 
 	public abstract String getTitle();
 	public abstract String getInfo();
+	public abstract String getImageName();
 	public abstract InputProcessor getInput();
 	protected abstract void initializeOverride();
 	protected abstract void disposeOverride();
@@ -64,7 +65,7 @@ public abstract class Test {
 		veil.setSize(wpw, wph);
 		veil.setPosition(-wpw/2, -wph/2);
 		Tween.set(veil, SpriteAccessor.OPACITY).target(1).start(tweenManager);
-		Tween.to(veil, SpriteAccessor.OPACITY, 0.7f).target(0).start(tweenManager);
+		Tween.to(veil, SpriteAccessor.OPACITY, 0.5f).target(0).start(tweenManager);
 	}
 
 	public void dispose() {
@@ -134,6 +135,7 @@ public abstract class Test {
 	public static final Test dummy = new Test() {
 		@Override public String getTitle() {return "Dummy test";}
 		@Override public String getInfo() {return null;}
+		@Override public String getImageName() {return null;}
 		@Override public InputProcessor getInput() {return null;}
 		@Override protected void initializeOverride() {}
 		@Override protected void disposeOverride() {}

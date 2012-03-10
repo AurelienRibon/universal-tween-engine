@@ -39,6 +39,11 @@ public class TimeManipulation extends Test {
 	}
 
 	@Override
+	public String getImageName() {
+		return "tile-hourglass";
+	}
+
+	@Override
 	public InputProcessor getInput() {
 		return new InputAdapter() {
 			@Override public boolean touchDown(int x, int y, int pointer, int button) {

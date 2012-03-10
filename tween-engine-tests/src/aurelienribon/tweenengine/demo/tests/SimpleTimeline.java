@@ -26,6 +26,11 @@ public class SimpleTimeline extends Test {
 	}
 
 	@Override
+	public String getImageName() {
+		return "tile-timeline";
+	}
+
+	@Override
 	public InputProcessor getInput() {
 		return null;
 	}

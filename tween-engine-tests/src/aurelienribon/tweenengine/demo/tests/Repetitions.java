@@ -25,6 +25,11 @@ public class Repetitions extends Test {
 	}
 
 	@Override
+	public String getImageName() {
+		return "tile-repeat";
+	}
+
+	@Override
 	public InputProcessor getInput() {
 		return null;
 	}

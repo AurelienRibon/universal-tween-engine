@@ -1,6 +1,46 @@
 
 launcher1.png
 format: RGBA8888
+filter: Linear,Linear
+repeat: none
+tile-tween
+  rotate: false
+  xy: 2, 2
+  size: 250, 150
+  orig: 250, 150
+  offset: 0, 0
+  index: -1
+tile-timeline
+  rotate: false
+  xy: 254, 2
+  size: 250, 150
+  orig: 250, 150
+  offset: 0, 0
+  index: -1
+tile-repeat
+  rotate: false
+  xy: 2, 154
+  size: 250, 150
+  orig: 250, 150
+  offset: 0, 0
+  index: -1
+tile-path
+  rotate: false
+  xy: 2, 306
+  size: 250, 150
+  orig: 250, 150
+  offset: 0, 0
+  index: -1
+tile-hourglass
+  rotate: false
+  xy: 254, 154
+  size: 250, 150
+  orig: 250, 150
+  offset: 0, 0
+  index: -1
+
+launcher2.png
+format: RGBA8888
 filter: Nearest,Nearest
 repeat: none
 background
@@ -13,6 +53,13 @@ background
 white
   rotate: false
   xy: 2, 288
+  size: 16, 16
+  orig: 16, 16
+  offset: 0, 0
+  index: -1
+tile
+  rotate: false
+  xy: 2, 306
   size: 16, 16
   orig: 16, 16
   offset: 0, 0

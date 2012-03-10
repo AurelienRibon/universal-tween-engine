@@ -26,6 +26,11 @@ public class Waypoints extends Test {
 	}
 
 	@Override
+	public String getImageName() {
+		return "tile-path";
+	}
+
+	@Override
 	public InputProcessor getInput() {
 		return null;
 	}

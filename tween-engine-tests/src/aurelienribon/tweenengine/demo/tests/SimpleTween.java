@@ -27,6 +27,11 @@ public class SimpleTween extends Test {
 	}
 
 	@Override
+	public String getImageName() {
+		return "tile-tween";
+	}
+
+	@Override
 	public InputProcessor getInput() {
 		return inputProcessor;
 	}
