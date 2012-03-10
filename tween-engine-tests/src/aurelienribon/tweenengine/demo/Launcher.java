@@ -75,7 +75,7 @@ public class Launcher {
 
 		veil.setSize(wpw, wph);
 		veil.setPosition(-wpw/2, -wph/2);
-		Tween.to(veil, SpriteAccessor.OPACITY, 0.7f).target(0).setCallback(veilEndCallback).start(tweenManager);
+		Tween.to(veil, SpriteAccessor.OPACITY, 1f).target(0).delay(0.5f).setCallback(veilEndCallback).start(tweenManager);
 
 		Gdx.input.setInputProcessor(launcherInputProcessor);
 
@@ -86,6 +86,7 @@ public class Launcher {
 
 		for (int i=0; i<tests.length; i++) {
 			tiles.add(new Tile(tileX, tileY, tileW, tileH, tests[i], atlas, camera, tweenManager));
+			tests[i].setCallback(testCallback);
 
 			tileX += tileW + TILES_PADDING;
 			if (i > 0 && i%TILES_PER_LINE == TILES_PER_LINE-1) {
@@ -153,6 +154,20 @@ public class Launcher {
 		Tween.to(titleLeft, SpriteAccessor.POS_XY, 0.3f).targetRelative(0, dy).delay(delay).ease(Cubic.IN).start(tweenManager);
 		Tween.to(titleRight, SpriteAccessor.POS_XY, 0.3f).targetRelative(0, dy).delay(delay).ease(Cubic.IN).start(tweenManager);
 	}
+
+	private void closeSelectedTile() {
+		selectedTile.minimize(minimizeCallback);
+		selectedTile = null;
+		Gdx.input.setInputProcessor(null);
+		showTitle(0.2f);
+	}
+
+	private final Test.Callback testCallback = new Test.Callback() {
+		@Override
+		public void closeRequested(Test source) {
+			closeSelectedTile();
+		}
+	};
 
 	// -------------------------------------------------------------------------
 	// Callbacks
@@ -278,10 +293,7 @@ public class Launcher {
 		@Override
 		public boolean keyDown(int keycode) {
 			if ((keycode == Keys.BACK || keycode == Keys.ESCAPE) && selectedTile != null) {
-				selectedTile.minimize(minimizeCallback);
-				selectedTile = null;
-				Gdx.input.setInputProcessor(null);
-				showTitle(0.2f);
+				closeSelectedTile();
 			}
 
 			return false;

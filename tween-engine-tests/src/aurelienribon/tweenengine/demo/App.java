@@ -4,6 +4,7 @@ import aurelienribon.accessors.SpriteAccessor;
 import aurelienribon.tweenengine.BaseTween;
 import aurelienribon.tweenengine.Tween;
 import aurelienribon.tweenengine.TweenCallback;
+import aurelienribon.tweenengine.demo.tests.Intro;
 import aurelienribon.tweenengine.demo.tests.Repetitions;
 import aurelienribon.tweenengine.demo.tests.SimpleTimeline;
 import aurelienribon.tweenengine.demo.tests.SimpleTween;
@@ -71,6 +72,7 @@ public class App implements ApplicationListener {
 		splashScreen = new SplashScreen(new TweenCallback() {
 			@Override public void onEvent(int type, BaseTween source) {
 				Test[] tests = new Test[] {
+					new Intro(),
 					new SimpleTween(),
 					new SimpleTimeline(),
 					new Repetitions(),

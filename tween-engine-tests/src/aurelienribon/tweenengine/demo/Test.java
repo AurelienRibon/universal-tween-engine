@@ -25,6 +25,7 @@ public abstract class Test {
 	private final TextureAtlas atlas;
 	private final Texture backgroundTex;
 	private final Sprite veil;
+	private Callback callback;
 
 	protected final OrthographicCamera camera = new OrthographicCamera();
 	protected final SpriteBatch batch = new SpriteBatch();
@@ -54,7 +55,20 @@ public abstract class Test {
 	// Public API
 	// -------------------------------------------------------------------------
 
+	public static interface Callback {
+		public void closeRequested(Test source);
+	}
+
+	public void setCallback(Callback callback) {
+		this.callback = callback;
+	}
+
 	public void initialize() {
+		if (isCustomDisplay()) {
+			initializeOverride();
+			return;
+		}
+
 		float wpw = 10;
 		float wph = wpw * Gdx.graphics.getHeight() / Gdx.graphics.getWidth();
 
@@ -79,6 +93,11 @@ public abstract class Test {
 	}
 
 	public void render() {
+		if (isCustomDisplay()) {
+			renderOverride();
+			return;
+		}
+
 		tweenManager.update(Gdx.graphics.getDeltaTime());
 
 		GL10 gl = Gdx.gl10;
@@ -120,6 +139,14 @@ public abstract class Test {
 	// -------------------------------------------------------------------------
 	// Helpers
 	// -------------------------------------------------------------------------
+
+	protected boolean isCustomDisplay() {
+		return false;
+	}
+
+	protected void forceClose() {
+		if (callback != null) callback.closeRequested(this);
+	}
 
 	protected void createSprites(int cnt) {
 		sprites = new Sprite[cnt];

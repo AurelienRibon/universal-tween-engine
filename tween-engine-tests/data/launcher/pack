@@ -31,18 +31,18 @@ tile-path
   orig: 250, 150
   offset: 0, 0
   index: -1
-tile-hourglass
+tile-intro
   rotate: false
   xy: 254, 154
   size: 250, 150
   orig: 250, 150
   offset: 0, 0
   index: -1
-title-right
+tile-hourglass
   rotate: false
   xy: 254, 306
-  size: 174, 55
-  orig: 174, 55
+  size: 250, 150
+  orig: 250, 150
   offset: 0, 0
   index: -1
 title
@@ -62,6 +62,13 @@ title-left
   xy: 2, 2
   size: 354, 55
   orig: 354, 55
+  offset: 0, 0
+  index: -1
+title-right
+  rotate: false
+  xy: 2, 59
+  size: 174, 55
+  orig: 174, 55
   offset: 0, 0
   index: -1
 

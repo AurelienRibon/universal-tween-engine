@@ -50,7 +50,7 @@ public class SimpleTimeline extends Test {
 			.push(Tween.set(sprites[0], SpriteAccessor.ROTATION).target(0))
 			.push(Tween.to(sprites[0], SpriteAccessor.CPOS_XY, 0.7f).target(0, 0).ease(Quad.IN))
 			.push(Tween.to(sprites[0], SpriteAccessor.ROTATION, 0.5f).target(360).ease(Quad.INOUT))
-			.repeatYoyo(1, 0.2f)
+			.repeatYoyo(-1, 0.2f)
 			.delay(1.0f)
 			.start(tweenManager);
 	}
