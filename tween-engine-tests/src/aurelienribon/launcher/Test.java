@@ -126,4 +126,17 @@ public abstract class Test {
 		camera.unproject(v3);
 		return v2.set(v3.x, v3.y);
 	}
+
+	// -------------------------------------------------------------------------
+	// Dummy
+	// -------------------------------------------------------------------------
+
+	public static final Test dummy = new Test() {
+		@Override public String getTitle() {return "Dummy test";}
+		@Override public String getInfo() {return null;}
+		@Override public InputProcessor getInput() {return null;}
+		@Override protected void initializeOverride() {}
+		@Override protected void disposeOverride() {}
+		@Override protected void renderOverride() {}
+	};
 }

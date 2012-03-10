@@ -168,24 +168,32 @@ public class Launcher {
 
 	private final InputProcessor launcherInputProcessor = new InputAdapter() {
 		private boolean isDragged;
+		private float firstY;
 		private float lastY;
 
 		@Override
 		public boolean touchDown(int x, int y, int pointer, int button) {
-			lastY = y;
+			firstY = lastY = y;
 			isDragged = false;
 			return true;
 		}
 
 		@Override
 		public boolean touchDragged(int x, int y, int pointer) {
-			float dy = (y - lastY) * camera.viewportHeight / Gdx.graphics.getHeight();
-			camera.translate(0, dy, 0);
-			trimCamera();
-			camera.update();
+			float threshold = 1f * Gdx.graphics.getPpcY();
+			if (Math.abs(y - firstY) > threshold && !isDragged) {
+				isDragged = true;
+				lastY = y;
+			}
 
-			lastY = y;
-			isDragged = true;
+			if (isDragged) {
+				float dy = (y - lastY) * camera.viewportHeight / Gdx.graphics.getHeight();
+				camera.translate(0, dy, 0);
+				trimCamera();
+				camera.update();
+				lastY = y;
+			}
+
 			return true;
 		}
 

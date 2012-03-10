@@ -1,16 +1,16 @@
 package aurelienribon.tweenengine.demo;
 
-import aurelienribon.tweenengine.demo.tests.TimeManipulation;
-import aurelienribon.tweenengine.demo.tests.SimpleTween;
-import aurelienribon.tweenengine.demo.tests.Waypoints;
-import aurelienribon.tweenengine.demo.tests.SimpleTimeline;
-import aurelienribon.tweenengine.demo.tests.Repetitions;
 import aurelienribon.accessors.SpriteAccessor;
 import aurelienribon.launcher.Launcher;
 import aurelienribon.launcher.Test;
 import aurelienribon.tweenengine.BaseTween;
 import aurelienribon.tweenengine.Tween;
 import aurelienribon.tweenengine.TweenCallback;
+import aurelienribon.tweenengine.demo.tests.Repetitions;
+import aurelienribon.tweenengine.demo.tests.SimpleTimeline;
+import aurelienribon.tweenengine.demo.tests.SimpleTween;
+import aurelienribon.tweenengine.demo.tests.TimeManipulation;
+import aurelienribon.tweenengine.demo.tests.Waypoints;
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 
