@@ -1,0 +1,45 @@
+
+test1.png
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+sprite1
+  rotate: false
+  xy: 2, 2
+  size: 80, 74
+  orig: 80, 74
+  offset: 0, 0
+  index: -1
+sprite4
+  rotate: false
+  xy: 84, 2
+  size: 71, 69
+  orig: 71, 69
+  offset: 0, 0
+  index: -1
+sprite2
+  rotate: false
+  xy: 157, 2
+  size: 79, 63
+  orig: 79, 63
+  offset: 0, 0
+  index: -1
+sprite3
+  rotate: false
+  xy: 238, 2
+  size: 63, 60
+  orig: 63, 60
+  offset: 0, 0
+  index: -1
+
+test2.png
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+white
+  rotate: false
+  xy: 2, 2
+  size: 16, 16
+  orig: 16, 16
+  offset: 0, 0
+  index: -1

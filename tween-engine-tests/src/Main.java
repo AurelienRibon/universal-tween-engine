@@ -1,5 +1,5 @@
 
-import aurelienribon.gdxtests.App;
+import aurelienribon.tweenengine.demo.App;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplication;
 import com.badlogic.gdx.backends.lwjgl.LwjglApplicationConfiguration;
 

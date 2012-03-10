@@ -1,5 +1,6 @@
-package aurelienribon.gdxtests;
+package aurelienribon.launcher;
 
+import aurelienribon.accessors.SpriteAccessor;
 import aurelienribon.tweenengine.Timeline;
 import aurelienribon.tweenengine.Tween;
 import aurelienribon.tweenengine.TweenCallback;
@@ -8,10 +9,10 @@ import aurelienribon.tweenengine.equations.Cubic;
 import aurelienribon.tweenengine.equations.Quad;
 import aurelienribon.tweenengine.primitives.MutableFloat;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 
 /**
  * @author Aurelien Ribon | http://www.aurelienribon.com/
@@ -24,7 +25,7 @@ public class Tile {
 	private final TweenManager tweenManager;
 	private final MutableFloat textOpacity = new MutableFloat(1);
 
-	public Tile(float x, float y, float w, float h, Test test, Texture tex, OrthographicCamera camera, TweenManager tweenManager) {
+	public Tile(float x, float y, float w, float h, Test test, TextureRegion tex, OrthographicCamera camera, TweenManager tweenManager) {
 		this.x = x;
 		this.y = y;
 		this.test = test;

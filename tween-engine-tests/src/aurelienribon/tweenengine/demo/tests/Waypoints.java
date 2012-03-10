@@ -1,19 +1,23 @@
-package aurelienribon.tweenengine.tests;
+package aurelienribon.tweenengine.demo.tests;
 
-import aurelienribon.gdxtests.SpriteAccessor;
-import aurelienribon.gdxtests.Test;
+import aurelienribon.accessors.SpriteAccessor;
+import aurelienribon.launcher.Test;
 import aurelienribon.tweenengine.Tween;
+import aurelienribon.tweenengine.TweenManager;
 import aurelienribon.tweenengine.TweenPaths;
 import aurelienribon.tweenengine.equations.Quad;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 
 /**
  * @author Aurelien Ribon | http://www.aurelienribon.com
  */
-public class TweenWaypoints extends Test {
+public class Waypoints extends Test {
+	private final TweenManager tweenManager = new TweenManager();
+
 	@Override
 	public String getTitle() {
-		return "Tween bezier paths";
+		return "Bezier paths";
 	}
 
 	@Override
@@ -29,10 +33,13 @@ public class TweenWaypoints extends Test {
 	@Override
 	protected void initializeOverride() {
 		createSprites(1);
+		center(sprites[0], 0, 0);
 
-		Tween.to(sprites[0], SpriteAccessor.CPOS_XY, 2.0f)
+		Tween.to(sprites[0], SpriteAccessor.CPOS_XY, 4.0f)
 			.waypoint(2, 2)
 			.waypoint(2, -2)
+			.waypoint(-2, 2)
+			.waypoint(-2, -2)
 			.target(0, 0)
 			.ease(Quad.INOUT)
 			.path(TweenPaths.catmullRom)
@@ -43,11 +50,13 @@ public class TweenWaypoints extends Test {
 
 	@Override
 	protected void disposeOverride() {
-		tweenManager.killTarget(sprites[0]);
+		tweenManager.killAll();
 	}
 
 	@Override
 	protected void renderOverride() {
+		tweenManager.update(Gdx.graphics.getDeltaTime());
+
 		batch.setProjectionMatrix(camera.combined);
 		batch.begin();
 		sprites[0].draw(batch);

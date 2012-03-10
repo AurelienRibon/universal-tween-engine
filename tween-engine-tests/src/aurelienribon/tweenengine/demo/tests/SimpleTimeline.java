@@ -1,19 +1,23 @@
-package aurelienribon.tweenengine.tests;
+package aurelienribon.tweenengine.demo.tests;
 
-import aurelienribon.gdxtests.SpriteAccessor;
-import aurelienribon.gdxtests.Test;
+import aurelienribon.accessors.SpriteAccessor;
+import aurelienribon.launcher.Test;
 import aurelienribon.tweenengine.Timeline;
 import aurelienribon.tweenengine.Tween;
+import aurelienribon.tweenengine.TweenManager;
 import aurelienribon.tweenengine.equations.Quad;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 
 /**
  * @author Aurelien Ribon | http://www.aurelienribon.com
  */
-public class TimelineDemo extends Test {
+public class SimpleTimeline extends Test {
+	private final TweenManager tweenManager = new TweenManager();
+
 	@Override
 	public String getTitle() {
-		return "Simple Timeline demo";
+		return "Simple Timeline";
 	}
 
 	@Override
@@ -53,6 +57,8 @@ public class TimelineDemo extends Test {
 
 	@Override
 	protected void renderOverride() {
+		tweenManager.update(Gdx.graphics.getDeltaTime());
+
 		batch.setProjectionMatrix(camera.combined);
 		batch.begin();
 		sprites[0].draw(batch);

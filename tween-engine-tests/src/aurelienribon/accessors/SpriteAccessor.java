@@ -1,4 +1,4 @@
-package aurelienribon.gdxtests;
+package aurelienribon.accessors;
 
 import aurelienribon.tweenengine.TweenAccessor;
 import com.badlogic.gdx.graphics.Color;

@@ -1,8 +1,8 @@
-package aurelienribon.gdxtests;
+package aurelienribon.launcher;
 
+import aurelienribon.accessors.SpriteAccessor;
 import aurelienribon.tweenengine.Tween;
 import aurelienribon.tweenengine.TweenManager;
-import aurelienribon.tweenengine.primitives.MutableFloat;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.Color;
@@ -12,6 +12,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import java.util.Random;
@@ -20,16 +21,20 @@ import java.util.Random;
  * @author Aurelien Ribon | http://www.aurelienribon.com/
  */
 public abstract class Test {
+	private final TweenManager tweenManager = new TweenManager();
+	private final TextureAtlas atlas = new TextureAtlas(Gdx.files.internal("data/test/pack"));
+	private final Texture backgroundTex = new Texture(Gdx.files.internal("data/test/background.png"));
+	private final Sprite veil = atlas.createSprite("white");
+
+	protected final OrthographicCamera camera = new OrthographicCamera();
+	protected final SpriteBatch batch = new SpriteBatch();
+	protected final BitmapFont font = new BitmapFont();
 	protected final Random rand = new Random();
-	protected final TweenManager tweenManager = new TweenManager();
-	protected OrthographicCamera camera;
-	protected SpriteBatch batch;
-	protected BitmapFont font;
 	protected Sprite[] sprites;
 
-	private final MutableFloat veilOpacity = new MutableFloat(1);
-	private Texture veilTexture;
-	private Texture backgroundTexture;
+	// -------------------------------------------------------------------------
+	// Abstract API
+	// -------------------------------------------------------------------------
 
 	public abstract String getTitle();
 	public abstract String getInfo();
@@ -38,24 +43,28 @@ public abstract class Test {
 	protected abstract void disposeOverride();
 	protected abstract void renderOverride();
 
-	public void initialize() {
-		int w = Gdx.graphics.getWidth();
-		int h = Gdx.graphics.getHeight();
+	// -------------------------------------------------------------------------
+	// Public API
+	// -------------------------------------------------------------------------
 
-		camera = new OrthographicCamera(10, 10 * h / w);
-		batch = new SpriteBatch();
-		font = new BitmapFont();
+	public void initialize() {
+		float wpw = 10;
+		float wph = wpw * Gdx.graphics.getHeight() / Gdx.graphics.getWidth();
+
+		camera.viewportWidth = wpw;
+		camera.viewportHeight = wph;
+		camera.update();
+
 		font.setColor(Color.BLACK);
 
-		backgroundTexture = new Texture(Gdx.files.internal("data/background.png"));
-		backgroundTexture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
-		veilTexture = new Texture(Gdx.files.internal("data/white.png"));
-		veilTexture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
+		backgroundTex.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
 
 		initializeOverride();
 
-		veilOpacity.setValue(0);
-		Tween.to(veilOpacity, 0, 0.7f).target(0).start(tweenManager);
+		veil.setSize(wpw, wph);
+		veil.setPosition(-wpw/2, -wph/2);
+		Tween.set(veil, SpriteAccessor.OPACITY).target(1).start(tweenManager);
+		Tween.to(veil, SpriteAccessor.OPACITY, 0.7f).target(0).start(tweenManager);
 	}
 
 	public void dispose() {
@@ -77,32 +86,32 @@ public abstract class Test {
 		batch.getProjectionMatrix().setToOrtho2D(0, 0, w, h);
 		batch.begin();
 		batch.disableBlending();
-		batch.draw(backgroundTexture, 0, 0, 0, 0, w, h);
+		batch.draw(backgroundTex, 0, 0, 0, 0, w, h);
 		batch.enableBlending();
 		batch.end();
 
 		renderOverride();
 
-		if (veilOpacity.floatValue() > 0.05f) {
-			batch.getProjectionMatrix().setToOrtho2D(0, 0, w, h);
+		if (veil.getColor().a > 0.1f) {
+			batch.setProjectionMatrix(camera.combined);
 			batch.begin();
-			batch.setColor(1, 1, 1, veilOpacity.floatValue());
-			batch.draw(veilTexture, 0, 0, 0, 0, w, h);
+			veil.draw(batch);
 			batch.end();
 		}
 	}
+
+	// -------------------------------------------------------------------------
+	// Helpers
+	// -------------------------------------------------------------------------
 
 	protected void createSprites(int cnt) {
 		sprites = new Sprite[cnt];
 		for (int i=0; i<cnt; i++) {
 			int idx = rand.nextInt(4) + 1;
-			Texture.setEnforcePotImages(false);
-			Texture tex = new Texture(Gdx.files.internal("data/sprite" + idx + ".png"));
-			Texture.setEnforcePotImages(true);
-			sprites[i] = new Sprite(tex);
+			sprites[i] = atlas.createSprite("sprite" + idx);
 			sprites[i].getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
-			sprites[i].setSize(1f, 1f * tex.getWidth() / tex.getHeight());
-			sprites[i].setOrigin(0.5f, 0.5f);
+			sprites[i].setSize(1f, 1f * sprites[i].getWidth() / sprites[i].getHeight());
+			sprites[i].setOrigin(sprites[i].getWidth()/2, sprites[i].getHeight()/2);
 		}
 	}
 

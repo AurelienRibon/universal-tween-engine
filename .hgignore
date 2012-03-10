@@ -19,3 +19,5 @@ tween-engine-applets/nbbuild.xml
 tween-engine-applets/build/*
 tween-engine-applets/dist/*
 tween-engine-applets/nbproject/*
+
+tween-engine-tests-android/*

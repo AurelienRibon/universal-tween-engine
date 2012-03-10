@@ -1,0 +1,19 @@
+
+launcher1.png
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+background
+  rotate: false
+  xy: 2, 2
+  size: 500, 284
+  orig: 500, 284
+  offset: 0, 0
+  index: -1
+white
+  rotate: false
+  xy: 2, 288
+  size: 16, 16
+  orig: 16, 16
+  offset: 0, 0
+  index: -1

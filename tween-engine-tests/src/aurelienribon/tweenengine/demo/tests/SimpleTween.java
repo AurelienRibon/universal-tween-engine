@@ -1,8 +1,10 @@
-package aurelienribon.tweenengine.tests;
+package aurelienribon.tweenengine.demo.tests;
 
-import aurelienribon.gdxtests.SpriteAccessor;
-import aurelienribon.gdxtests.Test;
+import aurelienribon.accessors.SpriteAccessor;
+import aurelienribon.launcher.Test;
 import aurelienribon.tweenengine.Tween;
+import aurelienribon.tweenengine.TweenManager;
+import aurelienribon.tweenengine.equations.Cubic;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.InputProcessor;
@@ -11,10 +13,12 @@ import com.badlogic.gdx.math.Vector2;
 /**
  * @author Aurelien Ribon | http://www.aurelienribon.com
  */
-public class TweenDemo extends Test {
+public class SimpleTween extends Test {
+	private final TweenManager tweenManager = new TweenManager();
+
 	@Override
 	public String getTitle() {
-		return "Simple Tween demo (interactive)";
+		return "Simple Tween (interactive)";
 	}
 
 	@Override
@@ -35,7 +39,7 @@ public class TweenDemo extends Test {
 
 	@Override
 	protected void disposeOverride() {
-		tweenManager.killTarget(sprites[0]);
+		tweenManager.killAll();
 	}
 
 	@Override
@@ -53,10 +57,11 @@ public class TweenDemo extends Test {
 		public boolean touchDown(int x, int y, int pointer, int button) {
 			Vector2 v = touch2world(x, y);
 
-			tweenManager.killTarget(sprites[0]);
+			tweenManager.killAll();
 
-			Tween.to(sprites[0], SpriteAccessor.CPOS_XY, 1.0f)
+			Tween.to(sprites[0], SpriteAccessor.CPOS_XY, 0.6f)
 				.target(v.x, v.y)
+				.ease(Cubic.INOUT)
 				.start(tweenManager);
 
 			return true;

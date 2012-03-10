@@ -1,5 +1,6 @@
-package aurelienribon.gdxtests;
+package aurelienribon.launcher;
 
+import aurelienribon.accessors.SpriteAccessor;
 import aurelienribon.tweenengine.BaseTween;
 import aurelienribon.tweenengine.Tween;
 import aurelienribon.tweenengine.TweenCallback;
@@ -12,11 +13,12 @@ import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.BitmapFont.TextBounds;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Vector3;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,41 +31,44 @@ public class Launcher {
 	private static final float TILES_PADDING = 0.04f;
 
 	private final List<Tile> tiles = new ArrayList<Tile>();
+	private final TextureAtlas atlas = new TextureAtlas(Gdx.files.internal("data/launcher/pack"));
 	private final TweenManager tweenManager = new TweenManager();
-	private OrthographicCamera camera;
-	private SpriteBatch batch;
-	private BitmapFont tileFont;
-	private BitmapFont infoFont;
-	private Texture backgroundTexture;
-	private Texture tileTexture;
+	private final OrthographicCamera camera = new OrthographicCamera();
+	private final SpriteBatch batch = new SpriteBatch();
+	private final BitmapFont tileFont = new BitmapFont();
+	private final BitmapFont infoFont = new BitmapFont();
+	private final Sprite veil = atlas.createSprite("white");
+	private final TextureRegion backgroundTexture;
+	private final TextureRegion tileTexture;
+	private final float tileW, tileH;
 	private Tile selectedTile;
 
-	private float tileW, tileH;
-
 	public Launcher(Test[] tests) {
-		int w = Gdx.graphics.getWidth();
-		int h = Gdx.graphics.getHeight();
+		float wpw = 2;
+		float wph = wpw * Gdx.graphics.getHeight() / Gdx.graphics.getWidth();
 
-		camera = new OrthographicCamera(2, 2 * h / w);
-		batch = new SpriteBatch();
+		camera.viewportWidth = wpw;
+		camera.viewportHeight = wph;
+		camera.update();
 
-		tileFont = new BitmapFont();
 		tileFont.setColor(Color.WHITE);
 		tileFont.setScale(0.0025f);
 		tileFont.setUseIntegerPositions(false);
 
-		infoFont = new BitmapFont();
+		backgroundTexture = atlas.findRegion("background");
+		tileTexture = atlas.findRegion("white");
 
-		Texture.setEnforcePotImages(false);
-		backgroundTexture = new Texture(Gdx.files.internal("data/menu-background.png"));
-		tileTexture = new Texture(Gdx.files.internal("data/white.png"));
+		veil.setSize(wpw, wph);
+		veil.setPosition(-wpw/2, -wph/2);
+		Tween.set(veil, SpriteAccessor.OPACITY).target(1).start(tweenManager);
+		Tween.to(veil, SpriteAccessor.OPACITY, 0.7f).target(0).start(tweenManager);
 
 		Gdx.input.setInputProcessor(launcherInputProcessor);
 
-		tileW = (camera.viewportWidth-TILES_PADDING)/TILES_PER_LINE - TILES_PADDING;
+		tileW = (wpw-TILES_PADDING)/TILES_PER_LINE - TILES_PADDING;
 		tileH = tileW * 0.6f;
-		float tileX = -camera.viewportWidth/2 + TILES_PADDING;
-		float tileY = camera.viewportHeight/2 - tileH - TILES_PADDING;
+		float tileX = -wpw/2 + TILES_PADDING;
+		float tileY = wph/2 - tileH - TILES_PADDING;
 
 		for (int i=0; i<tests.length; i++) {
 			Tile tile = new Tile(tileX, tileY, tileW, tileH, tests[i], tileTexture, camera, tweenManager);
@@ -79,9 +84,11 @@ public class Launcher {
 	}
 
 	public void dispose() {
-		backgroundTexture.dispose();
-		tileTexture.dispose();
+		tweenManager.killAll();
+		atlas.dispose();
 		batch.dispose();
+		tileFont.dispose();
+		infoFont.dispose();
 	}
 
 	public void render() {
@@ -107,6 +114,7 @@ public class Launcher {
 			batch.begin();
 			batch.enableBlending();
 			for (int i=0; i<tiles.size(); i++) tiles.get(i).draw(batch, tileFont);
+			if (veil.getColor().a > 0.1f) veil.draw(batch);
 			batch.end();
 
 		} else {
@@ -134,6 +142,7 @@ public class Launcher {
 			selectedTile = (Tile) source.getUserData();
 			selectedTile.getTest().initialize();
 			Gdx.input.setInputProcessor(testInputMultiplexer);
+			Gdx.input.setCatchBackKey(true);
 
 			testInputMultiplexer.clear();
 			testInputMultiplexer.addProcessor(testInputProcessor);
@@ -149,6 +158,7 @@ public class Launcher {
 			Tile tile = (Tile) source.getUserData();
 			tile.getTest().dispose();
 			Gdx.input.setInputProcessor(launcherInputProcessor);
+			Gdx.input.setCatchBackKey(false);
 		}
 	};
 
@@ -222,11 +232,12 @@ public class Launcher {
 	private final InputProcessor testInputProcessor = new InputAdapter() {
 		@Override
 		public boolean keyDown(int keycode) {
-			if (keycode == Keys.ESCAPE && selectedTile != null) {
+			if ((keycode == Keys.BACK || keycode == Keys.ESCAPE) && selectedTile != null) {
 				selectedTile.minimize(minimizeCallback);
 				selectedTile = null;
 				Gdx.input.setInputProcessor(null);
 			}
+
 			return false;
 		}
 	};

@@ -1,7 +1,7 @@
-package aurelienribon.tweenengine.tests;
+package aurelienribon.tweenengine.demo.tests;
 
-import aurelienribon.gdxtests.SpriteAccessor;
-import aurelienribon.gdxtests.Test;
+import aurelienribon.accessors.SpriteAccessor;
+import aurelienribon.launcher.Test;
 import aurelienribon.tweenengine.BaseTween;
 import aurelienribon.tweenengine.Timeline;
 import aurelienribon.tweenengine.Tween;
@@ -15,15 +15,14 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Buttons;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.InputProcessor;
-import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import java.util.Locale;
 
 /**
  * @author Aurelien Ribon | http://www.aurelienribon.com
  */
-public class ComplexDemo extends Test {
-	private final TweenManager manager = new TweenManager();
+public class TimeManipulation extends Test {
+	private final TweenManager tweenManager = new TweenManager();
 	private boolean canBeRestarted = false;
 	private boolean canControlSpeed = false;
 	private String text = "";
@@ -31,17 +30,22 @@ public class ComplexDemo extends Test {
 
 	@Override
 	public String getTitle() {
-		return "Complex demo";
+		return "Time manipulation (interactive)";
 	}
 
 	@Override
 	public String getInfo() {
-		return null;
+		return "Drag to change the animation speed";
 	}
 
 	@Override
 	public InputProcessor getInput() {
-		return inputProcessor;
+		return new InputAdapter() {
+			@Override public boolean touchDown(int x, int y, int pointer, int button) {
+				if (canBeRestarted) launchAnimation();
+				return true;
+			}
+		};
 	}
 
 	@Override
@@ -51,21 +55,13 @@ public class ComplexDemo extends Test {
 		sprites[1].setColor(1, 1, 1, 0);
 		sprites[2].setColor(1, 1, 1, 0);
 		sprites[3].setColor(1, 1, 1, 0);
-
-		Tween.call(new TweenCallback() {
-			@Override public void onEvent(int type, BaseTween source) {
-				launchAnimation();
-				canControlSpeed = true;
-			}
-		}).delay(1.0f).start(manager);
+		launchAnimation();
 	}
 
 	@Override
 	protected void disposeOverride() {
-		tweenManager.killTarget(sprites[0]);
-		tweenManager.killTarget(sprites[1]);
-		tweenManager.killTarget(sprites[2]);
-		tweenManager.killTarget(sprites[3]);
+		tweenManager.killAll();
+		canBeRestarted = canControlSpeed = false;
 	}
 
 	@Override
@@ -78,13 +74,9 @@ public class ComplexDemo extends Test {
 		boolean isTouched = Gdx.input.isButtonPressed(Buttons.LEFT);
 		float speed = canControlSpeed && isTouched ? 4f * (Gdx.input.getX()-w/2)/w : 1;
 		float delta = Gdx.graphics.getDeltaTime() * speed;
-		manager.update(delta);
+		tweenManager.update(delta);
 
 		// Gdx stuff...
-
-		GL10 gl = Gdx.gl10;
-		gl.glClearColor(1, 1, 1, 1);
-		gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
 
 		batch.setProjectionMatrix(camera.combined);
 		batch.begin();
@@ -97,11 +89,8 @@ public class ComplexDemo extends Test {
 		batch.getProjectionMatrix().setToOrtho2D(0, 0, w, h);
 		batch.begin();
 		font.setColor(0.5f, 0.5f, 0.5f, 1);
-		font.draw(batch, "Drag to change the animation speed", 5, Gdx.graphics.getHeight());
-		font.draw(batch, String.format(Locale.US, "Current speed: %.2f", speed), 5, Gdx.graphics.getHeight() - 20);
-		font.draw(batch, text, 5, 45);
-		font.draw(batch, "Tweens in pool: " + (Tween.getPoolSize() + Timeline.getPoolSize()), 150, 25);
-		font.draw(batch, "Running tweens: " + "x", 5, 25);
+		font.draw(batch, String.format(Locale.US, "Current speed: %.2f", speed), 10, Gdx.graphics.getHeight() - 10);
+		font.draw(batch, text, 10, Gdx.graphics.getHeight() - 30);
 		batch.end();
 	}
 
@@ -110,18 +99,20 @@ public class ComplexDemo extends Test {
 	// -------------------------------------------------------------------------
 
 	private void launchAnimation() {
-		final int repeatCnt = 2;
+		canControlSpeed = true;
+		canBeRestarted = false;
 		iterationCnt = 0;
+		tweenManager.killAll();
 
 		// The callback (to change the text at the right moments)
 
 		TweenCallback callback = new TweenCallback() {
 			@Override public void onEvent(int type, BaseTween source) {
 				switch (type) {
-					case START: text = "Iteration: " + (++iterationCnt) + " / " + (repeatCnt+1); break;
-					case BACK_START: text = "Iteration: " + (--iterationCnt) + " / " + (repeatCnt+1); break;
-					case COMPLETE: text = "Forwards play complete (click to restart)"; canBeRestarted = true; break;
-					case BACK_COMPLETE: text = "Backwards play complete (click to restart)"; canBeRestarted = true; break;
+					case START: text = "Iteration: " + (++iterationCnt) + " / " + 3; break;
+					case BACK_START: text = "Iteration: " + (--iterationCnt) + " / " + 3; break;
+					case COMPLETE: text = "Forwards play complete (touch to restart)"; canBeRestarted = true; break;
+					case BACK_COMPLETE: text = "Backwards play complete (touch to restart)"; canBeRestarted = true; break;
 				}
 			}
 		};
@@ -135,8 +126,8 @@ public class ComplexDemo extends Test {
 			.push(buildSequence(sprites[3], 4, 0.6f, 0.2f))
 			.setCallback(callback)
 			.setCallbackTriggers(TweenCallback.START | TweenCallback.BACK_START | TweenCallback.COMPLETE | TweenCallback.BACK_COMPLETE)
-			.repeat(repeatCnt, 0)
-			.start(manager);
+			.repeat(2, 0)
+			.start(tweenManager);
 	}
 
 	private Timeline buildSequence(Sprite target, int id, float delay1, float delay2) {
@@ -159,20 +150,4 @@ public class ComplexDemo extends Test {
 				.push(Tween.to(target, SpriteAccessor.OPACITY, 0.3f).target(0).ease(Quad.IN))
 			.end();
 	}
-
-	// -------------------------------------------------------------------------
-	// INPUT
-	// -------------------------------------------------------------------------
-
-	private InputProcessor inputProcessor = new InputAdapter() {
-		@Override
-		public boolean touchDown(int x, int y, int pointer, int button) {
-			if (canBeRestarted) {
-				canBeRestarted = false;
-				tweenManager.killAll();
-				launchAnimation();
-			}
-			return true;
-		}
-	};
 }

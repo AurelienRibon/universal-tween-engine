@@ -1,8 +1,9 @@
-package aurelienribon.tweenengine.tests;
+package aurelienribon.tweenengine.demo.tests;
 
-import aurelienribon.gdxtests.SpriteAccessor;
-import aurelienribon.gdxtests.Test;
+import aurelienribon.accessors.SpriteAccessor;
+import aurelienribon.launcher.Test;
 import aurelienribon.tweenengine.Tween;
+import aurelienribon.tweenengine.TweenManager;
 import aurelienribon.tweenengine.equations.Cubic;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
@@ -10,10 +11,12 @@ import com.badlogic.gdx.InputProcessor;
 /**
  * @author Aurelien Ribon | http://www.aurelienribon.com
  */
-public class TweenRepetition extends Test {
+public class Repetitions extends Test {
+	private final TweenManager tweenManager = new TweenManager();
+
 	@Override
 	public String getTitle() {
-		return "Tween repetitions";
+		return "Repetitions";
 	}
 
 	@Override
@@ -49,8 +52,7 @@ public class TweenRepetition extends Test {
 
 	@Override
 	protected void disposeOverride() {
-		tweenManager.killTarget(sprites[0]);
-		tweenManager.killTarget(sprites[1]);
+		tweenManager.killAll();
 	}
 
 	@Override
