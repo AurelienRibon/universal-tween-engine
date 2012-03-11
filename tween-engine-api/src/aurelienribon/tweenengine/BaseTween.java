@@ -29,7 +29,8 @@ public abstract class BaseTween<T> {
 	protected float currentTime;
 	protected boolean isStarted; // true when the object is started
 	protected boolean isInitialized; // true after the delay
-	protected boolean isFinished; // true when all repetitions are done or kill() was called
+	protected boolean isFinished; // true when all repetitions are done
+	protected boolean isKilled; // true if kill() was called
 	protected boolean isPaused; // true if pause() was called
 
 	// Misc
@@ -48,7 +49,7 @@ public abstract class BaseTween<T> {
 		isIterationStep = isYoyo = false;
 
 		delay = duration = repeatDelay = currentTime = 0;
-		isStarted = isInitialized = isFinished = isPaused = false;
+		isStarted = isInitialized = isFinished = isKilled = isPaused = false;
 
 		callback = null;
 		callbackTriggers = 0;
@@ -113,7 +114,7 @@ public abstract class BaseTween<T> {
 	 * will be removed automatically.
 	 */
 	public void kill() {
-		isFinished = true;
+		isKilled = true;
 	}
 
 	/**
@@ -305,7 +306,7 @@ public abstract class BaseTween<T> {
 	 * want to call {@link free()} to reuse the object later.
 	 */
 	public boolean isFinished() {
-		return isFinished;
+		return isFinished || isKilled;
 	}
 
 	/**
@@ -387,7 +388,7 @@ public abstract class BaseTween<T> {
 	 * @param delta A delta time between now and the last call.
 	 */
 	public void update(float delta) {
-		if (!isStarted || isPaused) return;
+		if (!isStarted || isPaused || isKilled) return;
 
 		int lastStep = step;
 		currentTime += delta;
