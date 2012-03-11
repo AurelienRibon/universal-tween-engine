@@ -18,12 +18,13 @@ public class SimpleTween extends Test {
 
 	@Override
 	public String getTitle() {
-		return "Simple Tween (interactive)";
+		return "Simple Tween";
 	}
 
 	@Override
 	public String getInfo() {
-		return "Click anywhere on the screen to move the sprite";
+		return "A 'tween' is an interpolation from a value to an other. "
+			+ "(Click anywhere to start a 'position tween')";
 	}
 
 	@Override
@@ -39,6 +40,7 @@ public class SimpleTween extends Test {
 	@Override
 	protected void initializeOverride() {
 		createSprites(1);
+		enableDots(0);
 		center(sprites[0], 0, 0);
 	}
 
@@ -50,11 +52,6 @@ public class SimpleTween extends Test {
 	@Override
 	protected void renderOverride() {
 		tweenManager.update(Gdx.graphics.getDeltaTime());
-
-		batch.setProjectionMatrix(camera.combined);
-		batch.begin();
-		sprites[0].draw(batch);
-		batch.end();
 	}
 
 	private final InputProcessor inputProcessor = new InputAdapter() {

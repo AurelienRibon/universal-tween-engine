@@ -12,7 +12,6 @@ import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.InputProcessor;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL10;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -34,13 +33,13 @@ public class Launcher {
 	private final TweenManager tweenManager = new TweenManager();
 	private final OrthographicCamera camera = new OrthographicCamera();
 	private final SpriteBatch batch = new SpriteBatch();
-	private final BitmapFont tileFont = new BitmapFont();
+	private final BitmapFont font;
 	private final Sprite background;
 	private final Sprite title;
 	private final Sprite titleLeft;
 	private final Sprite titleRight;
 	private final Sprite veil;
-	private final float tileW, tileH, titleH;
+	private final float tileW, tileH;
 	private Tile selectedTile;
 
 	public Launcher(Test[] tests) {
@@ -53,9 +52,9 @@ public class Launcher {
 		camera.viewportHeight = wph;
 		camera.update();
 
-		tileFont.setColor(Color.WHITE);
-		tileFont.setScale(0.0025f);
-		tileFont.setUseIntegerPositions(false);
+		font = Assets.inst().get("data/arial-18.fnt", BitmapFont.class);
+		font.setScale(0.0025f);
+		font.setUseIntegerPositions(false);
 
 		TextureAtlas atlas = Assets.inst().get("data/launcher/pack", TextureAtlas.class);
 		background = atlas.createSprite("background");
@@ -64,14 +63,16 @@ public class Launcher {
 		titleRight = atlas.createSprite("title-right");
 		veil = atlas.createSprite("white");
 
-		background.setSize(w, h);
-		background.setPosition(0, 0);
+		background.setSize(wpw, wpw * background.getHeight() / background.getWidth());
+		background.setPosition(-wpw/2, -background.getHeight()/2);
 
-		titleLeft.setPosition(0, h);
-		titleRight.setPosition(w-titleRight.getWidth(), h);
-		title.setSize(w, titleLeft.getHeight());
-		title.setPosition(0, h);
-		titleH = titleLeft.getHeight() * wph / h;
+		float titleH = wph/8;
+		titleLeft.setSize(titleH* titleLeft.getWidth() / titleLeft.getHeight(), titleH);
+		titleLeft.setPosition(-wpw/2, wph/2);
+		titleRight.setSize(titleH * titleRight.getWidth() / titleRight.getHeight(), titleH);
+		titleRight.setPosition(wpw/2-titleRight.getWidth(), wph/2);
+		title.setSize(wpw, titleH);
+		title.setPosition(-wpw/2, wph/2);
 
 		veil.setSize(wpw, wph);
 		veil.setPosition(-wpw/2, -wph/2);
@@ -82,10 +83,10 @@ public class Launcher {
 		tileW = (wpw-TILES_PADDING)/TILES_PER_LINE - TILES_PADDING;
 		tileH = tileW * 150 / 250;
 		float tileX = -wpw/2 + TILES_PADDING;
-		float tileY = wph/2 - tileH - TILES_PADDING - titleH;
+		float tileY = wph/2 - tileH - TILES_PADDING - title.getHeight();
 
 		for (int i=0; i<tests.length; i++) {
-			tiles.add(new Tile(tileX, tileY, tileW, tileH, tests[i], atlas, camera, tweenManager));
+			tiles.add(new Tile(tileX, tileY, tileW, tileH, tests[i], atlas, camera, font, tweenManager));
 			tests[i].setCallback(testCallback);
 
 			tileX += tileW + TILES_PADDING;
@@ -99,7 +100,7 @@ public class Launcher {
 	public void dispose() {
 		tweenManager.killAll();
 		batch.dispose();
-		tileFont.dispose();
+		font.dispose();
 	}
 
 	public void render() {
@@ -111,29 +112,19 @@ public class Launcher {
 		gl.glEnable(GL10.GL_BLEND);
 		gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
 
-		int w = Gdx.graphics.getWidth();
-		int h = Gdx.graphics.getHeight();
-
 		if (selectedTile == null) {
-			batch.getProjectionMatrix().setToOrtho2D(0, 0, w, h);
+			batch.setProjectionMatrix(camera.combined);
 			batch.begin();
 			batch.disableBlending();
 			background.draw(batch);
-			batch.end();
-
-			batch.setProjectionMatrix(camera.combined);
-			batch.begin();
 			batch.enableBlending();
-			for (int i=0; i<tiles.size(); i++) tiles.get(i).draw(batch, tileFont);
-			if (veil.getColor().a > 0.1f) veil.draw(batch);
-			batch.end();
-
-			batch.getProjectionMatrix().setToOrtho2D(0, 0, w, h);
-			batch.begin();
+			for (int i=0; i<tiles.size(); i++) tiles.get(i).draw(batch);
 			batch.disableBlending();
 			title.draw(batch);
 			titleLeft.draw(batch);
 			titleRight.draw(batch);
+			batch.enableBlending();
+			if (veil.getColor().a > 0.1f) veil.draw(batch);
 			batch.end();
 
 		} else {
@@ -178,7 +169,10 @@ public class Launcher {
 		public void onEvent(int type, BaseTween source) {
 			showTitle(0);
 			for (int i=0; i<tiles.size(); i++) {
-				tiles.get(i).enter(i * 0.1f + 0.3f);
+				int row = i / TILES_PER_LINE;
+				int col = i % TILES_PER_LINE;
+				float delay = row * 0.07f + col * 0.15f;
+				tiles.get(i).enter(delay);
 			}
 		}
 	};

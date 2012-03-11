@@ -11,11 +11,13 @@ import aurelienribon.tweenengine.demo.tests.SimpleTween;
 import aurelienribon.tweenengine.demo.tests.TimeManipulation;
 import aurelienribon.tweenengine.demo.tests.Waypoints;
 import com.badlogic.gdx.ApplicationListener;
+import com.badlogic.gdx.assets.loaders.BitmapFontLoader;
 import com.badlogic.gdx.assets.loaders.FileHandleResolver;
 import com.badlogic.gdx.assets.loaders.TextureAtlasLoader;
 import com.badlogic.gdx.assets.loaders.TextureLoader;
 import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 
@@ -36,10 +38,14 @@ public class App implements ApplicationListener {
 		FileHandleResolver resolver = new InternalFileHandleResolver();
 		Assets.inst().setLoader(Texture.class, new TextureLoader(resolver));
 		Assets.inst().setLoader(TextureAtlas.class, new TextureAtlasLoader(resolver));
+		Assets.inst().setLoader(BitmapFont.class, new BitmapFontLoader(resolver));
 		Assets.inst().load("data/splash/pack", TextureAtlas.class);
 		Assets.inst().load("data/launcher/pack", TextureAtlas.class);
 		Assets.inst().load("data/test/pack", TextureAtlas.class);
-		Assets.inst().load("data/test/background.png", Texture.class);
+		Assets.inst().load("data/arial-16.fnt", BitmapFont.class);
+		Assets.inst().load("data/arial-18.fnt", BitmapFont.class);
+		Assets.inst().load("data/arial-20.fnt", BitmapFont.class);
+		Assets.inst().load("data/arial-24.fnt", BitmapFont.class);
 	}
 
 	@Override

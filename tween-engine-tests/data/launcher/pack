@@ -26,13 +26,6 @@ tile-repeat
   index: -1
 tile-path
   rotate: false
-  xy: 2, 306
-  size: 250, 150
-  orig: 250, 150
-  offset: 0, 0
-  index: -1
-tile-intro
-  rotate: false
   xy: 254, 154
   size: 250, 150
   orig: 250, 150
@@ -40,59 +33,75 @@ tile-intro
   index: -1
 tile-hourglass
   rotate: false
+  xy: 2, 306
+  size: 250, 150
+  orig: 250, 150
+  offset: 0, 0
+  index: -1
+g3900
+  rotate: false
   xy: 254, 306
   size: 250, 150
   orig: 250, 150
   offset: 0, 0
   index: -1
-title
+tile-intro
   rotate: false
-  xy: 2, 458
-  size: 16, 16
-  orig: 16, 16
+  xy: 254, 306
+  size: 250, 150
+  orig: 250, 150
   offset: 0, 0
   index: -1
-
-launcher2.png
-format: RGBA8888
-filter: Linear,Linear
-repeat: none
 title-left
   rotate: false
-  xy: 2, 2
-  size: 354, 55
-  orig: 354, 55
+  xy: 2, 458
+  size: 400, 70
+  orig: 400, 70
   offset: 0, 0
   index: -1
 title-right
   rotate: false
-  xy: 2, 59
-  size: 174, 55
-  orig: 174, 55
+  xy: 2, 530
+  size: 220, 70
+  orig: 220, 70
+  offset: 0, 0
+  index: -1
+title
+  rotate: false
+  xy: 404, 458
+  size: 10, 70
+  orig: 10, 70
+  offset: 0, 0
+  index: -1
+interactive
+  rotate: false
+  xy: 416, 458
+  size: 27, 40
+  orig: 27, 40
   offset: 0, 0
   index: -1
 
-launcher3.png
+launcher2.png
 format: RGBA8888
 filter: Nearest,Nearest
 repeat: none
 background
   rotate: false
   xy: 2, 2
-  size: 500, 284
-  orig: 500, 284
+  size: 1000, 750
+  orig: 1000, 750
   offset: 0, 0
   index: -1
 white
   rotate: false
-  xy: 2, 288
+  xy: 1004, 2
   size: 16, 16
   orig: 16, 16
   offset: 0, 0
   index: -1
 tile
   rotate: false
-  xy: 2, 306
+  xy: 1004, 20
   size: 16, 16
   orig: 16, 16
   offset: 0, 0

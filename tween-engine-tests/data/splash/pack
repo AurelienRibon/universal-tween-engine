@@ -26,28 +26,28 @@ engine
   index: -1
 logo
   rotate: false
-  xy: 269, 2
+  xy: 2, 68
   size: 47, 42
   orig: 47, 42
   offset: 0, 0
   index: -1
 tween
   rotate: false
-  xy: 318, 2
+  xy: 134, 49
   size: 130, 35
   orig: 130, 35
   offset: 0, 0
   index: -1
 universal
   rotate: false
-  xy: 2, 68
+  xy: 269, 2
   size: 142, 33
   orig: 142, 33
   offset: 0, 0
   index: -1
 powered
   rotate: false
-  xy: 318, 39
+  xy: 134, 86
   size: 113, 19
   orig: 113, 19
   offset: 0, 0

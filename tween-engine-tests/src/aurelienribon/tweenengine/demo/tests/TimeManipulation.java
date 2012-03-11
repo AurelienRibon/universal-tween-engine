@@ -12,9 +12,9 @@ import aurelienribon.tweenengine.equations.Cubic;
 import aurelienribon.tweenengine.equations.Quad;
 import aurelienribon.tweenengine.equations.Quart;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input.Buttons;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import java.util.Locale;
 
@@ -27,15 +27,17 @@ public class TimeManipulation extends Test {
 	private boolean canControlSpeed = false;
 	private String text = "";
 	private int iterationCnt;
+	private float speed;
 
 	@Override
 	public String getTitle() {
-		return "Time manipulation (interactive)";
+		return "Time manipulation";
 	}
 
 	@Override
 	public String getInfo() {
-		return "Drag to change the animation speed";
+		return "Time scale can be easily modified in real-time. "
+			+ "(Drag the screen to change the animation speed)";
 	}
 
 	@Override
@@ -45,12 +47,7 @@ public class TimeManipulation extends Test {
 
 	@Override
 	public InputProcessor getInput() {
-		return new InputAdapter() {
-			@Override public boolean touchDown(int x, int y, int pointer, int button) {
-				if (canBeRestarted) launchAnimation();
-				return true;
-			}
-		};
+		return inputProcessor;
 	}
 
 	@Override
@@ -71,31 +68,16 @@ public class TimeManipulation extends Test {
 
 	@Override
 	protected void renderOverride() {
+		tweenManager.update(Gdx.graphics.getDeltaTime() * speed);
+
 		int w = Gdx.graphics.getWidth();
 		int h = Gdx.graphics.getHeight();
 
-		// Tween manager update (speed is based on touch position)
-
-		boolean isTouched = Gdx.input.isButtonPressed(Buttons.LEFT);
-		float speed = canControlSpeed && isTouched ? 4f * (Gdx.input.getX()-w/2)/w : 1;
-		float delta = Gdx.graphics.getDeltaTime() * speed;
-		tweenManager.update(delta);
-
-		// Gdx stuff...
-
-		batch.setProjectionMatrix(camera.combined);
-		batch.begin();
-		sprites[0].draw(batch);
-		sprites[1].draw(batch);
-		sprites[2].draw(batch);
-		sprites[3].draw(batch);
-		batch.end();
-
 		batch.getProjectionMatrix().setToOrtho2D(0, 0, w, h);
 		batch.begin();
-		font.setColor(0.5f, 0.5f, 0.5f, 1);
-		font.draw(batch, String.format(Locale.US, "Current speed: %.2f", speed), 10, Gdx.graphics.getHeight() - 10);
-		font.draw(batch, text, 10, Gdx.graphics.getHeight() - 30);
+		font.setColor(Color.WHITE);
+		font.draw(batch, String.format(Locale.US, "Current speed: %.2f", speed), 15, h - 15);
+		font.draw(batch, text, 15, h - 45);
 		batch.end();
 	}
 
@@ -107,6 +89,7 @@ public class TimeManipulation extends Test {
 		canControlSpeed = true;
 		canBeRestarted = false;
 		iterationCnt = 0;
+		speed = 1;
 		tweenManager.killAll();
 
 		// The callback (to change the text at the right moments)
@@ -155,4 +138,28 @@ public class TimeManipulation extends Test {
 				.push(Tween.to(target, SpriteAccessor.OPACITY, 0.3f).target(0).ease(Quad.IN))
 			.end();
 	}
+
+	// -------------------------------------------------------------------------
+	// Input
+	// -------------------------------------------------------------------------
+
+	private final InputProcessor inputProcessor = new InputAdapter() {
+		private int lastX;
+
+		@Override public boolean touchDown(int x, int y, int pointer, int button) {
+			if (canBeRestarted) launchAnimation();
+			lastX = x;
+			return true;
+		}
+
+		@Override public boolean touchDragged(int x, int y, int pointer) {
+			if (canControlSpeed) {
+				float dx = (x - lastX) * camera.viewportWidth / Gdx.graphics.getWidth();
+				speed += dx / 4;
+			}
+
+			lastX = x;
+			return true;
+		}
+	};
 }

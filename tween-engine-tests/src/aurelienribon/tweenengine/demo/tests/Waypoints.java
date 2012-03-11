@@ -22,7 +22,8 @@ public class Waypoints extends Test {
 
 	@Override
 	public String getInfo() {
-		return "";
+		return "Tweens can navigate through waypoints, which define a 'bezier' path (here "
+			+ "using a Catmull-Rom spline).";
 	}
 
 	@Override
@@ -38,14 +39,14 @@ public class Waypoints extends Test {
 	@Override
 	protected void initializeOverride() {
 		createSprites(1);
-		center(sprites[0], 0, 0);
+		enableDots(0);
+		center(sprites[0], -3, 2);
 
 		Tween.to(sprites[0], SpriteAccessor.CPOS_XY, 3.0f)
-			.waypoint(2, 2)
-			.waypoint(2, -2)
-			.waypoint(-2, 2)
-			.waypoint(-2, -2)
-			.target(0, 0)
+			.waypoint(1, 1)
+			.waypoint(-1, -1)
+			.waypoint(2, 0)
+			.target(3, -1)
 			.ease(Quad.INOUT)
 			.path(TweenPaths.catmullRom)
 			.repeatYoyo(-1, 0.2f)
@@ -61,10 +62,5 @@ public class Waypoints extends Test {
 	@Override
 	protected void renderOverride() {
 		tweenManager.update(Gdx.graphics.getDeltaTime());
-
-		batch.setProjectionMatrix(camera.combined);
-		batch.begin();
-		sprites[0].draw(batch);
-		batch.end();
 	}
 }

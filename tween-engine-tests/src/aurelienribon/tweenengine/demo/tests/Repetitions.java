@@ -21,7 +21,7 @@ public class Repetitions extends Test {
 
 	@Override
 	public String getInfo() {
-		return "Repeat vs RepeatYoyo";
+		return "Difference between a 'repeat' behavior and a 'repeat yoyo' behavior.";
 	}
 
 	@Override
@@ -37,6 +37,8 @@ public class Repetitions extends Test {
 	@Override
 	protected void initializeOverride() {
 		createSprites(2);
+		enableDots(0);
+		enableDots(1);
 		center(sprites[0], -3, +1);
 		center(sprites[1], -3, -1);
 
@@ -63,11 +65,5 @@ public class Repetitions extends Test {
 	@Override
 	protected void renderOverride() {
 		tweenManager.update(Gdx.graphics.getDeltaTime());
-
-		batch.setProjectionMatrix(camera.combined);
-		batch.begin();
-		sprites[0].draw(batch);
-		sprites[1].draw(batch);
-		batch.end();
 	}
 }

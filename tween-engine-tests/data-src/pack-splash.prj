@@ -1,5 +1,5 @@
-input=""
-output="..\..\data\launcher"
+input="splash"
+output="..\data\splash"
 
 alias=true
 alphaThreshold=0
@@ -9,8 +9,8 @@ defaultFilterMin=Linear
 defaultFormat=RGBA8888
 duplicatePadding=true
 incremental=false
-maxHeight=512
-maxWidth=512
+maxHeight=1024
+maxWidth=1024
 minHeight=16
 minWidth=16
 padding=2
