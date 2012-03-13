@@ -233,7 +233,7 @@ public class Launcher {
 
 		@Override
 		public boolean touchDragged(int x, int y, int pointer) {
-			float threshold = 1f * Gdx.graphics.getPpcY();
+			float threshold = 0.5f * Gdx.graphics.getPpcY();
 			if (Math.abs(y - firstY) > threshold && !isDragged) {
 				isDragged = true;
 				lastY = y;

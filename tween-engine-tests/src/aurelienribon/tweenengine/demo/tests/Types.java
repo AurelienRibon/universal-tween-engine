@@ -3,6 +3,7 @@ package aurelienribon.tweenengine.demo.tests;
 import aurelienribon.accessors.SpriteAccessor;
 import aurelienribon.tweenengine.Tween;
 import aurelienribon.tweenengine.TweenManager;
+import aurelienribon.tweenengine.TweenPaths;
 import aurelienribon.tweenengine.demo.Test;
 import aurelienribon.tweenengine.equations.Back;
 import aurelienribon.tweenengine.equations.Cubic;
@@ -69,11 +70,14 @@ public class Types extends Test {
 			.repeatYoyo(-1, 0.7f)
 			.start(tweenManager);
 
-		Tween.to(sprites[4], SpriteAccessor.TINT, 2.5f)
+		Tween.to(sprites[4], SpriteAccessor.TINT, 5.5f)
 			.waypoint(1, 0, 0)
+			.waypoint(1, 1, 1)
 			.waypoint(0, 1, 0)
+			.waypoint(1, 1, 1)
 			.waypoint(0, 0, 1)
 			.target(1, 1, 1)
+			.path(TweenPaths.linear)
 			.repeat(-1, 0.0f)
 			.start(tweenManager);
 	}
