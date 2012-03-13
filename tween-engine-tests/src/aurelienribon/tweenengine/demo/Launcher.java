@@ -13,6 +13,7 @@ import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.GL10;
+import com.badlogic.gdx.graphics.GLCommon;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
@@ -63,19 +64,19 @@ public class Launcher {
 		titleRight = atlas.createSprite("title-right");
 		veil = atlas.createSprite("white");
 
-		background.setSize(wpw, wpw * background.getHeight() / background.getWidth());
-		background.setPosition(-wpw/2, -background.getHeight()/2);
+		background.setSize(w, w * background.getHeight() / background.getWidth());
+		background.setPosition(0, h/2 - background.getHeight()/2);
 
-		float titleH = wph/8;
-		titleLeft.setSize(titleH* titleLeft.getWidth() / titleLeft.getHeight(), titleH);
-		titleLeft.setPosition(-wpw/2, wph/2);
-		titleRight.setSize(titleH * titleRight.getWidth() / titleRight.getHeight(), titleH);
-		titleRight.setPosition(wpw/2-titleRight.getWidth(), wph/2);
-		title.setSize(wpw, titleH);
-		title.setPosition(-wpw/2, wph/2);
+		float titleHmts = wph/8;
+		float titleHpxs = titleHmts * h / wph;
+		titleLeft.setSize(titleHpxs* titleLeft.getWidth() / titleLeft.getHeight(), titleHpxs);
+		titleLeft.setPosition(0, h);
+		titleRight.setSize(titleHpxs * titleRight.getWidth() / titleRight.getHeight(), titleHpxs);
+		titleRight.setPosition(w-titleRight.getWidth(), h);
+		title.setSize(w, titleHpxs);
+		title.setPosition(0, h);
 
-		veil.setSize(wpw, wph);
-		veil.setPosition(-wpw/2, -wph/2);
+		veil.setSize(w, h);
 		Tween.to(veil, SpriteAccessor.OPACITY, 1f).target(0).delay(0.5f).setCallback(veilEndCallback).start(tweenManager);
 
 		Gdx.input.setInputProcessor(launcherInputProcessor);
@@ -83,7 +84,7 @@ public class Launcher {
 		tileW = (wpw-TILES_PADDING)/TILES_PER_LINE - TILES_PADDING;
 		tileH = tileW * 150 / 250;
 		float tileX = -wpw/2 + TILES_PADDING;
-		float tileY = wph/2 - tileH - TILES_PADDING - title.getHeight();
+		float tileY = wph/2 - tileH - TILES_PADDING - titleHmts;
 
 		for (int i=0; i<tests.length; i++) {
 			tiles.add(new Tile(tileX, tileY, tileW, tileH, tests[i], atlas, camera, font, tweenManager));
@@ -106,19 +107,30 @@ public class Launcher {
 	public void render() {
 		tweenManager.update(Gdx.graphics.getDeltaTime());
 
-		GL10 gl = Gdx.gl10;
+		GLCommon gl = Gdx.gl;
 		gl.glClearColor(1, 1, 1, 1);
 		gl.glClear(GL10.GL_COLOR_BUFFER_BIT);
 		gl.glEnable(GL10.GL_BLEND);
 		gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
 
+		int w = Gdx.graphics.getWidth();
+		int h = Gdx.graphics.getHeight();
+
 		if (selectedTile == null) {
-			batch.setProjectionMatrix(camera.combined);
+			batch.getProjectionMatrix().setToOrtho2D(0, 0, w, h);
 			batch.begin();
 			batch.disableBlending();
 			background.draw(batch);
+			batch.end();
+
+			batch.setProjectionMatrix(camera.combined);
+			batch.begin();
 			batch.enableBlending();
 			for (int i=0; i<tiles.size(); i++) tiles.get(i).draw(batch);
+			batch.end();
+
+			batch.getProjectionMatrix().setToOrtho2D(0, 0, w, h);
+			batch.begin();
 			batch.disableBlending();
 			title.draw(batch);
 			titleLeft.draw(batch);

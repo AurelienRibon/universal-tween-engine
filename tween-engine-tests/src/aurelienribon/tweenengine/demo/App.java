@@ -4,11 +4,13 @@ import aurelienribon.accessors.SpriteAccessor;
 import aurelienribon.tweenengine.BaseTween;
 import aurelienribon.tweenengine.Tween;
 import aurelienribon.tweenengine.TweenCallback;
+import aurelienribon.tweenengine.demo.tests.Functions;
 import aurelienribon.tweenengine.demo.tests.Intro;
 import aurelienribon.tweenengine.demo.tests.Repetitions;
 import aurelienribon.tweenengine.demo.tests.SimpleTimeline;
 import aurelienribon.tweenengine.demo.tests.SimpleTween;
 import aurelienribon.tweenengine.demo.tests.TimeManipulation;
+import aurelienribon.tweenengine.demo.tests.Types;
 import aurelienribon.tweenengine.demo.tests.Waypoints;
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.assets.loaders.BitmapFontLoader;
@@ -83,7 +85,9 @@ public class App implements ApplicationListener {
 					new SimpleTimeline(),
 					new Repetitions(),
 					new TimeManipulation(),
-					new Waypoints()
+					new Waypoints(),
+					new Functions(),
+					new Types()
 				};
 
 				splashScreen.dispose();
