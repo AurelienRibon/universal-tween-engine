@@ -38,6 +38,8 @@ public abstract class Test {
 	protected final SpriteBatch batch = new SpriteBatch();
 	protected final Random rand = new Random();
 	protected final BitmapFont font;
+	protected final float wpw = 10;
+	protected final float wph = 10 * Gdx.graphics.getHeight() / Gdx.graphics.getWidth();
 	protected Sprite[] sprites;
 
 	public Test() {
@@ -48,7 +50,7 @@ public abstract class Test {
 
 		int w = Gdx.graphics.getWidth();
 		if (w > 600) font = Assets.inst().get("data/arial-24.fnt", BitmapFont.class);
-		else font = Assets.inst().get("data/arial-20.fnt", BitmapFont.class);
+		else font = Assets.inst().get("data/arial-16.fnt", BitmapFont.class);
 	}
 
 	// -------------------------------------------------------------------------
@@ -80,9 +82,6 @@ public abstract class Test {
 			initializeOverride();
 			return;
 		}
-
-		float wpw = 10;
-		float wph = wpw * Gdx.graphics.getHeight() / Gdx.graphics.getWidth();
 
 		camera.viewportWidth = wpw;
 		camera.viewportHeight = wph;

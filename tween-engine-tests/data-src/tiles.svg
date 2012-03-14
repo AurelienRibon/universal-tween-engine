@@ -149,9 +149,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.4"
-     inkscape:cx="730.06943"
-     inkscape:cy="735.68204"
+     inkscape:zoom="0.98994949"
+     inkscape:cx="1020.7786"
+     inkscape:cy="856.79748"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -224,7 +224,7 @@
        inkscape:export-ydpi="92.129166" />
     <path
        transform="matrix(0.99899097,0,0,0.99656195,352.90673,173.83294)"
-       d="m -67.85714,88.428574 a 10,10 0 1 1 -20,0 10,10 0 1 1 20,0 z"
+       d="m -67.85714,88.428574 c 0,5.522847 -4.477152,10 -10,10 -5.522847,0 -10,-4.477153 -10,-10 0,-5.522848 4.477153,-10 10,-10 5.522848,0 10,4.477152 10,10 z"
        sodipodi:ry="10"
        sodipodi:rx="10"
        sodipodi:cy="88.428574"
@@ -245,7 +245,7 @@
        sodipodi:cy="88.428574"
        sodipodi:rx="10"
        sodipodi:ry="10"
-       d="m -67.85714,88.428574 a 10,10 0 1 1 -20,0 10,10 0 1 1 20,0 z"
+       d="m -67.85714,88.428574 c 0,5.522847 -4.477152,10 -10,10 -5.522847,0 -10,-4.477153 -10,-10 0,-5.522848 4.477153,-10 10,-10 5.522848,0 10,4.477152 10,10 z"
        transform="matrix(0.99899097,0,0,0.99656195,450.03085,199.85428)" />
     <rect
        y="158.43394"
@@ -258,7 +258,7 @@
        inkscape:export-ydpi="92" />
     <path
        transform="matrix(1.0399881,0,0,1.0374594,597.25503,164.92573)"
-       d="m -67.85714,88.428574 a 10,10 0 1 1 -20,0 10,10 0 1 1 20,0 z"
+       d="m -67.85714,88.428574 c 0,5.522847 -4.477152,10 -10,10 -5.522847,0 -10,-4.477153 -10,-10 0,-5.522848 4.477153,-10 10,-10 5.522848,0 10,4.477152 10,10 z"
        sodipodi:ry="10"
        sodipodi:rx="10"
        sodipodi:cy="88.428574"
@@ -274,7 +274,7 @@
        sodipodi:cy="88.428574"
        sodipodi:rx="10"
        sodipodi:ry="10"
-       d="m -67.85714,88.428574 a 10,10 0 1 1 -20,0 10,10 0 1 1 20,0 z"
+       d="m -67.85714,88.428574 c 0,5.522847 -4.477152,10 -10,10 -5.522847,0 -10,-4.477153 -10,-10 0,-5.522848 4.477153,-10 10,-10 5.522848,0 10,4.477152 10,10 z"
        transform="matrix(1.0399881,0,0,1.0374594,717.97518,155.33523)" />
     <path
        inkscape:connector-curvature="0"
@@ -283,7 +283,7 @@
        style="fill:none;stroke:#ffffff;stroke-width:3.2315824;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:6.46316493, 6.46316493;stroke-dashoffset:0" />
     <path
        transform="matrix(1.0399881,0,0,1.0374594,668.13258,199.3509)"
-       d="m -67.85714,88.428574 a 10,10 0 1 1 -20,0 10,10 0 1 1 20,0 z"
+       d="m -67.85714,88.428574 c 0,5.522847 -4.477152,10 -10,10 -5.522847,0 -10,-4.477153 -10,-10 0,-5.522848 4.477153,-10 10,-10 5.522848,0 10,4.477152 10,10 z"
        sodipodi:ry="10"
        sodipodi:rx="10"
        sodipodi:cy="88.428574"
@@ -598,7 +598,7 @@
        inkscape:export-ydpi="90" />
     <path
        transform="matrix(0.99899097,0,0,0.99656195,919.18978,305.62443)"
-       d="m -67.85714,88.428574 a 10,10 0 1 1 -20,0 10,10 0 1 1 20,0 z"
+       d="m -67.85714,88.428574 c 0,5.522847 -4.477152,10 -10,10 -5.522847,0 -10,-4.477153 -10,-10 0,-5.522848 4.477153,-10 10,-10 5.522848,0 10,4.477152 10,10 z"
        sodipodi:ry="10"
        sodipodi:rx="10"
        sodipodi:cy="88.428574"
@@ -617,14 +617,14 @@
        sodipodi:cy="88.428574"
        sodipodi:rx="10"
        sodipodi:ry="10"
-       d="m -67.85714,88.428574 a 10,10 0 1 1 -20,0 10,10 0 1 1 20,0 z"
+       d="m -67.85714,88.428574 c 0,5.522847 -4.477152,10 -10,10 -5.522847,0 -10,-4.477153 -10,-10 0,-5.522848 4.477153,-10 10,-10 5.522848,0 10,4.477152 10,10 z"
        transform="matrix(1.7866204,0,0,1.7822762,1012.6743,279.71626)"
        inkscape:export-filename="D:\Dev\Java\tween-engine\tween-engine-tests\data-src\path3942.png"
        inkscape:export-xdpi="90"
        inkscape:export-ydpi="90" />
     <path
        transform="matrix(1.0399881,0,0,1.0374594,995.11804,303.19237)"
-       d="m -67.85714,88.428574 a 10,10 0 1 1 -20,0 10,10 0 1 1 20,0 z"
+       d="m -67.85714,88.428574 c 0,5.522847 -4.477152,10 -10,10 -5.522847,0 -10,-4.477153 -10,-10 0,-5.522848 4.477153,-10 10,-10 5.522848,0 10,4.477152 10,10 z"
        sodipodi:ry="10"
        sodipodi:rx="10"
        sodipodi:cy="88.428574"
@@ -650,5 +650,30 @@
        inkscape:connector-curvature="0"
        inkscape:export-xdpi="90"
        inkscape:export-ydpi="90" />
+    <rect
+       inkscape:export-filename="D:\Dev\Java\tween-engine\tween-engine-tests\data-src\path3910.png"
+       y="158.85231"
+       x="995.00153"
+       height="150"
+       width="250"
+       id="rect3063"
+       style="fill:#11659d;fill-opacity:1;stroke:none"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <text
+       xml:space="preserve"
+       style="font-size:97.06656647000001200px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#ffffff;fill-opacity:1;stroke:none;font-family:Matura MT Script Capitals;-inkscape-font-specification:Matura MT Script Capitals"
+       x="1107.077"
+       y="292.31577"
+       id="text3065"
+       sodipodi:linespacing="125%"
+       inkscape:export-filename="D:\Dev\Java\tween-engine\tween-engine-tests\data-src\path3910.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90"><tspan
+         sodipodi:role="line"
+         x="1107.077"
+         y="292.31577"
+         id="tspan3861"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Matura MT Script Capitals;-inkscape-font-specification:Matura MT Script Capitals">i</tspan></text>
   </g>
 </svg>

@@ -45,44 +45,51 @@ tile-intro
   orig: 250, 150
   offset: 0, 0
   index: -1
-tile-hourglass
+tile-info
   rotate: false
   xy: 2, 458
   size: 250, 150
   orig: 250, 150
   offset: 0, 0
   index: -1
-tile-functions
+tile-hourglass
   rotate: false
   xy: 254, 458
   size: 250, 150
   orig: 250, 150
   offset: 0, 0
   index: -1
-title-left
+tile-functions
   rotate: false
   xy: 2, 610
+  size: 250, 150
+  orig: 250, 150
+  offset: 0, 0
+  index: -1
+title-left
+  rotate: false
+  xy: 2, 762
   size: 400, 70
   orig: 400, 70
   offset: 0, 0
   index: -1
 title-right
   rotate: false
-  xy: 2, 682
+  xy: 254, 610
   size: 220, 70
   orig: 220, 70
   offset: 0, 0
   index: -1
 title
   rotate: false
-  xy: 404, 610
+  xy: 476, 610
   size: 10, 70
   orig: 10, 70
   offset: 0, 0
   index: -1
 interactive
   rotate: false
-  xy: 416, 610
+  xy: 254, 682
   size: 27, 40
   orig: 27, 40
   offset: 0, 0

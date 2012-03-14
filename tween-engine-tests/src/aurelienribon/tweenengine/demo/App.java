@@ -5,6 +5,7 @@ import aurelienribon.tweenengine.BaseTween;
 import aurelienribon.tweenengine.Tween;
 import aurelienribon.tweenengine.TweenCallback;
 import aurelienribon.tweenengine.demo.tests.Functions;
+import aurelienribon.tweenengine.demo.tests.Info;
 import aurelienribon.tweenengine.demo.tests.Intro;
 import aurelienribon.tweenengine.demo.tests.Repetitions;
 import aurelienribon.tweenengine.demo.tests.SimpleTimeline;
@@ -13,12 +14,6 @@ import aurelienribon.tweenengine.demo.tests.TimeManipulation;
 import aurelienribon.tweenengine.demo.tests.Types;
 import aurelienribon.tweenengine.demo.tests.Waypoints;
 import com.badlogic.gdx.ApplicationListener;
-import com.badlogic.gdx.assets.loaders.BitmapFontLoader;
-import com.badlogic.gdx.assets.loaders.FileHandleResolver;
-import com.badlogic.gdx.assets.loaders.TextureAtlasLoader;
-import com.badlogic.gdx.assets.loaders.TextureLoader;
-import com.badlogic.gdx.assets.loaders.resolvers.InternalFileHandleResolver;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
@@ -37,10 +32,6 @@ public class App implements ApplicationListener {
 		Tween.setCombinedAttributesLimit(3);
 		Tween.registerAccessor(Sprite.class, new SpriteAccessor());
 
-		FileHandleResolver resolver = new InternalFileHandleResolver();
-		Assets.inst().setLoader(Texture.class, new TextureLoader(resolver));
-		Assets.inst().setLoader(TextureAtlas.class, new TextureAtlasLoader(resolver));
-		Assets.inst().setLoader(BitmapFont.class, new BitmapFontLoader(resolver));
 		Assets.inst().load("data/splash/pack", TextureAtlas.class);
 		Assets.inst().load("data/launcher/pack", TextureAtlas.class);
 		Assets.inst().load("data/test/pack", TextureAtlas.class);
@@ -81,6 +72,7 @@ public class App implements ApplicationListener {
 			@Override public void onEvent(int type, BaseTween source) {
 				Test[] tests = new Test[] {
 					new Intro(),
+					new Info(),
 					new SimpleTween(),
 					new SimpleTimeline(),
 					new Repetitions(),
