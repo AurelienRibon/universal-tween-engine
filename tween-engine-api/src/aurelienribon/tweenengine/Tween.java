@@ -149,7 +149,7 @@ public final class Tween extends BaseTween<Tween> {
 	// Static -- tween accessors
 	// -------------------------------------------------------------------------
 
-	private static final Map<Class, TweenAccessor> registeredAccessors = new HashMap<Class, TweenAccessor>();
+	private static final Map<Class<?>, TweenAccessor<?>> registeredAccessors = new HashMap<Class<?>, TweenAccessor<?>>();
 
 	/**
 	 * Registers an accessor with the class of an object. This accessor will be
@@ -160,7 +160,7 @@ public final class Tween extends BaseTween<Tween> {
 	 * @param defaultAccessor The accessor that will be used to tween any
 	 * object of class "someClass".
 	 */
-	public static void registerAccessor(Class someClass, TweenAccessor defaultAccessor) {
+	public static void registerAccessor(Class<?> someClass, TweenAccessor<?> defaultAccessor) {
 		registeredAccessors.put(someClass, defaultAccessor);
 	}
 
@@ -169,7 +169,7 @@ public final class Tween extends BaseTween<Tween> {
 	 *
 	 * @param someClass An object class.
 	 */
-	public static TweenAccessor getRegisteredAccessor(Class someClass) {
+	public static TweenAccessor<?> getRegisteredAccessor(Class<?> someClass) {
 		return registeredAccessors.get(someClass);
 	}
 
@@ -341,8 +341,8 @@ public final class Tween extends BaseTween<Tween> {
 
 	// Main
 	private Object target;
-	private Class targetClass;
-	private TweenAccessor accessor;
+	private Class<?> targetClass;
+	private TweenAccessor<Object> accessor;
 	private int type;
 	private TweenEquation equation;
 	private TweenPath path;
@@ -390,11 +390,11 @@ public final class Tween extends BaseTween<Tween> {
 		this.duration = duration;
 	}
 
-	private Class findTargetClass() {
+	private Class<?> findTargetClass() {
 		if (registeredAccessors.containsKey(target.getClass())) return target.getClass();
 		if (target instanceof TweenAccessor) return target.getClass();
 
-		Class parentClass = target.getClass().getSuperclass();
+		Class<?> parentClass = target.getClass().getSuperclass();
 		while (parentClass != null && !registeredAccessors.containsKey(parentClass))
 			parentClass = parentClass.getSuperclass();
 
@@ -440,7 +440,7 @@ public final class Tween extends BaseTween<Tween> {
 	 * @param targetClass A class registered with an accessor.
 	 * @return The current tween, for chaining instructions.
 	 */
-	public Tween cast(Class targetClass) {
+	public Tween cast(Class<?> targetClass) {
 		if (isStarted) throw new RuntimeException("You can't cast the target of a tween once it is started");
 		this.targetClass = targetClass;
 		return this;
@@ -750,14 +750,14 @@ public final class Tween extends BaseTween<Tween> {
 	/**
 	 * Gets the TweenAccessor used with the target.
 	 */
-	public TweenAccessor getAccessor() {
+	public TweenAccessor<?> getAccessor() {
 		return accessor;
 	}
 
 	/**
 	 * Gets the class that was used to find the associated TweenAccessor.
 	 */
-	public Class getTargetClass() {
+	public Class<?> getTargetClass() {
 		return targetClass;
 	}
 
@@ -769,8 +769,8 @@ public final class Tween extends BaseTween<Tween> {
 	public Tween build() {
 		if (target == null) return this;
 
-		accessor = registeredAccessors.get(targetClass);
-		if (accessor == null && target instanceof TweenAccessor) accessor = (TweenAccessor) target;
+		accessor = (TweenAccessor<Object>) registeredAccessors.get(targetClass);
+		if (accessor == null && target instanceof TweenAccessor) accessor = (TweenAccessor<Object>) target;
 		if (accessor != null) combinedAttrsCnt = accessor.getValues(target, type, accessorBuffer);
 		else throw new RuntimeException("No TweenAccessor was found for the target");
 

@@ -28,7 +28,7 @@ public class TweenManager {
 	 * Therefore, if you update a manager backwards, the tweens or timelines
 	 * will be played again, even if they were finished.
 	 */
-	public static void setAutoRemove(BaseTween object, boolean value) {
+	public static void setAutoRemove(BaseTween<?> object, boolean value) {
 		object.isAutoRemoveEnabled = value;
 	}
 
@@ -38,7 +38,7 @@ public class TweenManager {
 	 * is not enabled, add a tween or timeline to any manager won't start it
 	 * automatically, and you'll need to call .start() manually on your object.
 	 */
-	public static void setAutoStart(BaseTween object, boolean value) {
+	public static void setAutoStart(BaseTween<?> object, boolean value) {
 		object.isAutoStartEnabled = value;
 	}
 
@@ -46,7 +46,7 @@ public class TweenManager {
 	// Public API
 	// -------------------------------------------------------------------------
 
-	private final ArrayList<BaseTween> objects = new ArrayList<BaseTween>(20);
+	private final ArrayList<BaseTween<?>> objects = new ArrayList<BaseTween<?>>(20);
 	private boolean isPaused = false;
 
 	/**
@@ -54,7 +54,7 @@ public class TweenManager {
 	 *
 	 * @return The manager, for instruction chaining.
 	 */
-	public TweenManager add(BaseTween object) {
+	public TweenManager add(BaseTween<?> object) {
 		if (!objects.contains(object)) objects.add(object);
 		if (object.isAutoStartEnabled) object.start();
 		return this;
@@ -66,7 +66,7 @@ public class TweenManager {
 	 */
 	public boolean containsTarget(Object target) {
 		for (int i=0, n=objects.size(); i<n; i++) {
-			BaseTween obj = objects.get(i);
+			BaseTween<?> obj = objects.get(i);
 			if (obj.containsTarget(target)) return true;
 		}
 		return false;
@@ -78,7 +78,7 @@ public class TweenManager {
 	 */
 	public boolean containsTarget(Object target, int tweenType) {
 		for (int i=0, n=objects.size(); i<n; i++) {
-			BaseTween obj = objects.get(i);
+			BaseTween<?> obj = objects.get(i);
 			if (obj.containsTarget(target, tweenType)) return true;
 		}
 		return false;
@@ -89,7 +89,7 @@ public class TweenManager {
 	 */
 	public void killAll() {
 		for (int i=0, n=objects.size(); i<n; i++) {
-			BaseTween obj = objects.get(i);
+			BaseTween<?> obj = objects.get(i);
 			obj.kill();
 		}
 	}
@@ -100,7 +100,7 @@ public class TweenManager {
 	 */
 	public void killTarget(Object target) {
 		for (int i=0, n=objects.size(); i<n; i++) {
-			BaseTween obj = objects.get(i);
+			BaseTween<?> obj = objects.get(i);
 			obj.killTarget(target);
 		}
 	}
@@ -112,7 +112,7 @@ public class TweenManager {
 	 */
 	public void killTarget(Object target, int tweenType) {
 		for (int i=0, n=objects.size(); i<n; i++) {
-			BaseTween obj = objects.get(i);
+			BaseTween<?> obj = objects.get(i);
 			obj.killTarget(target, tweenType);
 		}
 	}
@@ -146,7 +146,7 @@ public class TweenManager {
 	 */
 	public void update(float delta) {
 		for (int i=objects.size()-1; i>=0; i--) {
-			BaseTween obj = objects.get(i);
+			BaseTween<?> obj = objects.get(i);
 			if (obj.isFinished() && obj.isAutoRemoveEnabled) {
 				objects.remove(i);
 				obj.free();

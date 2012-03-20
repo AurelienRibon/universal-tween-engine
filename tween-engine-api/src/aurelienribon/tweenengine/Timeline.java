@@ -101,7 +101,7 @@ public final class Timeline extends BaseTween<Timeline> {
 
 	private enum Modes {SEQUENCE, PARALLEL}
 
-	private final List<BaseTween> children = new ArrayList<BaseTween>(10);
+	private final List<BaseTween<?>> children = new ArrayList<BaseTween<?>>(10);
 	private Timeline current;
 	private Timeline parent;
 	private Modes mode;
@@ -219,7 +219,7 @@ public final class Timeline extends BaseTween<Timeline> {
 	 * Gets a list of the timeline children. If the timeline is started, the
 	 * list will be immutable.
 	 */
-	public List<BaseTween> getChildren() {
+	public List<BaseTween<?>> getChildren() {
 		if (isBuilt) return Collections.unmodifiableList(current.children);
 		else return current.children;
 	}
@@ -235,7 +235,7 @@ public final class Timeline extends BaseTween<Timeline> {
 		duration = 0;
 
 		for (int i=0; i<children.size(); i++) {
-			BaseTween obj = children.get(i);
+			BaseTween<?> obj = children.get(i);
 
 			if (obj.getRepeatCount() < 0) throw new RuntimeException("You can't push an object with infinite repetitions in a timeline");
 			obj.build();
@@ -262,7 +262,7 @@ public final class Timeline extends BaseTween<Timeline> {
 		super.start();
 
 		for (int i=0; i<children.size(); i++) {
-			BaseTween obj = children.get(i);
+			BaseTween<?> obj = children.get(i);
 			obj.start();
 		}
 
@@ -272,7 +272,7 @@ public final class Timeline extends BaseTween<Timeline> {
 	@Override
 	public void free() {
 		for (int i=children.size()-1; i>=0; i--) {
-			BaseTween obj = children.remove(i);
+			BaseTween<?> obj = children.remove(i);
 			obj.free();
 		}
 
@@ -313,7 +313,7 @@ public final class Timeline extends BaseTween<Timeline> {
 	@Override
 	protected void forceStartValues() {
 		for (int i=children.size()-1; i>=0; i--) {
-			BaseTween obj = children.get(i);
+			BaseTween<?> obj = children.get(i);
 			obj.forceToStart();
 		}
 	}
@@ -321,7 +321,7 @@ public final class Timeline extends BaseTween<Timeline> {
 	@Override
 	protected void forceEndValues() {
 		for (int i=0, n=children.size(); i<n; i++) {
-			BaseTween obj = children.get(i);
+			BaseTween<?> obj = children.get(i);
 			obj.forceToEnd(duration);
 		}
 	}
@@ -339,7 +339,7 @@ public final class Timeline extends BaseTween<Timeline> {
 	@Override
 	protected boolean containsTarget(Object target) {
 		for (int i=0, n=children.size(); i<n; i++) {
-			BaseTween obj = children.get(i);
+			BaseTween<?> obj = children.get(i);
 			if (obj.containsTarget(target)) return true;
 		}
 		return false;
@@ -348,7 +348,7 @@ public final class Timeline extends BaseTween<Timeline> {
 	@Override
 	protected boolean containsTarget(Object target, int tweenType) {
 		for (int i=0, n=children.size(); i<n; i++) {
-			BaseTween obj = children.get(i);
+			BaseTween<?> obj = children.get(i);
 			if (obj.containsTarget(target, tweenType)) return true;
 		}
 		return false;

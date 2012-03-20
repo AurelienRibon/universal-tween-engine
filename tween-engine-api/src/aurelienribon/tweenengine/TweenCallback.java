@@ -36,5 +36,5 @@ public interface TweenCallback {
 	public static final int BACK_END = 0x20;
 	public static final int BACK_COMPLETE = 0x40;
 
-	public void onEvent(int type, BaseTween source);
+	public void onEvent(int type, BaseTween<?> source);
 }
