@@ -177,12 +177,22 @@ public class TweenManager {
 
 	/**
 	 * Gets the number of running tweens. This number includes the tweens
-	 * located inside timelines (and nested timelines) managed by this manager.
+	 * located inside timelines (and nested timelines).
 	 * <p/>
 	 * <b>Provided for debug purpose only.</b>
 	 */
 	public int getRunningTweensCount() {
 		return getTweensCount(objects);
+	}
+
+	/**
+	 * Gets the number of running timelines. This number includes the timelines
+	 * nested inside other timelines.
+	 * <p/>
+	 * <b>Provided for debug purpose only.</b>
+	 */
+	public int getRunningTimelinesCount() {
+		return getTimelinesCount(objects);
 	}
 
 	/**
@@ -204,6 +214,17 @@ public class TweenManager {
 			BaseTween<?> obj = objs.get(i);
 			if (obj instanceof Tween) cnt += 1;
 			else cnt += getTweensCount(((Timeline)obj).getChildren());
+		}
+		return cnt;
+	}
+
+	private static int getTimelinesCount(List<BaseTween<?>> objs) {
+		int cnt = 0;
+		for (int i=0, n=objs.size(); i<n; i++) {
+			BaseTween<?> obj = objs.get(i);
+			if (obj instanceof Timeline) {
+				cnt += 1 + getTimelinesCount(((Timeline)obj).getChildren());
+			}
 		}
 		return cnt;
 	}
