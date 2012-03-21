@@ -1,6 +1,8 @@
 package aurelienribon.tweenengine;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * A TweenManager updates all your tweens and timelines at once.
@@ -160,5 +162,49 @@ public class TweenManager {
 				for (int i=objects.size()-1; i>=0; i--) objects.get(i).update(delta);
 			}
 		}
+	}
+
+	/**
+	 * Gets the number of managed objects. An object may be a tween or a
+	 * timeline. Note that a timeline only counts for 1 object, since it
+	 * manages its children itself.
+	 * <p/>
+	 * To get the count of running tweens, see {@link #getRunningTweensCount()}.
+	 */
+	public int size() {
+		return objects.size();
+	}
+
+	/**
+	 * Gets the number of running tweens. This number includes the tweens
+	 * located inside timelines (and nested timelines) managed by this manager.
+	 * <p/>
+	 * <b>Provided for debug purpose only.</b>
+	 */
+	public int getRunningTweensCount() {
+		return getTweensCount(objects);
+	}
+
+	/**
+	 * Gets an immutable list of every managed object.
+	 * <p/>
+	 * <b>Provided for debug purpose only.</b>
+	 */
+	public List<BaseTween<?>> getObjects() {
+		return Collections.unmodifiableList(objects);
+	}
+
+	// -------------------------------------------------------------------------
+	// Helpers
+	// -------------------------------------------------------------------------
+
+	private static int getTweensCount(List<BaseTween<?>> objs) {
+		int cnt = 0;
+		for (int i=0, n=objs.size(); i<n; i++) {
+			BaseTween<?> obj = objs.get(i);
+			if (obj instanceof Tween) cnt += 1;
+			else cnt += getTweensCount(((Timeline)obj).getChildren());
+		}
+		return cnt;
 	}
 }
