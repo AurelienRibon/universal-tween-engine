@@ -89,8 +89,6 @@ public final class Tween extends BaseTween<Tween> {
 
 	private static int combinedAttrsLimit = 3;
 	private static int waypointsLimit = 0;
-	private static float[] accessorBuffer = new float[3];
-	private static float[] pathBuffer = new float[(2+0)*3];
 
 	/**
 	 * Changes the limit for combined attributes. Defaults to 3 to reduce
@@ -98,8 +96,6 @@ public final class Tween extends BaseTween<Tween> {
 	 */
 	public static void setCombinedAttributesLimit(int limit) {
 		Tween.combinedAttrsLimit = limit;
-		accessorBuffer = new float[combinedAttrsLimit];
-		pathBuffer = new float[(2+waypointsLimit)*combinedAttrsLimit];
 	}
 
 	/**
@@ -108,7 +104,6 @@ public final class Tween extends BaseTween<Tween> {
 	 */
 	public static void setWaypointsLimit(int limit) {
 		Tween.waypointsLimit = limit;
-		pathBuffer = new float[(2+waypointsLimit)*combinedAttrsLimit];
 	}
 
 	/**
@@ -358,6 +353,10 @@ public final class Tween extends BaseTween<Tween> {
 	private final float[] targetValues = new float[combinedAttrsLimit];
 	private final float[] waypoints = new float[waypointsLimit * combinedAttrsLimit];
 
+	// Buffers
+	private float[] accessorBuffer = new float[combinedAttrsLimit];
+	private float[] pathBuffer = new float[(2+waypointsLimit)*combinedAttrsLimit];
+
 	// -------------------------------------------------------------------------
 	// Setup
 	// -------------------------------------------------------------------------
@@ -379,6 +378,14 @@ public final class Tween extends BaseTween<Tween> {
 
 		isFrom = isRelative = false;
 		combinedAttrsCnt = waypointsCnt = 0;
+
+		if (accessorBuffer.length != combinedAttrsLimit) {
+			accessorBuffer = new float[combinedAttrsLimit];
+		}
+
+		if (pathBuffer.length != (2+waypointsLimit)*combinedAttrsLimit) {
+			pathBuffer = new float[(2+waypointsLimit)*combinedAttrsLimit];
+		}
 	}
 
 	private void setup(Object target, int tweenType, float duration) {

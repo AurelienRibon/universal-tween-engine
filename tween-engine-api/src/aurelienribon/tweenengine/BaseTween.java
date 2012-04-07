@@ -15,7 +15,6 @@ package aurelienribon.tweenengine;
  * @author Aurelien Ribon | http://www.aurelienribon.com/
  */
 public abstract class BaseTween<T> {
-
 	// General
 	private int step;
 	private int repeatCnt;
