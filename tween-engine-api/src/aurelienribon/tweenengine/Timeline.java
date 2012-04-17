@@ -280,29 +280,43 @@ public final class Timeline extends BaseTween<Timeline> {
 	}
 
 	@Override
-	protected void initializeOverride() {
-	}
-
-	@Override
-	protected void computeOverride(int step, int lastStep, float delta) {
-		float time;
-
-		if (step > lastStep) {
-			forceStartValues(step);
-			time = isYoyo(step) ? -currentTime : currentTime;
-
-		} else if (step < lastStep) {
-			forceEndValues(step);
-			time = isYoyo(step) ? duration-currentTime : currentTime-duration;
-
-		} else {
-			time = isYoyo(step) ? -delta : delta;
+	protected void updateOverride(int step, int lastStep, boolean isIterationStep, float delta) {
+		if (!isIterationStep && step > lastStep) {
+			assert delta >= 0;
+			for (int i=0, n=children.size(); i<n; i++) children.get(i).update(delta + 1);
+			return;
 		}
 
-		if (delta >= 0) {
-			for (int i=0, n=children.size(); i<n; i++) children.get(i).update(time);
+		if (!isIterationStep && step < lastStep) {
+			assert delta <= 0;
+			for (int i=children.size()-1; i>=0; i--) children.get(i).update(delta - 1);
+			return;
+		}
+
+		assert isIterationStep;
+
+		if (step > lastStep) {
+			if (isReverse(step)) {
+				forceEndValues();
+				for (int i=0, n=children.size(); i<n; i++) children.get(i).update(delta);
+			} else {
+				forceStartValues();
+				for (int i=0, n=children.size(); i<n; i++) children.get(i).update(delta);
+			}
+
+		} else if (step < lastStep) {
+			if (isReverse(step)) {
+				forceStartValues();
+				for (int i=children.size()-1; i>=0; i--) children.get(i).update(delta);
+			} else {
+				forceEndValues();
+				for (int i=children.size()-1; i>=0; i--) children.get(i).update(delta);
+			}
+
 		} else {
-			for (int i=children.size()-1; i>=0; i--) children.get(i).update(time);
+			float dt = isReverse(step) ? -delta : delta;
+			if (delta >= 0) for (int i=0, n=children.size(); i<n; i++) children.get(i).update(dt);
+			else for (int i=children.size()-1; i>=0; i--) children.get(i).update(dt);
 		}
 	}
 
@@ -324,16 +338,6 @@ public final class Timeline extends BaseTween<Timeline> {
 			BaseTween<?> obj = children.get(i);
 			obj.forceToEnd(duration);
 		}
-	}
-
-	@Override
-	protected void killTarget(Object target) {
-		if (containsTarget(target)) kill();
-	}
-
-	@Override
-	protected void killTarget(Object target, int tweenType) {
-		if (containsTarget(target, tweenType)) kill();
 	}
 
 	@Override

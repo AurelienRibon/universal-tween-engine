@@ -26,6 +26,7 @@ public abstract class BaseTween<T> {
 	protected float duration;
 	protected float repeatDelay;
 	protected float currentTime;
+	protected float deltaTime;
 	protected boolean isStarted; // true when the object is started
 	protected boolean isInitialized; // true after the delay
 	protected boolean isFinished; // true when all repetitions are done
@@ -47,7 +48,7 @@ public abstract class BaseTween<T> {
 		step = repeatCnt = 0;
 		isIterationStep = isYoyo = false;
 
-		delay = duration = repeatDelay = currentTime = 0;
+		delay = duration = repeatDelay = currentTime = deltaTime = 0;
 		isStarted = isInitialized = isFinished = isKilled = isPaused = false;
 
 		callback = null;
@@ -330,11 +331,6 @@ public abstract class BaseTween<T> {
 	protected abstract void forceStartValues();
 	protected abstract void forceEndValues();
 
-	protected abstract void initializeOverride();
-	protected abstract void computeOverride(int step, int lastStep, float delta);
-
-	protected abstract void killTarget(Object target);
-	protected abstract void killTarget(Object target, int tweenType);
 	protected abstract boolean containsTarget(Object target);
 	protected abstract boolean containsTarget(Object target, int tweenType);
 
@@ -342,36 +338,46 @@ public abstract class BaseTween<T> {
 	// Protected API
 	// -------------------------------------------------------------------------
 
+	protected void initializeOverride() {
+	}
+
+	protected void updateOverride(int step, int lastStep, boolean isIterationStep, float delta) {
+	}
+
 	protected void forceToStart() {
 		currentTime = -delay;
 		step = -1;
 		isIterationStep = false;
-		forceStartValues(0);
+		if (isReverse(0)) forceEndValues();
+		else forceStartValues();
 	}
 
 	protected void forceToEnd(float time) {
 		currentTime = time - getFullDuration();
 		step = repeatCnt*2 + 1;
 		isIterationStep = false;
-		forceEndValues(repeatCnt*2);
+		if (isReverse(repeatCnt*2)) forceStartValues();
+		else forceEndValues();
 	}
 
 	protected void callCallback(int type) {
 		if (callback != null && (callbackTriggers & type) > 0) callback.onEvent(type, this);
 	}
 
-	protected boolean isYoyo(int step) {
+	protected boolean isReverse(int step) {
 		return isYoyo && Math.abs(step%4) == 2;
 	}
 
-	protected void forceStartValues(int step) {
-		if (isYoyo(step)) forceEndValues();
-		else forceStartValues();
+	protected boolean isValid(int step) {
+		return (step >= 0 && step <= repeatCnt*2) || repeatCnt < 0;
 	}
 
-	protected void forceEndValues(int step) {
-		if (isYoyo(step)) forceStartValues();
-		else forceEndValues();
+	protected void killTarget(Object target) {
+		if (containsTarget(target)) kill();
+	}
+
+	protected void killTarget(Object target, int tweenType) {
+		if (containsTarget(target, tweenType)) kill();
 	}
 
 	// -------------------------------------------------------------------------
@@ -389,103 +395,116 @@ public abstract class BaseTween<T> {
 	public void update(float delta) {
 		if (!isStarted || isPaused || isKilled) return;
 
-		int lastStep = step;
-		currentTime += delta;
+		deltaTime = delta;
 
-		initialize();
+		if (!isInitialized) {
+			initialize();
+		}
 
 		if (isInitialized) {
 			testRelaunch();
 			updateStep();
-			testInnerTransition(lastStep);
-			testLimitTransition(lastStep);
 			testCompletion();
-			if (isIterationStep) compute(lastStep, delta);
 		}
+
+		currentTime += deltaTime;
 	}
 
 	private void initialize() {
-		if (!isInitialized && currentTime >= delay) {
+		if (currentTime+deltaTime >= delay) {
 			initializeOverride();
 			isInitialized = true;
 			isIterationStep = true;
-			currentTime -= delay;
+			step = 0;
+			float delta = delay-currentTime;
+			deltaTime -= delta;
+			currentTime = 0;
 			callCallback(TweenCallback.BEGIN);
 			callCallback(TweenCallback.START);
 		}
 	}
 
 	private void testRelaunch() {
-		if (repeatCnt >= 0 && step > repeatCnt*2 && currentTime <= 0) {
+		if (!isIterationStep && repeatCnt >= 0 && step > repeatCnt*2 && currentTime+deltaTime <= 0) {
 			assert step == repeatCnt*2 + 1;
 			isIterationStep = true;
-			currentTime += duration;
 			step = repeatCnt*2;
+			float delta = 0-currentTime;
+			deltaTime -= delta;
+			currentTime = duration;
+			updateOverride(step, step+1, isIterationStep, delta);
+			callCallback(TweenCallback.BACK_START);
 
-		} else if (repeatCnt >= 0 && step < 0 && currentTime >= 0) {
+		} else if (!isIterationStep && repeatCnt >= 0 && step < 0 && currentTime+deltaTime >= 0) {
 			assert step == -1;
 			isIterationStep = true;
 			step = 0;
+			float delta = 0-currentTime;
+			deltaTime -= delta;
+			currentTime = 0;
+			updateOverride(step, step-1, isIterationStep, delta);
+			callCallback(TweenCallback.START);
 		}
 	}
 
 	private void updateStep() {
 		while (isValid(step)) {
-			if (!isIterationStep && currentTime <= 0) {
+			if (!isIterationStep && currentTime+deltaTime <= 0) {
 				isIterationStep = true;
-				currentTime += duration;
 				step -= 1;
+				float delta = 0-currentTime;
+				deltaTime -= delta;
+				currentTime = duration;
+				updateOverride(step, step+1, isIterationStep, delta);
 				callCallback(TweenCallback.BACK_START);
 
-			} else if (!isIterationStep && currentTime >= repeatDelay) {
+			} else if (!isIterationStep && currentTime+deltaTime >= repeatDelay) {
 				isIterationStep = true;
-				currentTime -= repeatDelay;
 				step += 1;
+				float delta = repeatDelay-currentTime;
+				deltaTime -= delta;
+				currentTime = 0;
+				updateOverride(step, step-1, isIterationStep, delta);
 				callCallback(TweenCallback.START);
 
-			} else if (isIterationStep && currentTime < 0) {
+			} else if (isIterationStep && currentTime+deltaTime < 0) {
 				isIterationStep = false;
-				currentTime += isValid(step-1) ? repeatDelay : 0;
 				step -= 1;
+				float delta = 0-currentTime;
+				deltaTime -= delta;
+				currentTime = repeatDelay;
+				updateOverride(step, step+1, isIterationStep, delta);
 				callCallback(TweenCallback.BACK_END);
+				if (step < 0) callCallback(TweenCallback.BACK_COMPLETE);
 
-			} else if (isIterationStep && currentTime > duration) {
+			} else if (isIterationStep && currentTime+deltaTime > duration) {
 				isIterationStep = false;
-				currentTime -= duration;
 				step += 1;
+				float delta = duration-currentTime;
+				deltaTime -= delta;
+				currentTime = 0;
+				updateOverride(step, step-1, isIterationStep, delta);
 				callCallback(TweenCallback.END);
+				if (step > repeatCnt*2) callCallback(TweenCallback.COMPLETE);
 
-			} else break;
+			} else if (isIterationStep) {
+				float delta = deltaTime;
+				deltaTime -= delta;
+				currentTime += delta;
+				updateOverride(step, step, isIterationStep, delta);
+				break;
+
+			} else {
+				assert !isIterationStep;
+				float delta = deltaTime;
+				deltaTime -= delta;
+				currentTime += delta;
+				break;
+			}
 		}
-	}
-
-	private void testInnerTransition(int lastStep) {
-		if (isIterationStep) return;
-		if (step > lastStep) forceEndValues(step-1);
-		else if (step < lastStep) forceStartValues(step+1);
-	}
-
-	private void testLimitTransition(int lastStep) {
-		if (repeatCnt < 0 || step == lastStep) return;
-		if (step > repeatCnt*2) callCallback(TweenCallback.COMPLETE);
-		else if (step < 0) callCallback(TweenCallback.BACK_COMPLETE);
 	}
 
 	private void testCompletion() {
 		isFinished = repeatCnt >= 0 && (step > repeatCnt*2 || step < 0);
-	}
-
-	private void compute(int lastStep, float delta) {
-		assert currentTime >= 0;
-		assert currentTime <= duration;
-		assert isInitialized;
-		assert !isFinished;
-		assert isIterationStep;
-		assert isValid(step);
-		computeOverride(step, lastStep, delta);
-	}
-
-	private boolean isValid(int step) {
-		return (step >= 0 && step <= repeatCnt*2) || repeatCnt < 0;
 	}
 }

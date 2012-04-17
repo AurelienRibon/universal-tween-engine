@@ -282,6 +282,7 @@ public final class Tween extends BaseTween<Tween> {
 	public static Tween set(Object target, int tweenType) {
 		Tween tween = pool.get();
 		tween.setup(target, tweenType, 0);
+		tween.ease(Quad.INOUT);
 		return tween;
 	}
 
@@ -812,15 +813,42 @@ public final class Tween extends BaseTween<Tween> {
 	}
 
 	@Override
-	protected void computeOverride(int step, int lastStep, float delta) {
+	protected void updateOverride(int step, int lastStep, boolean isIterationStep, float delta) {
 		if (target == null || equation == null) return;
 
-		if (duration == 0) {
-			accessor.setValues(target, type, targetValues);
+		// Case iteration end has been reached
+
+		if (!isIterationStep && step > lastStep) {
+			accessor.setValues(target, type, isReverse(lastStep) ? startValues : targetValues);
 			return;
 		}
 
-		float time = isYoyo(step) ? duration - currentTime : currentTime;
+		if (!isIterationStep && step < lastStep) {
+			accessor.setValues(target, type, isReverse(lastStep) ? targetValues : startValues);
+			return;
+		}
+
+		// Validation
+
+		assert isIterationStep;
+		assert currentTime >= 0;
+		assert currentTime <= duration;
+
+		// Case duration equals zero
+
+		if (duration < 0.00000000001f && delta > -0.00000000001f) {
+			accessor.setValues(target, type, isReverse(step) ? targetValues : startValues);
+			return;
+		}
+
+		if (duration < 0.00000000001f && delta < 0.00000000001f) {
+			accessor.setValues(target, type, isReverse(step) ? startValues : targetValues);
+			return;
+		}
+
+		// Normal behavior
+
+		float time = isReverse(step) ? duration - currentTime : currentTime;
 		float t = equation.compute(time, 0, 1, duration);
 
 		if (waypointsCnt == 0 || path == null) {
@@ -843,6 +871,10 @@ public final class Tween extends BaseTween<Tween> {
 		accessor.setValues(target, type, accessorBuffer);
 	}
 
+	// -------------------------------------------------------------------------
+	// BaseTween impl.
+	// -------------------------------------------------------------------------
+
 	@Override
 	protected void forceStartValues() {
 		if (target == null) return;
@@ -853,16 +885,6 @@ public final class Tween extends BaseTween<Tween> {
 	protected void forceEndValues() {
 		if (target == null) return;
 		accessor.setValues(target, type, targetValues);
-	}
-
-	@Override
-	protected void killTarget(Object target) {
-		if (this.target == target) kill();
-	}
-
-	@Override
-	protected void killTarget(Object target, int tweenType) {
-		if (this.target == target && this.type == tweenType) kill();
 	}
 
 	@Override
