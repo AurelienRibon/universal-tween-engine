@@ -10,8 +10,8 @@ import aurelienribon.tweenengine.TweenEquation;
 public abstract class Expo extends TweenEquation {
 	public static final Expo IN = new Expo() {
 		@Override
-		public final float compute(float t, float b, float c, float d) {
-			return (t==0) ? b : c * (float)Math.pow(2, 10 * (t/d - 1)) + b;
+		public final float compute(float t, float d) {
+			return (t==0) ? 0 : (float) Math.pow(2, 10 * (t/d - 1));
 		}
 
 		@Override
@@ -22,8 +22,8 @@ public abstract class Expo extends TweenEquation {
 
 	public static final Expo OUT = new Expo() {
 		@Override
-		public final float compute(float t, float b, float c, float d) {
-			return (t==d) ? b+c : c * (-(float)Math.pow(2, -10 * t/d) + 1) + b;
+		public final float compute(float t, float d) {
+			return (t==d) ? 1 : -(float) Math.pow(2, -10 * t/d) + 1;
 		}
 
 		@Override
@@ -34,11 +34,11 @@ public abstract class Expo extends TweenEquation {
 
 	public static final Expo INOUT = new Expo() {
 		@Override
-		public final float compute(float t, float b, float c, float d) {
-			if (t==0) return b;
-			if (t==d) return b+c;
-			if ((t/=d/2) < 1) return c/2 * (float)Math.pow(2, 10 * (t - 1)) + b;
-			return c/2 * (-(float)Math.pow(2, -10 * --t) + 2) + b;
+		public final float compute(float t, float d) {
+			if (t==0) return 0;
+			if (t==d) return 1;
+			if ((t/=d/2) < 1) return 0.5f * (float) Math.pow(2, 10 * (t - 1));
+			return 0.5f * (-(float)Math.pow(2, -10 * --t) + 2);
 		}
 
 		@Override

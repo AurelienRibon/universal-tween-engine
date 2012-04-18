@@ -10,9 +10,9 @@ import aurelienribon.tweenengine.TweenEquation;
 public abstract class Back extends TweenEquation {
 	public static final Back IN = new Back() {
 		@Override
-		public final float compute(float t, float b, float c, float d) {
+		public final float compute(float t, float d) {
 			float s = param_s;
-			return c*(t/=d)*t*((s+1)*t - s) + b;
+			return (t/=d)*t*((s+1)*t - s);
 		}
 
 		@Override
@@ -23,9 +23,9 @@ public abstract class Back extends TweenEquation {
 
 	public static final Back OUT = new Back() {
 		@Override
-		public final float compute(float t, float b, float c, float d) {
+		public final float compute(float t, float d) {
 			float s = param_s;
-			return c*((t=t/d-1)*t*((s+1)*t + s) + 1) + b;
+			return (t=t/d-1)*t*((s+1)*t + s) + 1;
 		}
 
 		@Override
@@ -36,10 +36,10 @@ public abstract class Back extends TweenEquation {
 
 	public static final Back INOUT = new Back() {
 		@Override
-		public final float compute(float t, float b, float c, float d) {
+		public final float compute(float t, float d) {
 			float s = param_s;
-			if ((t/=d/2) < 1) return c/2*(t*t*(((s*=(1.525f))+1)*t - s)) + b;
-			return c/2*((t-=2)*t*(((s*=(1.525f))+1)*t + s) + 2) + b;
+			if ((t/=d/2) < 1) return 0.5f*(t*t*(((s*=(1.525f))+1)*t - s));
+			return 0.5f*((t-=2)*t*(((s*=(1.525f))+1)*t + s) + 2);
 		}
 
 		@Override

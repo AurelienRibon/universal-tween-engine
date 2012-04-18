@@ -10,8 +10,8 @@ import aurelienribon.tweenengine.TweenEquation;
 public abstract class Quad extends TweenEquation {
 	public static final Quad IN = new Quad() {
 		@Override
-		public final float compute(float t, float b, float c, float d) {
-			return c*(t/=d)*t + b;
+		public final float compute(float t, float d) {
+			return (t/=d)*t;
 		}
 
 		@Override
@@ -22,8 +22,8 @@ public abstract class Quad extends TweenEquation {
 
 	public static final Quad OUT = new Quad() {
 		@Override
-		public final float compute(float t, float b, float c, float d) {
-			return -c*(t/=d)*(t-2) + b;
+		public final float compute(float t, float d) {
+			return -(t/=d)*(t-2);
 		}
 
 		@Override
@@ -34,9 +34,9 @@ public abstract class Quad extends TweenEquation {
 
 	public static final Quad INOUT = new Quad() {
 		@Override
-		public final float compute(float t, float b, float c, float d) {
-			if ((t/=d/2) < 1) return c/2*t*t + b;
-			return -c/2 * ((--t)*(t-2) - 1) + b;
+		public final float compute(float t, float d) {
+			if ((t/=d/2) < 1) return 0.5f*t*t;
+			return -0.5f * ((--t)*(t-2) - 1);
 		}
 
 		@Override

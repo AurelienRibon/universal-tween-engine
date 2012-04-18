@@ -10,8 +10,8 @@ import aurelienribon.tweenengine.TweenEquation;
 public abstract class Circ extends TweenEquation {
 	public static final Circ IN = new Circ() {
 		@Override
-		public final float compute(float t, float b, float c, float d) {
-			return -c * ((float)Math.sqrt(1 - (t/=d)*t) - 1) + b;
+		public final float compute(float t, float d) {
+			return (float) -Math.sqrt(1 - (t/=d)*t) - 1;
 		}
 
 		@Override
@@ -22,8 +22,8 @@ public abstract class Circ extends TweenEquation {
 
 	public static final Circ OUT = new Circ() {
 		@Override
-		public final float compute(float t, float b, float c, float d) {
-			return c * (float)Math.sqrt(1 - (t=t/d-1)*t) + b;
+		public final float compute(float t, float d) {
+			return (float) Math.sqrt(1 - (t=t/d-1)*t);
 		}
 
 		@Override
@@ -34,9 +34,9 @@ public abstract class Circ extends TweenEquation {
 
 	public static final Circ INOUT = new Circ() {
 		@Override
-		public final float compute(float t, float b, float c, float d) {
-			if ((t/=d/2) < 1) return -c/2 * ((float)Math.sqrt(1 - t*t) - 1) + b;
-			return c/2 * ((float)Math.sqrt(1 - (t-=2)*t) + 1) + b;
+		public final float compute(float t, float d) {
+			if ((t/=d/2) < 1) return -0.5f * ((float)Math.sqrt(1 - t*t) - 1);
+			return 0.5f * ((float)Math.sqrt(1 - (t-=2)*t) + 1);
 		}
 
 		@Override

@@ -852,7 +852,7 @@ public final class Tween extends BaseTween<Tween> {
 		// Normal behavior
 
 		float time = isReverse(step) ? duration - getCurrentTime() : getCurrentTime();
-		float t = equation.compute(time, 0, 1, duration);
+		float t = equation.compute(time, duration);
 
 		if (waypointsCnt == 0 || path == null) {
 			for (int i=0; i<combinedAttrsCnt; i++) {
