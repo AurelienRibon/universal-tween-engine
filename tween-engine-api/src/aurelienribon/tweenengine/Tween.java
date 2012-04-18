@@ -449,7 +449,7 @@ public final class Tween extends BaseTween<Tween> {
 	 * @return The current tween, for chaining instructions.
 	 */
 	public Tween cast(Class<?> targetClass) {
-		if (isStarted) throw new RuntimeException("You can't cast the target of a tween once it is started");
+		if (isStarted()) throw new RuntimeException("You can't cast the target of a tween once it is started");
 		this.targetClass = targetClass;
 		return this;
 	}
@@ -547,7 +547,7 @@ public final class Tween extends BaseTween<Tween> {
 	 */
 	public Tween targetRelative(float targetValue) {
 		isRelative = true;
-		targetValues[0] = isInitialized ? targetValue + startValues[0] : targetValue;
+		targetValues[0] = isInitialized() ? targetValue + startValues[0] : targetValue;
 		return this;
 	}
 
@@ -566,8 +566,8 @@ public final class Tween extends BaseTween<Tween> {
 	 */
 	public Tween targetRelative(float targetValue1, float targetValue2) {
 		isRelative = true;
-		targetValues[0] = isInitialized ? targetValue1 + startValues[0] : targetValue1;
-		targetValues[1] = isInitialized ? targetValue2 + startValues[1] : targetValue2;
+		targetValues[0] = isInitialized() ? targetValue1 + startValues[0] : targetValue1;
+		targetValues[1] = isInitialized() ? targetValue2 + startValues[1] : targetValue2;
 		return this;
 	}
 
@@ -587,9 +587,9 @@ public final class Tween extends BaseTween<Tween> {
 	 */
 	public Tween targetRelative(float targetValue1, float targetValue2, float targetValue3) {
 		isRelative = true;
-		targetValues[0] = isInitialized ? targetValue1 + startValues[0] : targetValue1;
-		targetValues[1] = isInitialized ? targetValue2 + startValues[1] : targetValue2;
-		targetValues[2] = isInitialized ? targetValue3 + startValues[2] : targetValue3;
+		targetValues[0] = isInitialized() ? targetValue1 + startValues[0] : targetValue1;
+		targetValues[1] = isInitialized() ? targetValue2 + startValues[1] : targetValue2;
+		targetValues[2] = isInitialized() ? targetValue3 + startValues[2] : targetValue3;
 		return this;
 	}
 
@@ -608,7 +608,7 @@ public final class Tween extends BaseTween<Tween> {
 	public Tween targetRelative(float... targetValues) {
 		if (targetValues.length > combinedAttrsLimit) throwCombinedAttrsLimitReached();
 		for (int i=0; i<targetValues.length; i++) {
-			this.targetValues[i] = isInitialized ? targetValues[i] + startValues[i] : targetValues[i];
+			this.targetValues[i] = isInitialized() ? targetValues[i] + startValues[i] : targetValues[i];
 		}
 
 		isRelative = true;
@@ -831,8 +831,8 @@ public final class Tween extends BaseTween<Tween> {
 		// Validation
 
 		assert isIterationStep;
-		assert currentTime >= 0;
-		assert currentTime <= duration;
+		assert getCurrentTime() >= 0;
+		assert getCurrentTime() <= duration;
 
 		// Case duration equals zero
 
@@ -848,7 +848,7 @@ public final class Tween extends BaseTween<Tween> {
 
 		// Normal behavior
 
-		float time = isReverse(step) ? duration - currentTime : currentTime;
+		float time = isReverse(step) ? duration - getCurrentTime() : getCurrentTime();
 		float t = equation.compute(time, 0, 1, duration);
 
 		if (waypointsCnt == 0 || path == null) {

@@ -24,14 +24,14 @@ public abstract class BaseTween<T> {
 	// Timings
 	protected float delay;
 	protected float duration;
-	protected float repeatDelay;
-	protected float currentTime;
-	protected float deltaTime;
-	protected boolean isStarted; // true when the object is started
-	protected boolean isInitialized; // true after the delay
-	protected boolean isFinished; // true when all repetitions are done
-	protected boolean isKilled; // true if kill() was called
-	protected boolean isPaused; // true if pause() was called
+	private float repeatDelay;
+	private float currentTime;
+	private float deltaTime;
+	private boolean isStarted; // true when the object is started
+	private boolean isInitialized; // true after the delay
+	private boolean isFinished; // true when all repetitions are done
+	private boolean isKilled; // true if kill() was called
+	private boolean isPaused; // true if pause() was called
 
 	// Misc
 	private TweenCallback callback;
@@ -45,7 +45,8 @@ public abstract class BaseTween<T> {
 	// -------------------------------------------------------------------------
 
 	protected void reset() {
-		step = repeatCnt = 0;
+		step = -2;
+		repeatCnt = 0;
 		isIterationStep = isYoyo = false;
 
 		delay = duration = repeatDelay = currentTime = deltaTime = 0;
@@ -280,7 +281,7 @@ public abstract class BaseTween<T> {
 	}
 
 	/**
-	 * Returns the id of the current step. Values are as follows:<br/>
+	 * Gets the id of the current step. Values are as follows:<br/>
 	 * <ul>
 	 * <li>even numbers mean that an iteration is playing,<br/>
 	 * <li>odd numbers mean that we are between two iterations,<br/>
@@ -289,8 +290,14 @@ public abstract class BaseTween<T> {
 	 * <li>repeatCount*2 + 1 means that we are after the last iteration
 	 */
 	public int getStep() {
-		if (!isInitialized) return -2;
 		return step;
+	}
+
+	/**
+	 * Gets the local time.
+	 */
+	public float getCurrentTime() {
+		return currentTime;
 	}
 
 	/**
@@ -298,6 +305,15 @@ public abstract class BaseTween<T> {
 	 */
 	public boolean isStarted() {
 		return isStarted;
+	}
+
+	/**
+	 * Returns true if the tween or timeline has been initialized. Starting
+	 * values for tweens are stored at initialization time. This initialization
+	 * takes place right after the initial delay, if any.
+	 */
+	public boolean isInitialized() {
+		return isInitialized;
 	}
 
 	/**
@@ -408,6 +424,7 @@ public abstract class BaseTween<T> {
 		}
 
 		currentTime += deltaTime;
+		deltaTime = 0;
 	}
 
 	private void initialize() {
@@ -416,8 +433,7 @@ public abstract class BaseTween<T> {
 			isInitialized = true;
 			isIterationStep = true;
 			step = 0;
-			float delta = delay-currentTime;
-			deltaTime -= delta;
+			deltaTime -= delay-currentTime;
 			currentTime = 0;
 			callCallback(TweenCallback.BEGIN);
 			callCallback(TweenCallback.START);
@@ -425,25 +441,27 @@ public abstract class BaseTween<T> {
 	}
 
 	private void testRelaunch() {
-		if (!isIterationStep && repeatCnt >= 0 && step > repeatCnt*2 && currentTime+deltaTime <= 0) {
-			assert step == repeatCnt*2 + 1;
-			isIterationStep = true;
-			step = repeatCnt*2;
-			float delta = 0-currentTime;
-			deltaTime -= delta;
-			currentTime = duration;
-			updateOverride(step, step+1, isIterationStep, delta);
-			callCallback(TweenCallback.BACK_START);
-
-		} else if (!isIterationStep && repeatCnt >= 0 && step < 0 && currentTime+deltaTime >= 0) {
+		if (!isIterationStep && repeatCnt >= 0 && step < 0 && currentTime+deltaTime >= 0) {
 			assert step == -1;
 			isIterationStep = true;
 			step = 0;
 			float delta = 0-currentTime;
 			deltaTime -= delta;
 			currentTime = 0;
-			updateOverride(step, step-1, isIterationStep, delta);
+			callCallback(TweenCallback.BEGIN);
 			callCallback(TweenCallback.START);
+			updateOverride(step, step-1, isIterationStep, delta);
+
+		} else if (!isIterationStep && repeatCnt >= 0 && step > repeatCnt*2 && currentTime+deltaTime < 0) {
+			assert step == repeatCnt*2 + 1;
+			isIterationStep = true;
+			step = repeatCnt*2;
+			float delta = 0-currentTime;
+			deltaTime -= delta;
+			currentTime = duration;
+			callCallback(TweenCallback.BACK_BEGIN);
+			callCallback(TweenCallback.BACK_START);
+			updateOverride(step, step+1, isIterationStep, delta);
 		}
 	}
 
@@ -455,8 +473,8 @@ public abstract class BaseTween<T> {
 				float delta = 0-currentTime;
 				deltaTime -= delta;
 				currentTime = duration;
-				updateOverride(step, step+1, isIterationStep, delta);
 				callCallback(TweenCallback.BACK_START);
+				updateOverride(step, step+1, isIterationStep, delta);
 
 			} else if (!isIterationStep && currentTime+deltaTime >= repeatDelay) {
 				isIterationStep = true;
@@ -464,28 +482,30 @@ public abstract class BaseTween<T> {
 				float delta = repeatDelay-currentTime;
 				deltaTime -= delta;
 				currentTime = 0;
-				updateOverride(step, step-1, isIterationStep, delta);
 				callCallback(TweenCallback.START);
+				updateOverride(step, step-1, isIterationStep, delta);
 
 			} else if (isIterationStep && currentTime+deltaTime < 0) {
 				isIterationStep = false;
 				step -= 1;
 				float delta = 0-currentTime;
 				deltaTime -= delta;
-				currentTime = repeatDelay;
+				currentTime = 0;
 				updateOverride(step, step+1, isIterationStep, delta);
 				callCallback(TweenCallback.BACK_END);
 				if (step < 0) callCallback(TweenCallback.BACK_COMPLETE);
+				currentTime = repeatDelay;
 
 			} else if (isIterationStep && currentTime+deltaTime > duration) {
 				isIterationStep = false;
 				step += 1;
 				float delta = duration-currentTime;
 				deltaTime -= delta;
-				currentTime = 0;
 				updateOverride(step, step-1, isIterationStep, delta);
+				currentTime = duration;
 				callCallback(TweenCallback.END);
 				if (step > repeatCnt*2) callCallback(TweenCallback.COMPLETE);
+				currentTime = 0;
 
 			} else if (isIterationStep) {
 				float delta = deltaTime;
