@@ -470,40 +470,52 @@ public abstract class BaseTween<T> {
 			if (!isIterationStep && currentTime+deltaTime <= 0) {
 				isIterationStep = true;
 				step -= 1;
+
 				float delta = 0-currentTime;
 				deltaTime -= delta;
 				currentTime = duration;
+
+				if (isReverse(step)) forceStartValues(); else forceEndValues();
 				callCallback(TweenCallback.BACK_START);
 				updateOverride(step, step+1, isIterationStep, delta);
 
 			} else if (!isIterationStep && currentTime+deltaTime >= repeatDelay) {
 				isIterationStep = true;
 				step += 1;
+
 				float delta = repeatDelay-currentTime;
 				deltaTime -= delta;
 				currentTime = 0;
+
+				if (isReverse(step)) forceEndValues(); else forceStartValues();
 				callCallback(TweenCallback.START);
 				updateOverride(step, step-1, isIterationStep, delta);
 
 			} else if (isIterationStep && currentTime+deltaTime < 0) {
 				isIterationStep = false;
 				step -= 1;
+
 				float delta = 0-currentTime;
 				deltaTime -= delta;
 				currentTime = 0;
+
 				updateOverride(step, step+1, isIterationStep, delta);
 				callCallback(TweenCallback.BACK_END);
+
 				if (step < 0) callCallback(TweenCallback.BACK_COMPLETE);
-				currentTime = repeatDelay;
+				else currentTime = repeatDelay;
 
 			} else if (isIterationStep && currentTime+deltaTime > duration) {
 				isIterationStep = false;
 				step += 1;
+
 				float delta = duration-currentTime;
 				deltaTime -= delta;
-				updateOverride(step, step-1, isIterationStep, delta);
 				currentTime = duration;
+
+				updateOverride(step, step-1, isIterationStep, delta);
 				callCallback(TweenCallback.END);
+
 				if (step > repeatCnt*2) callCallback(TweenCallback.COMPLETE);
 				currentTime = 0;
 
@@ -515,7 +527,6 @@ public abstract class BaseTween<T> {
 				break;
 
 			} else {
-				assert !isIterationStep;
 				float delta = deltaTime;
 				deltaTime -= delta;
 				currentTime += delta;

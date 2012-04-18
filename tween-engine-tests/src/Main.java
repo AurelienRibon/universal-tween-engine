@@ -40,7 +40,7 @@ public class Main {
 
 	private static void testTween(float step) {
 		MutableFloat target = new MutableFloat(0);
-		Tween t = Tween.to(target, 0, 1.0f).target(1).repeat(2, 0).start();
+		Tween t = Tween.to(target, 0, 1.0f).target(1).repeat(2, 1).delay(1).start();
 
 		t.setCallback(buildCallback("t", target, t)).setCallbackTriggers(TweenCallback.ANY);
 
@@ -70,7 +70,7 @@ public class Main {
 		Timeline tl = Timeline.createSequence()
 			.push(t1)
 			.push(t2)
-			.repeat(1, 0)
+			.repeat(1, 10)
 			.start();
 
 		tl.setCallback(buildCallback("TL", null, tl)).setCallbackTriggers(TweenCallback.ANY);
