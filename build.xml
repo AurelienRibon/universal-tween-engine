@@ -67,7 +67,7 @@
 			<fileset dir="${api.dir}" includes="*.jar" />
 		</zip>
 		<zip destfile="${tests.name}-${version}.zip">
-			<fileset dir="${tests.dir}" includes="*.jar, libs/, data/" />
+			<fileset dir="${tests.dir}" includes="*.jar, libs/, data/, src/" />
 			<zipfileset file="${api.dir}/${api.name}.jar" fullpath="libs/${api.name}.jar"/>
 		</zip>
 	</target>
