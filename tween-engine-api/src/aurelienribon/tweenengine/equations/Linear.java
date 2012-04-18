@@ -10,8 +10,8 @@ import aurelienribon.tweenengine.TweenEquation;
 public abstract class Linear extends TweenEquation {
 	public static final Linear INOUT = new Linear() {
 		@Override
-		public float compute(float t, float d) {
-			return t/d;
+		public float compute(float t) {
+			return t;
 		}
 
 		@Override

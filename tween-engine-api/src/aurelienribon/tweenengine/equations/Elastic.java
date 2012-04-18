@@ -12,14 +12,14 @@ public abstract class Elastic extends TweenEquation {
 
 	public static final Elastic IN = new Elastic() {
 		@Override
-		public final float compute(float t, float d) {
+		public final float compute(float t) {
 			float a = param_a;
 			float p = param_p;
-			if (t==0) return 0;  if ((t/=d)==1) return 1; if (!setP) p=d*.3f;
+			if (t==0) return 0;  if (t==1) return 1; if (!setP) p=.3f;
 			float s;
 			if (!setA || a < 1) { a=1; s=p/4; }
 			else s = p/(2*PI) * (float)Math.asin(1/a);
-			return -(a*(float)Math.pow(2,10*(t-=1)) * (float)Math.sin( (t*d-s)*(2*PI)/p ));
+			return -(a*(float)Math.pow(2,10*(t-=1)) * (float)Math.sin( (t-s)*(2*PI)/p ));
 		}
 
 		@Override
@@ -30,14 +30,14 @@ public abstract class Elastic extends TweenEquation {
 
 	public static final Elastic OUT = new Elastic() {
 		@Override
-		public final float compute(float t, float d) {
+		public final float compute(float t) {
 			float a = param_a;
 			float p = param_p;
-			if (t==0) return 0;  if ((t/=d)==1) return 1; if (!setP) p=d*.3f;
+			if (t==0) return 0;  if (t==1) return 1; if (!setP) p=.3f;
 			float s;
 			if (!setA || a < 1) { a=1; s=p/4; }
 			else s = p/(2*PI) * (float)Math.asin(1/a);
-			return a*(float)Math.pow(2,-10*t) * (float)Math.sin( (t*d-s)*(2*PI)/p ) + 1;
+			return a*(float)Math.pow(2,-10*t) * (float)Math.sin( (t-s)*(2*PI)/p ) + 1;
 		}
 
 		@Override
@@ -48,15 +48,15 @@ public abstract class Elastic extends TweenEquation {
 
 	public static final Elastic INOUT = new Elastic() {
 		@Override
-		public final float compute(float t, float d) {
+		public final float compute(float t) {
 			float a = param_a;
 			float p = param_p;
-			if (t==0) return 0;  if ((t/=d/2)==2) return 1; if (!setP) p=d*(.3f*1.5f);
+			if (t==0) return 0;  if ((t*=2)==2) return 1; if (!setP) p=.3f*1.5f;
 			float s;
 			if (!setA || a < 1) { a=1; s=p/4; }
 			else s = p/(2*PI) * (float)Math.asin(1/a);
-			if (t < 1) return -.5f*(a*(float)Math.pow(2,10*(t-=1)) * (float)Math.sin( (t*d-s)*(2*PI)/p ));
-			return a*(float)Math.pow(2,-10*(t-=1)) * (float)Math.sin( (t*d-s)*(2*PI)/p )*.5f + 1;
+			if (t < 1) return -.5f*(a*(float)Math.pow(2,10*(t-=1)) * (float)Math.sin( (t-s)*(2*PI)/p ));
+			return a*(float)Math.pow(2,-10*(t-=1)) * (float)Math.sin( (t-s)*(2*PI)/p )*.5f + 1;
 		}
 
 		@Override

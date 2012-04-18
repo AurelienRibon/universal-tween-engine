@@ -10,8 +10,8 @@ import aurelienribon.tweenengine.TweenEquation;
 public abstract class Bounce extends TweenEquation {
 	public static final Bounce IN = new Bounce() {
 		@Override
-		public final float compute(float t, float d) {
-			return 1 - OUT.compute(d-t, d);
+		public final float compute(float t) {
+			return 1 - OUT.compute(1-t);
 		}
 
 		@Override
@@ -22,8 +22,8 @@ public abstract class Bounce extends TweenEquation {
 
 	public static final Bounce OUT = new Bounce() {
 		@Override
-		public final float compute(float t, float d) {
-			if ((t/=d) < (1/2.75)) {
+		public final float compute(float t) {
+			if (t < (1/2.75)) {
 				return 7.5625f*t*t;
 			} else if (t < (2/2.75)) {
 				return 7.5625f*(t-=(1.5f/2.75f))*t + .75f;
@@ -42,9 +42,9 @@ public abstract class Bounce extends TweenEquation {
 
 	public static final Bounce INOUT = new Bounce() {
 		@Override
-		public final float compute(float t, float d) {
-			if (t < d/2) return IN.compute(t*2, d) * .5f;
-			else return OUT.compute(t*2-d, d) * .5f + 0.5f;
+		public final float compute(float t) {
+			if (t < 0.5f) return IN.compute(t*2) * .5f;
+			else return OUT.compute(t*2-1) * .5f + 0.5f;
 		}
 
 		@Override

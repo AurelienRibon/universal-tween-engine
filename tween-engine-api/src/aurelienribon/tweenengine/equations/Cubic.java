@@ -10,8 +10,8 @@ import aurelienribon.tweenengine.TweenEquation;
 public abstract class Cubic extends TweenEquation {
 	public static final Cubic IN = new Cubic() {
 		@Override
-		public final float compute(float t, float d) {
-			return (t/=d)*t*t;
+		public final float compute(float t) {
+			return t*t*t;
 		}
 
 		@Override
@@ -22,8 +22,8 @@ public abstract class Cubic extends TweenEquation {
 
 	public static final Cubic OUT = new Cubic() {
 		@Override
-		public final float compute(float t, float d) {
-			return (t=t/d-1)*t*t + 1;
+		public final float compute(float t) {
+			return (t-=1)*t*t + 1;
 		}
 
 		@Override
@@ -34,8 +34,8 @@ public abstract class Cubic extends TweenEquation {
 
 	public static final Cubic INOUT = new Cubic() {
 		@Override
-		public final float compute(float t, float d) {
-			if ((t/=d/2) < 1) return 0.5f*t*t*t;
+		public final float compute(float t) {
+			if ((t*=2) < 1) return 0.5f*t*t*t;
 			return 0.5f * ((t-=2)*t*t + 2);
 		}
 
