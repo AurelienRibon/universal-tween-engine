@@ -103,7 +103,7 @@ public abstract class BaseTween<T> {
 	 * Adds a delay to the tween or timeline.
 	 *
 	 * @param delay A duration.
-	 * @return The current tween, for chaining instructions.
+	 * @return The current object, for chaining instructions.
 	 */
 	public T delay(float delay) {
 		this.delay += delay;

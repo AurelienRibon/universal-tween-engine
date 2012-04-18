@@ -110,7 +110,7 @@ public final class Tween extends BaseTween<Tween> {
 	 * Gets the version number of the library.
 	 */
 	public static String getVersion() {
-		return "6.2.1";
+		return "6.3.0";
 	}
 
 	// -------------------------------------------------------------------------
@@ -416,7 +416,9 @@ public final class Tween extends BaseTween<Tween> {
 	/**
 	 * Sets the easing equation of the tween. Existing equations are located in
 	 * <i>aurelienribon.tweenengine.equations</i> package, but you can of course
-	 * implement your owns, see {@link TweenEquation}.
+	 * implement your owns, see {@link TweenEquation}. You can also use the
+	 * {@link TweenEquations} static instances to quickly access all the
+	 * equations. Default equation is Quad.INOUT.
 	 * <p/>
 	 *
 	 * <b>Proposed equations are:</b><br/>
@@ -434,6 +436,7 @@ public final class Tween extends BaseTween<Tween> {
 	 *
 	 * @return The current tween, for chaining instructions.
 	 * @see TweenEquation
+	 * @see TweenEquations
 	 */
 	public Tween ease(TweenEquation easeEquation) {
 		this.equation = easeEquation;
