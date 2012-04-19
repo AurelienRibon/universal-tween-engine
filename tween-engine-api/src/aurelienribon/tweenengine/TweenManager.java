@@ -141,10 +141,16 @@ public class TweenManager {
 	}
 
 	/**
-	 * Updates every tweens with a delta time. Handles the tween life-cycles
+	 * Updates every tweens with a delta time ang handles the tween life-cycles
 	 * automatically. If a tween is finished, it will be removed from the
-	 * manager. Slow motion, fast motion and backwards play can be easily
-	 * achieved by tweaking the deltaMillis given as parameter.
+	 * manager. The delta time represents the elapsed time between now and the
+	 * last update call. Each tween or timeline manages its local time, and adds
+	 * this delta to its local time to update itself.
+	 * <p/>
+	 *
+	 * Slow motion, fast motion and backward play can be easily achieved by
+	 * tweaking this delta time. Multiply it by -1 to play the animation
+	 * backward, or by 0.5 to play it twice slower than its normal speed.
 	 */
 	public void update(float delta) {
 		for (int i=objects.size()-1; i>=0; i--) {
