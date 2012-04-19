@@ -10,17 +10,18 @@ package aurelienribon.tweenengine;
  * <b>START</b>: at each iteration beginning<br/>
  * <b>END</b>: at each iteration ending, before the repeat delay<br/>
  * <b>COMPLETE</b>: at last END event<br/>
- * <b>BACK_START</b>: at each backwards iteration beginning, after the repeat delay<br/>
- * <b>BACK_END</b>: at each backwards iteration ending<br/>
+ * <b>BACK_BEGIN</b>: at the beginning of the first backward iteration<br/>
+ * <b>BACK_START</b>: at each backward iteration beginning, after the repeat delay<br/>
+ * <b>BACK_END</b>: at each backward iteration ending<br/>
  * <b>BACK_COMPLETE</b>: at last BACK_END event
  * <p/>
  *
  * <pre> {@code
- * forwards :         BEGIN                                   COMPLETE
- * forwards :         START    END      START    END      START    END
- * |------------------[XXXXXXXXXX]------[XXXXXXXXXX]------[XXXXXXXXXX]
- * backwards:         bEND  bSTART      bEND  bSTART      bEND  bSTART
- * backwards:         bCOMPLETE
+ * forward :      BEGIN                                   COMPLETE
+ * forward :      START    END      START    END      START    END
+ * |--------------[XXXXXXXXXX]------[XXXXXXXXXX]------[XXXXXXXXXX]
+ * backward:      bEND  bSTART      bEND  bSTART      bEND  bSTART
+ * backward:      bCOMPLETE                                 bBEGIN
  * }</pre>
  *
  * @see Tween

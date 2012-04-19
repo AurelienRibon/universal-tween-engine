@@ -195,17 +195,18 @@ public abstract class BaseTween<T> {
 	 * <b>START</b>: at each iteration beginning<br/>
 	 * <b>END</b>: at each iteration ending, before the repeat delay<br/>
 	 * <b>COMPLETE</b>: at last END event<br/>
-	 * <b>BACK_START</b>: at each backwards iteration beginning, after the repeat delay<br/>
-	 * <b>BACK_END</b>: at each backwards iteration ending<br/>
+	 * <b>BACK_BEGIN</b>: at the beginning of the first backward iteration<br/>
+	 * <b>BACK_START</b>: at each backward iteration beginning, after the repeat delay<br/>
+	 * <b>BACK_END</b>: at each backward iteration ending<br/>
 	 * <b>BACK_COMPLETE</b>: at last BACK_END event
 	 * <p/>
 	 *
 	 * <pre> {@code
-	 * forwards :         BEGIN                                   COMPLETE
-	 * forwards :         START    END      START    END      START    END
-	 * |------------------[XXXXXXXXXX]------[XXXXXXXXXX]------[XXXXXXXXXX]
-	 * backwards:         bEND  bSTART      bEND  bSTART      bEND  bSTART
-	 * backwards:         bCOMPLETE
+	 * forward :      BEGIN                                   COMPLETE
+	 * forward :      START    END      START    END      START    END
+	 * |--------------[XXXXXXXXXX]------[XXXXXXXXXX]------[XXXXXXXXXX]
+	 * backward:      bEND  bSTART      bEND  bSTART      bEND  bSTART
+	 * backward:      bCOMPLETE                                 bBEGIN
 	 * }</pre>
 	 *
 	 * @param flags one or more triggers, separated by the '|' operator.
@@ -502,7 +503,7 @@ public abstract class BaseTween<T> {
 				updateOverride(step, step+1, isIterationStep, delta);
 				callCallback(TweenCallback.BACK_END);
 
-				if (step < 0) callCallback(TweenCallback.BACK_COMPLETE);
+				if (step < 0 && repeatCnt >= 0) callCallback(TweenCallback.BACK_COMPLETE);
 				else currentTime = repeatDelay;
 
 			} else if (isIterationStep && currentTime+deltaTime > duration) {
@@ -516,7 +517,7 @@ public abstract class BaseTween<T> {
 				updateOverride(step, step-1, isIterationStep, delta);
 				callCallback(TweenCallback.END);
 
-				if (step > repeatCnt*2) callCallback(TweenCallback.COMPLETE);
+				if (step > repeatCnt*2 && repeatCnt >= 0) callCallback(TweenCallback.COMPLETE);
 				currentTime = 0;
 
 			} else if (isIterationStep) {
