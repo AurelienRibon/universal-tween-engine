@@ -50,6 +50,7 @@ public final class Timeline extends BaseTween<Timeline> {
 
 	private static final Pool.Callback<Timeline> poolCallback = new Pool.Callback<Timeline>() {
 		@Override public void onPool(Timeline obj) {obj.reset();}
+		@Override public void onUnPool(Timeline obj) {obj.reset();}
 	};
 
 	static final Pool<Timeline> pool = new Pool<Timeline>(10, poolCallback) {
