@@ -53,7 +53,7 @@ public abstract class BaseTween<T> {
 		isStarted = isInitialized = isFinished = isKilled = isPaused = false;
 
 		callback = null;
-		callbackTriggers = 0;
+		callbackTriggers = TweenCallback.COMPLETE;
 		userData = null;
 
 		isAutoRemoveEnabled = isAutoStartEnabled = true;
@@ -182,7 +182,6 @@ public abstract class BaseTween<T> {
 	 */
 	public T setCallback(TweenCallback callback) {
 		this.callback = callback;
-		this.callbackTriggers = TweenCallback.COMPLETE;
 		return (T) this;
 	}
 

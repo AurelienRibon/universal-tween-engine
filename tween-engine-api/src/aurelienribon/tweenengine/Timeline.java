@@ -284,13 +284,15 @@ public final class Timeline extends BaseTween<Timeline> {
 	protected void updateOverride(int step, int lastStep, boolean isIterationStep, float delta) {
 		if (!isIterationStep && step > lastStep) {
 			assert delta >= 0;
-			for (int i=0, n=children.size(); i<n; i++) children.get(i).update(delta + 1);
+			float dt = isReverse(lastStep) ? -delta-1 : delta+1;
+			for (int i=0, n=children.size(); i<n; i++) children.get(i).update(dt);
 			return;
 		}
 
 		if (!isIterationStep && step < lastStep) {
 			assert delta <= 0;
-			for (int i=children.size()-1; i>=0; i--) children.get(i).update(delta - 1);
+			float dt = isReverse(lastStep) ? -delta-1 : delta+1;
+			for (int i=children.size()-1; i>=0; i--) children.get(i).update(dt);
 			return;
 		}
 
