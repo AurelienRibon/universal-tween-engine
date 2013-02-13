@@ -1,0 +1,4 @@
+<?xml version="1.0" ?>
+<module rename-to="aurelienribon.tweenengine">
+	<source path="tweenengine" />
+</module>

@@ -1,0 +1,51 @@
+<project name="tween-engine-java" default="all" basedir=".">
+
+	<!-- ****************************************************************** -->
+	<!-- Definitions -->
+	<!-- ****************************************************************** -->
+	
+	<!-- version -->
+	<property name="version" value="6.3.3" />
+
+	<!-- projects properties -->
+	<property name="api.dir" value="api/" />
+	<property name="api.name" value="tween-engine-api" />
+
+	<!-- ****************************************************************** -->
+	<!-- Build tasks -->
+	<!-- ****************************************************************** -->
+	
+	<!-- clean -->	
+	<target name="clean">
+		<delete dir="build/" />
+	</target>
+
+	<!-- init -->
+	<target name="init" depends="clean">
+		<mkdir dir="build/${api.dir}/bin/" />
+	</target>
+
+	<!-- compile -->
+	<target name="compile" depends="init">
+		<javac target="1.6" source="1.6" debug="on" srcdir="${api.dir}/src/" destdir="build/${api.dir}/bin/" />
+	</target>
+	
+	<!-- package -->
+	<target name="package" depends="compile">
+		<!-- api -->
+		<jar destfile="build/${api.dir}/${api.name}.jar" basedir="build/${api.dir}/bin/" />
+		<jar destfile="build/${api.dir}/${api.name}-sources.jar" basedir="${api.dir}/src/" />
+	</target>
+
+	<!-- zip -->
+	<target name="zip" depends="package">
+		<zip destfile="${api.name}-${version}.zip">
+			<fileset dir="build/${api.dir}/" includes="*.jar" />
+		</zip>
+	</target>
+	
+	<!-- all -->
+	<target name="all" depends="zip">
+		<antcall target="clean"/>
+	</target>
+</project>
