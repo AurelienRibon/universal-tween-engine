@@ -22,7 +22,7 @@ abstract class Pool<T> {
 		try {
 			obj = objects.isEmpty() ? create() : objects.remove(0);
 		} catch (Exception e) {}
-		if (obj == null) obj = create;
+		if (obj == null) obj = create();
 		if (callback != null) callback.onUnPool(obj);
 		return obj;
 	}
