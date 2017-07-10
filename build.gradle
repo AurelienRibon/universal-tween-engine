@@ -3,7 +3,7 @@ ant.importBuild('java/build.xml') {
 }
 
 task mvn_install_tweenengine(dependsOn: package_tweenengine){
-	ext.mvn_dir = projectDir //Default setting assumes that maven is added to your path
+	ext.mvn_dir = project.hasProperty('mvn_dir') ? project.getProperty('mvn_dir') : projectDir //Default setting assumes that maven is added to your path
 	
 	doLast {
 		exec{
