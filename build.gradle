@@ -12,7 +12,7 @@ task mvn_install_tweenengine(dependsOn: package_tweenengine){
 			
 			def version = ant.properties['version']
 			
-			def cmdline = 'install:install-file -Dfile=' + projectDir + '/java/build/' + api_dir + '/' + api_name + '.jar -DgroupId=com.aurelienribon -DartifactId=tween-engine-api -Dversion=' + version + ' -Dpackaging=jar'
+			def cmdline = 'install:install-file -Dfile=' + projectDir + '/java/build/' + api_dir + '/' + api_name + '.jar -DgroupId=com.aurelienribon -DartifactId=' + api_name + ' -Dversion=' + version + ' -Dpackaging=jar'
 		
 			workingDir = mvn_dir
 			if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
