@@ -24,6 +24,4 @@ task mvn_install_tweenengine(dependsOn: package_tweenengine){
 	}
 }
 
-mvn_install_tweenengine.mvn_dir = file('../apache-maven-3.3.9/bin')
-
 defaultTasks 'mvn_install_tweenengine'
