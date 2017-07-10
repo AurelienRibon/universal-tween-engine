@@ -1,0 +1,27 @@
+ant.importBuild('java/build.xml') { 
+	antTargetName -> antTargetName + '_tweenengine'
+}
+
+task mvn_install_tweenengine(dependsOn: package_tweenengine){
+	ext.mvn_dir = project.hasProperty('mvn_dir') ? project.getProperty('mvn_dir') : projectDir //Default setting assumes that maven is added to your path
+	
+	doLast {
+		exec{
+			def api_dir = ant.properties['api.dir']
+			def api_name = ant.properties['api.name']
+			
+			def version = ant.properties['version']
+			
+			def cmdline = 'install:install-file -Dfile=' + projectDir + '/java/build/' + api_dir + '/' + api_name + '.jar -DgroupId=com.aurelienribon -DartifactId=' + api_name + ' -Dversion=' + version + ' -Dpackaging=jar'
+		
+			workingDir = mvn_dir
+			if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
+				commandLine 'cmd', '/c', 'mvn.cmd ' + cmdline
+			} else {
+				commandLine 'mvn ' + cmdline
+			} 
+		}
+	}
+}
+
+defaultTasks 'mvn_install_tweenengine'
